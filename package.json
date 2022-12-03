@@ -1,0 +1,25 @@
+{
+  "name": "lostnfound",
+  "version": "1.0.0",
+  "description": "Manage tags to get back youir lost items",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon --watch src src/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "tag",
+    "lost",
+    "found",
+    "qr-code"
+  ],
+  "author": "z720",
+  "license": "MIT",
+  "dependencies": {
+    "fastify": "^4.10.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
