@@ -1,0 +1,13 @@
+{
+	"tag.form.title": "Create a new Tag",
+  "tag.form.name": "Tag Name",
+	"tag.form.owner.section": "Owner notification",
+	"tag.form.owner.help":"How to be notified when tag is found: Specify the meail address to notify when someone wants to return the lost item.",
+	"tag.form.owner.email": "Email",
+	"tag.form.finder.section": "Instructions",
+	"tag.form.finder.help": "Instructions for finder: Specify the instructions received by email by the finder when a wants to return the lost item",
+	"tag.form.finder.responseText": "Message",
+	"tag.form.finder.responseText.help": "(Markdown Format)",
+	"tag.form.finder.responseText.helpUrl": "https://www.markdownguide.org/cheat-sheet/",
+	"tag.form.submit": "Submit"
+}

@@ -1,0 +1,11 @@
+
+.help {
+  vertical-align: top;
+  font-size: 65%;
+}
+#responseText {
+  min-height: 10em;
+}
+.actions { 
+  text-align: right;
+}
