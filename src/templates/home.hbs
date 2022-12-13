@@ -1,2 +1,20 @@
-<h1>Welcome</h1>
-<p>Lost n Found concept: Create tag with a QR code for your items. When you item is lost and someone scans the tag, that person is able to provide an email address to get instructions</p>
+<h1>{{ __ "Welcome"}}</h1>
+<blockquote>{{ __ 'Lost n Found concept: Create tag with a QR code for your items. When you item is lost and someone scans the tag, that
+  person is able to provide an email address to get instructions'}}</blockquote>
+
+<p>
+  {{ __ 'Want to try you own tag: '}}
+  {{#if session.email }}
+  <a href="/create"><button>{{ __ 'Create a Tag' }}</button></a>
+  {{else }}
+  <a href="/login"><button>{{ __ 'Login or Sign in' }}</button></a>
+  {{/if}}
+</p>
+<form>
+  <p>{{ __ "Found a tag and don't know what to do ?"}}</p>
+  <p>
+    <label for="tagId">{{ __ 'Tag Id'}}</label>
+    <input type="text" id="tagId" name="tagId" />
+    <button type="submit">{{ __ 'Check the tag' }}</button>
+  </p>
+</form>

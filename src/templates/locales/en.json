@@ -1,4 +1,7 @@
 {
+	"login.email": "Enter your email to get a Magic Link and connect",
+	"loginOrNew": "Login or Sign in",
+	"login.sendLink": "Send me a link",
 	"tag.form.title": "Create a new Tag",
   "tag.form.name": "Tag Name",
 	"tag.form.owner.section": "Owner notification",

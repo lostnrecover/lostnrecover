@@ -1,2 +1,4 @@
 node_modules/
 _
+.session-secret-key
+.jwt-secret

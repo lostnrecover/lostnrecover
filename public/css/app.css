@@ -1,3 +1,10 @@
+main header {
+  line-height: 2em;
+  border-bottom: 1ps solid grey;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
 .help {
   vertical-align: top;

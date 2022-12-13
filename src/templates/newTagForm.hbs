@@ -3,14 +3,14 @@
   <fieldset>
     <p>
       <label for="name">{{ __ 'tag.form.name' }}</label>
-      <input id="name" type="text" />
+      <input name="name" id="name" type="text" />
     </p>
   </fieldset>
   <fieldset>
     <legend>{{ __ 'tag.form.owner.section' }}</legend>
     <p>
       <label for="email">{{ __ 'tag.form.owner.email' }}</label>
-      <input id="email" type="email" />
+      <input name="email" id="email" type="email" value="{{ session.email }}"/>
     </p>
     <p>{{ __ 'tag.form.owner.help' }}</p>
   </fieldset>
@@ -24,9 +24,7 @@
             {{ __ 'tag.form.finder.responseText.help' }}</a>
         </small> --}}
       </label>
-      <textarea id="responseText">
-
-      </textarea>
+      <textarea name="responseText" id="responseText"></textarea>
     </p>
     <p>{{ __ 'tag.form.finder.help' }}</p>
     {{!-- <p><label for="lang">{{ __ 'tag.form.finder.lang' }}</label>

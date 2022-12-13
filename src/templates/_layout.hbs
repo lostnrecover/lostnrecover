@@ -8,9 +8,16 @@
 </head>
 <body>
 	<main>
-		<h1>Lost n Found</h1>
+		<header>
+		<h1><a href="/">Lost n Found</a></h1>
+		<nav>{{# if session.email }}
+			<a href="/account">{{ __ 'Account' }}</a>
+			<a href="/logout">{{ __ 'Logout' }}</a>{{/if}}
+		</nav>
+		</header>
 		{{{body}}}
 	</main>
+	{{ log @root }}
 </body>
 
 </html>
