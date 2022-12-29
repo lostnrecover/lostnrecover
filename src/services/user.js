@@ -1,34 +1,64 @@
 import { nanoid } from "nanoid";
-export function UserService(mongodb) {
-	const COLLECTION = ' users'
-	const PUBLIC_PROJECTION = { _id: 1, email: 1, status: 1 }
-	const USERS = mongodb.collection(COLLECTION);
+import { AuthTokenService } from "./authtoken.js";
 
-	async function get(id, projection) {
-		return USERS.findOne({ id }, { projection: projection || PUBLIC_PROJECTION });
+export function UserService(mongodb, logger) {
+	const COLLECTION = 'users'
+	const PUBLIC_PROJECTION = { _id: 1, email: 
+		1, status: 1 }
+	const USERS = mongodb.collection(COLLECTION);
+	const {verify} = AuthTokenService(mongodb, logger);
+
+	async function get(filter, projection) {
+		if(!filter._id && !filter.email) {
+			throw("Can't get user without email or _id")
+		}
+		return USERS.findOne(filter, { projection: projection || PUBLIC_PROJECTION });
 	}
 
 	async function findOrCreate(email) {
 		let user = await USERS.findOne({ email }, { projection: PUBLIC_PROJECTION});
 		if(!user) {
-			return await create({ email })
-		} else {
-			return user
-		}
+			user = await create({ email })
+		} 
+		return user
 	}
 
 	async function create(user) {
 		user._id = nanoid();
 		if (!user.status) {
-			user.status = 'active';
+			user.status = 'new';
 		}
-		user.createdAt = Date.now();
+		user.createdAt = new Date();
 		const result = await USERS.insertOne(user);
-		console.log(result)
 		if(!result.acknowledged) {
 			throw('Impossible to create user profile')
 		}
-		return await get(result.insertedId, PUBLIC_PROJECTION)
+		return get({ _id: result.insertedId }, PUBLIC_PROJECTION)
+	}
+
+	async function list(filter) {
+		let f = filter || {};
+		return await USERS.find(f).toArray();
+	}
+
+	async function login(token) {
+		let email = await verify(token);
+		if(!email) {
+			throw('Invalid Token')
+		}
+		let user = await findOrCreate(email)
+		if(!user) {
+			throw('Invalid Token')
+		}
+		USERS.updateOne({ _id: user._id }, {
+			$set: {
+				status: 'active',
+				lastLogin: new Date()
+			}
+		}).then(r => {
+			logger.error('Error while updating user status', user)
+		});
+		return email
 	}
 
 	const SCHEMA = {
@@ -41,13 +71,13 @@ export function UserService(mongodb) {
 				},
 				status: {
 					type: "string",
-					enum: ["new", "active", "lost", "archived"]
+					enum: ["new", "active", "finder"]
 				}
 			}
 		}
 	}
 
 	return {
-		SCHEMA, get, findOrCreate, create
+		SCHEMA, findOrCreate, create, login, list
 	}
 }

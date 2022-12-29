@@ -2,22 +2,22 @@
 <html>
 
 <head>
-	<title>{{ title }} - Lost n Found</title>
+	<title>{{ title }} - {{ appName }}</title>
 	<link rel="stylesheet" href="https://unpkg.com/marx-css/css/marx.min.css" />
 	<link rel="stylesheet" href="/public/css/app.css" />
 </head>
 <body>
 	<main>
 		<header>
-		<h1><a href="/">Lost n Found</a></h1>
-		<nav>{{# if session.email }}
-			<a href="/account">{{ __ 'Account' }}</a>
-			<a href="/logout">{{ __ 'Logout' }}</a>{{/if}}
+		<h1><a href="/">{{ appName }}</a></h1>
+		<nav><a href="/about"><img src="/public/icons/help-circle.svg" title="{{ __ 'About' }}" /></a>{{# if session.email }}
+			<a href="/tags"><img src="/public/icons/user.svg" title="{{ __ 'Account' }}" /></a>
+			<a href="/logout"><img src="/public/icons/log-out.svg" title="{{ __ 'Logout' }}" /></a>{{/if}}
+			{{ showLocale }}
 		</nav>
 		</header>
 		{{{body}}}
+		<footer>{{ pkg.displayName }} - v{{ pkg.version }} - [<a href="?locale=en" title="Switch to english">en</a> | <a href="?locale=fr" title="Passer en français">fr</a>]</footer>
 	</main>
-	{{ log @root }}
 </body>
-
 </html>

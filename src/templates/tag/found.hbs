@@ -1,0 +1,23 @@
+<h1>{{ __ 'Hourrah' }}</h1>
+
+<p>{{__ 'You found tag %s with id: ' tag.name }} <strong><code>{{tag._id}}</code></strong></p>
+
+<form method="post" action="/t/{{tag._id}}/notify">
+{{#if session.email }}
+  <p>
+    <label for="email">{{__ 'Enter you email address to notify the owner and get instructions'}}</label>
+    <input type="email" id="email" name="email" disabled value={{session_email}}/>
+  </p>
+  <p>{{ __ 'Should we share this email with the tag owner ?' }}
+    <input type="radio" name="share" id="share_yes" value="true"/><label for="share_yes">{{ __ 'Yes' }}</label>
+    <input type="radio" name="share" id="share_no" value="false" checked="checked" /><label for="share_no">{{ __ 'No' }}</label>
+  </p>
+{{else}}
+  <p>
+  <label for="email">{{__ 'Enter you email address to notify the owner and get instructions'}}</label>
+  <input type="email" id="email" name="email" />
+  </p>
+{{/if}}
+  <p><button type="submit">{{ __ 'Send' }}</button> </p>
+</form>
+<p>{{ __ 'You will be sent an email to confirm your address and before the tag owner is notifed of your discovery...' }}</p>

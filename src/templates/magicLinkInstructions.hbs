@@ -1,15 +1,16 @@
-<p>{{ __ 'Please click on the magic link provided in the mail.'}}</p>
+
+<form action="/auth" method="get" class="inline">
+<p>{{ __ 'Please click on the magic link provided in the mail.'}} 
+  <label for="token">{{ __ 'Or check the received token' }}</label>
+  <input type="password" name="token" id="token" />
+  <button>{{ __ 'Check' }}</button>
+</form>
+</p>
 {{#if email}}
-<form action="/login" method="post">
+<form action="/login" method="post" class="inline">
+<p>{{ __ 'No email received ?'}}
   <input type="hidden" id="email" name="email" value="{{email}}"/>
   <button type="submit">{{ __ 'Resend Magic Link' }}</button>
+</p>
 </form>
 {{/if}}
-{{!-- <form action="/auth" method="get">
-<p>
-  <label for="token">{{ __ 'Token' }}</label>
-  <textarea name="token" id="token">
-  </textarea>
-  <button>{{ __ 'Start session' }}</button>
-</p>
-</form> --}}

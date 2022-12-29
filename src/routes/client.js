@@ -1,11 +1,16 @@
 
 export default function(fastify, opts, done) {
   // console.log('Init templates', opts.templateDir)
-  fastify.get('/', (req,reply) => {
-    reply.view('home', {})
+  fastify.get('/', async (req,reply) => {
+    if(req.query.tagId) {
+      reply.redirect(`/t/${req.query.tagId}`)
+    } else {
+      reply.view('home', {})
+    }
+    return reply
   });
-  fastify.get('/create', (req, reply) => {
-    reply.view('newTagForm')
-  })
+  fastify.get('/about', (req,reply) => {
+    reply.view('about', {})
+  });
   done()
 }

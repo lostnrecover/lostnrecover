@@ -17,6 +17,7 @@
       ],
       "cwd": "${workspaceFolder}",
       // "program": "${workspaceFolder}/src/server.js"
+      "outputCapture": "std"
     }
   ]
 }

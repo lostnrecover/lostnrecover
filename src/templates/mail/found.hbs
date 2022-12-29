@@ -1,0 +1,20 @@
+<h2>Tag {{tag.name}} found</h2>
+
+<p>Here are the instructions provided for the discovery:</p>
+
+<hr />
+<pre>
+{{tag.responseText}}
+</pre>
+
+{{#if email }}
+<p>The person with your tag also provided the following email address for you to contact him directly: {{ email }}
+</p>
+{{/if}}
+
+<hr />
+<p> This email was sent to {{ to }} because it was attached as contact detail 
+  on tag {{ tag._id }} from {{ appName }}.
+If you didn't try to subscribe to our service, please ignore this email or contact us to get your email removed {{ support_email }}
+We are sorry for this.
+</p>

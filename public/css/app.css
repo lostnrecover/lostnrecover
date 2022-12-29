@@ -5,14 +5,30 @@ main header {
   justify-content: space-between;
   align-items: center;
 }
+main footer {
+  margin-top: var(--md-pad)
+}
 
 .help {
   vertical-align: top;
   font-size: 65%;
 }
+
 #responseText {
   min-height: 10em;
 }
 .actions { 
   text-align: right;
+}
+button.view {
+  background-color: mediumaquamarine;
+}
+
+form.inline input { 
+  width: auto;  
+  display: inline;
+}
+
+table.listing {
+  width: 100%
 }

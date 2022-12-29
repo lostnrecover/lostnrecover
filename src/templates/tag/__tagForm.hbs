@@ -1,0 +1,53 @@
+<form method="post" id="editform">
+  <h2>{{ title }}
+  </h2>
+  <fieldset>
+    <p>
+      <label for="name">{{ __ 'Tag Name' }}</label>
+      <input name="name" id="name" type="text" value="{{tag.name}}" />
+    </p>
+  </fieldset>
+  <fieldset>
+    <legend>{{ __ 'About the owner' }}</legend>
+    <p>
+      <label for="email">{{ __ 'Email notified when tag is found' }}</label>
+      <input name="email" id="email" type="email" value="{{ tag.email }}"/>
+    </p>
+    <p>{{ __ 'Recipient for notification sent when tag is found. If empty, the user account email will be notified.' }}</p>
+  </fieldset>
+  <fieldset>
+    <legend>{{ __ 'Instructions to the tag holder' }}</legend>
+    <p>
+      <label for="responseText">
+        {{ __ 'Instructions' }}
+        {{!-- <small class="help">
+          <a href={{ __ 'tag.form.finder.responseText.helpUrl' }} target="markdown-help">
+            {{ __ 'tag.form.finder.responseText.help' }}</a>
+        </small> --}}
+      </label>
+      <textarea name="responseText" id="responseText">{{ tag.responseText }}</textarea>
+    </p>
+    <p>{{ __ 'Instructions sent to the tag finder. Should explain how to return the item or contact you.' }}</p>
+    <blockquote><pre>
+{{ localizedFile 'instructions-sample'}}
+    </pre></blockquote>
+    {{!-- <p><label for="lang">{{ __ 'tag.form.finder.lang' }}</label>
+      <select>
+        <option>en</option>
+        <option value="__other__">{{ __ 'tag.form.lang.other'}}</option>
+      </select>
+    </p> --}}
+  </fieldset>
+  {{#if readonly}}
+</form>
+  <p class="actions">
+   <a href="?edit=1"><button method="get" name="edit" value="2">{{ __ 'Edit' }}</button></a>
+  </p>
+  {{else}}
+  <p class="actions">
+    {{!-- <a href="?edit=0"><button form="noop" class="view">{{ __ 'View' }}</button></a> --}}
+    <button type="submit" form="editform" >{{#if submitText }}submitText{{else}}{{ __ ' Submit' }} {{/if}}</button>
+  </p>
+  {{/if}}
+<!-- end of form -->
+{{!-- TODO: Markdown help and preview --}}

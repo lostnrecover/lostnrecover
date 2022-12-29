@@ -12,22 +12,28 @@ export default function(fastify, opts, done) {
 	})
 	fastify.post('/login', async (req, res) => {
 		let email = req.body.email;
-		console.log(req.body)
 		if (!email) {
 			res.code(404)
 		} else {
 			// Check user email or create user if not exists
-			let user = await SVC.findOrCreate(email)
-			console.log('>>> user', user);
+			let user = await SVC.findOrCreate(email);
+			console.log(user)
 			/* with JWT
 			// Generate token
 			let d = new Date();
 			d.setHours(d.getHours() + 1);
 			const token = fastify.jwt.sign({ email, expiration: d })
 			*/
-			const token = await create(user.email, 3600 / 2)
+			const token = await create(user.email, 3600 / 2);
+			const link = `${req.protocol}://${req.hostname}/auth?token=${token}`
 			// Send email
-			console.log('Magic Link', `${req.protocol}://${req.hostname}/auth?token=${token}`, email)
+			fastify.sendmail({
+				to: email,
+				subject: 'Please verify your email to unlock your account',
+				template: 'mail/email_verify',
+				context: { link, token, email }
+			})
+			console.log('Magic Link', link, email)
 		}
 		res.redirect(`/auth?email=${email}`);
 	})
@@ -43,23 +49,10 @@ export default function(fastify, opts, done) {
 			}
 			if(req.query.token) {
 				// check provided token
-				let email = await verify(req.query.token);
-				console.log('auth', req.query, email)
+				let email = await SVC.login(req.query.token);
 				if(!email) {
 					throw('Invalid Token')
 				}
-				let user = await SVC.findOrCreate(email)
-				if(!user) {
-					throw('Invalid Token')
-				}
-				/* with JWT
-				// check token
-				if(fastify.jwt.verify(req.params.token)) {
-
-				} else {
-					res.code(403).view('magicLinkForm', { error: 'Invalid token'})
-				}
-				*/
 				// init session
 				req.session.set('email', email);
 				res.redirect(`/`)
