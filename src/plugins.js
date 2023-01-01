@@ -117,5 +117,6 @@ export function loadFastifyPlugins(fastify) {
 			subject: `${TPL_CONST.appName}: ${options.subject || 'Notification'}`, //`Lost n Found: Instructions for ${tag.name} (${tag._id})`,
 			html: mailBody
 		})
-	})
+	});
+
 }

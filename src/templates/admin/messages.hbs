@@ -1,0 +1,32 @@
+<h2>{{ __ 'Messages list' }}
+</h2>
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th>{{ __ 'Msg id'}}</th>
+      <th>{{ __ 'Status' }}</th>
+      <th>{{ __ 'Created At' }}</th>
+      <th>{{ __ 'Sent' }}</th>
+      <th>{{ __ 'Subject' }}</th>
+      <th>{{ __ 'Recipient' }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each messages}}
+    {{#with this}}
+    <tr>
+      <td><input type="checkbox" name="selected[]" /></td> 
+      <td>{{ _id }}</td>
+      <td>{{ status }}</td>
+      <td>{{ dateFormat createdAt 'l LTS' }}</td>
+      <td>{{ dateFormat sentAt 'l LTS'  }}</td>
+      <td>{{ subject }}</td>
+      <td>{{ to }}</td>
+      <td>
+      </td>
+    </tr>
+    {{/with}}
+    {{/each}}
+  </tbody>
+</table>

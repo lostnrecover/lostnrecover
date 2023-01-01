@@ -7,7 +7,7 @@ export default function(fastify, opts, done) {
 	const SVC = UserService(fastify.mongo.db, fastify.log);
 	const { create, verify} = AuthTokenService(fastify.mongo.db, fastify.log)
 	fastify.get('/login', async (req, reply) => {
-		reply.view('magicLinkForm')
+		reply.view('magicLink/form')
 		return reply
 	})
 	fastify.post('/login', async (req, res) => {
@@ -58,7 +58,7 @@ export default function(fastify, opts, done) {
 				res.redirect(`/`)
 			} else {
 				// Propose to help 
-				res.view('magicLinkInstructions', data);
+				res.view('magicLink/instructions', data);
 			}
 			return res
 	})

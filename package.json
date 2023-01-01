@@ -6,7 +6,7 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon --watch src -e js,hbs src/server.js",
+    "dev": "ENV=dev nodemon --watch src -e js,hbs src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -27,6 +27,7 @@
     "@fastify/session": "^10.1.0",
     "@fastify/static": "^6.6.0",
     "@fastify/view": "^7.3.0",
+    "agenda": "^5.0.0",
     "fastify": "^4.10.2",
     "fastify-mailer": "^2.3.1",
     "handlebars": "^4.7.7",
