@@ -12,9 +12,6 @@ import pkg from '../package.json' assert { type: "json" };
 
 // current dir for options
 import path from 'path'
-import url from 'url';
-import fs from 'fs';
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 // Templating
 import Handlebars from 'handlebars';
@@ -25,28 +22,51 @@ const TPL_CONST = {
 	support_email: 'lnf@z720.net',
 	appName: 'Lost n Found',
 }
+export function errorHandler(error, request, reply) {
+	let e = error;
+	if(typeof error == 'string') {
+		e = {
+			code: 500,
+			details: error
+		}
+	} else if(!e.details && e.message) {
+		e.details = e.message
+	}
+	fastify.log.error(error)
+  // this IS called
+  reply.code(e.code || 500)
+	// if HTML
+	if(e.redirect) {
+		reply.redirect(e.redirect)
+	} else {
+		reply.view('error', {error: e})
+	}
+	// if json
+	// reply.send(error)
+}
 
-export function loadFastifyPlugins(fastify) {
+export function loadFastifyPlugins(fastify, config) {
 
 	fastify.register(MongoDB, {
 		// force to close the mongodb connection when app stopped
 		// the default value is false
 		forceClose: true,
-		url: 'mongodb://mongodb/lostnfound'
+		url: config.db_url //'mongodb://mongodb/lostnfound'
 	});
 
 	fastify.register(fastifyCookie);
-	// fastify.register(fastifySession, {secret: process.env.SESSION_SECRET || 'a secret with minimum length of 32 characters'});
+
 	fastify.register(fastifySession, {
 		// the name of the session cookie, defaults to 'session'
-		cookieName: 'lostnfound',
+		cookieName: config.cookies.name, //'lostnfound',
 		// adapt this to point to the directory where secret-key is located
-		key: fs.readFileSync(path.join(__dirname, '../.session-secret-key')),
+		key: config.cookies.secret, //fs.readFileSync(path.join(__dirname, '../.session-secret-key'))
 		cookie: {
 			path: '/'
 			// options for setCookie, see https://github.com/fastify/fastify-cookie
 		}
 	})
+	
 	// TODO outsource to a locale dedicated file
 	fastify.addHook("preHandler", function (request, reply, done) {
 		if (['en', 'fr'].indexOf(request.query.locale) > -1) {
@@ -63,7 +83,7 @@ export function loadFastifyPlugins(fastify) {
 		done();
 	});
 
-	const TPL_DIR = path.join(__dirname, './templates')
+	const TPL_DIR = config.template_dir
 	fastify.register(fastifyView, {
 		engine: {
 			handlebars: Handlebars
@@ -74,7 +94,7 @@ export function loadFastifyPlugins(fastify) {
 	loadHelpers(Handlebars, TPL_DIR);
 	loadPartials(Handlebars, TPL_DIR);
 	fastify.register(fastifyStatic, {
-		root: path.join(__dirname, '../public'),
+		root: path.join(config.app_root_dir, '/public'),
 		prefix: '/public/'
 	});
 	fastify.register(fastifyForm);
@@ -83,21 +103,7 @@ export function loadFastifyPlugins(fastify) {
 	fastify.register(fastifyMailer, {
 		defaults: { from: `${TPL_CONST.appName} <${TPL_CONST.support_email}>` },
 		transport: {
-			host: 'smtp.ethereal.email',
-			port: 587,
-			auth: {
-        user: 'elyssa.kessler60@ethereal.email',
-        pass: 'gYRZ7cxFEEtEf1aKvU'
-		// transport: {
-		//   host: 'smtp.example.tld',
-		//   port: 465,
-		//   secure: true, // use TLS
-		//   auth: {
-		//     user: 'john.doe',
-		//     pass: 'super strong password'
-		//   }
-		// }
-    	}
+			...config.mail_transport
 		}
 	});
 	
