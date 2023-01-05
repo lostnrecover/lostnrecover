@@ -8,6 +8,10 @@ const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const cookie_secret_file = process.env.COOKIE_SECRET_FILE || path.join(__dirname, '../.session-secret-key')
 
 export const config = {
+	support_email: 'lnf@z720.net',
+	appName: 'Lost n Found',
+	DOMAIN: process.env.DOMAIN ?? null,
+	SHORT_DOMAIN: process.env.SHORT_DOMAIN ?? null,
 	PORT: process.env.PORT || 3000,
 	HOST: process.env.HOST || '::',
 	db_url: process.env.DB_URL || 'mongodb://mongodb/lostnfound',
@@ -16,6 +20,8 @@ export const config = {
 		name: 'lostnfound',
 		secret: fs.readFileSync(cookie_secret_file)
 	},
+	cache: path.join(__dirname, '/tmp'),
+	locales: {'en': 'English', 'fr': 'Français'},
 	template_dir: process.env.TEMPLATE_DIR || path.join(__dirname, './templates'),
 	mail_transport: {
 		host: 'smtp.ethereal.email',

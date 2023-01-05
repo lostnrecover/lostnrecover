@@ -18,10 +18,6 @@ import Handlebars from 'handlebars';
 import { loadHelpers, loadPartials } from './templating.js';
 import { EXCEPTIONS } from './services/exceptions.js';
 
-const TPL_CONST = {
-	support_email: 'lnf@z720.net',
-	appName: 'Lost n Found',
-}
 export function errorHandler(error, request, reply) {
 	let e = error;
 	if(typeof error == 'string') {
@@ -32,7 +28,7 @@ export function errorHandler(error, request, reply) {
 	} else if(!e.details && e.message) {
 		e.details = e.message
 	}
-	fastify.log.error(error)
+	request.log.error(error)
   // this IS called
   reply.code(e.code || 500)
 	// if HTML
@@ -66,20 +62,31 @@ export function loadFastifyPlugins(fastify, config) {
 			// options for setCookie, see https://github.com/fastify/fastify-cookie
 		}
 	})
-	
+
+	function templateGlobalContext(locale) {
+		let context = {
+			config: fastify.config,
+			locale,
+			pkg,
+		}
+		delete context.config.cookies;
+		delete context.config.mail_transport;
+		return context;
+	}
+
 	// TODO outsource to a locale dedicated file
 	fastify.addHook("preHandler", function (request, reply, done) {
-		if (['en', 'fr'].indexOf(request.query.locale) > -1) {
+		if(!config.DOMAIN || config.DOMAIN == '') {
+			config.DOMAIN = request.hostname
+			fastify.log.info(`Switched domain: ${config.DOMAIN}`)
+		}
+		if (Object.keys(config.locales).indexOf(request.query.locale) > -1) {
 			request.session.set('locale', request.query.locale)
 		}
-		reply.locals = {
-			session: {
-				email: request.session.get('email') || false
-			},
-			...TPL_CONST,
-			locale: request.session.get('locale') || 'en',
-			pkg,
-		};
+		reply.locals = templateGlobalContext(request.session.get('locale') || 'en');
+		reply.locals.session = {
+			email: request.session.get('email') || false
+		}
 		done();
 	});
 
@@ -101,26 +108,28 @@ export function loadFastifyPlugins(fastify, config) {
 
 	// TODO: external configuration
 	fastify.register(fastifyMailer, {
-		defaults: { from: `${TPL_CONST.appName} <${TPL_CONST.support_email}>` },
+		defaults: { from: `${config.appName} <${config.support_email}>` },
 		transport: {
 			...config.mail_transport
 		}
 	});
-	
+
 	fastify.decorate('sendmail', (options) => {
+		// TODO: move to be exceuted only once
 		fastify.mailer.use('compile', htmlToText())
 		let mailBody = options.text;
 		if (options.template) {
-			let tpl = Handlebars.compile(`{{ localizedFile '${options.template}' }}`, { noEscape: true });
-			mailBody = tpl({ ...TPL_CONST, locale: options.locale || 'en', ...options.context, to: options.to})
+			let tpl = Handlebars.compile(`{{ localizedFile '${options.template}' }}`, { noEscape: true }),
+				context = templateGlobalContext(options.locale || 'en');
+			mailBody = tpl({ ...context, ...options.context, to: options.to})
 		}
 		if(!mailBody) {
 			throw EXCEPTIONS.EMPTY_MAIL_BODY;
 		}
 		fastify.mailer.sendMail({
 			to: options.to,
-			from: options.from || `${TPL_CONST.appName} <${TPL_CONST.support_email}>`, //`"Tag Owner <tag-${tag._id}@lnf.z720.net>`,
-			subject: `${TPL_CONST.appName}: ${options.subject || 'Notification'}`, //`Lost n Found: Instructions for ${tag.name} (${tag._id})`,
+			from: options.from || `${config.appName} <${config.support_email}>`, //`"Tag Owner <tag-${tag._id}@lnf.z720.net>`,
+			subject: `${config.appName}: ${options.subject || 'Notification'}`, //`Lost n Found: Instructions for ${tag.name} (${tag._id})`,
 			html: mailBody
 		})
 	});

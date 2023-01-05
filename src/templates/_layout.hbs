@@ -2,14 +2,14 @@
 <html>
 
 <head>
-	<title>{{ title }} - {{ appName }}</title>
+	<title>{{ title }} - {{ config.appName }}</title>
 	<link rel="stylesheet" href="https://unpkg.com/marx-css/css/marx.min.css" />
 	<link rel="stylesheet" href="/public/css/app.css" />
 </head>
 <body>
 	<main>
 		<header>
-		<h1><a href="/">{{ appName }}</a></h1>
+		<h1><a href="/">{{ config.appName }}</a></h1>
 		<nav><a href="/about"><img src="/public/icons/help-circle.svg" title="{{ __ 'About' }}" /></a>{{# if session.email }}
 			<a href="/tags"><img src="/public/icons/user.svg" title="{{ __ 'Account' }}" /></a>
 			<a href="/logout"><img src="/public/icons/log-out.svg" title="{{ __ 'Logout' }}" /></a>{{/if}}
@@ -17,7 +17,12 @@
 		</nav>
 		</header>
 		{{{body}}}
-		<footer>{{ pkg.displayName }} - v{{ pkg.version }} - [<a href="?locale=en" title="Switch to english">en</a> | <a href="?locale=fr" title="Passer en français">fr</a>]</footer>
+		<footer>{{ pkg.displayName }} - v{{ pkg.version }} -
+			{{#each config.locales }}{{#if @first}}{{else}} | {{/if}}
+			<a href="?locale={{@key}}" title="{{ __loc @key 'Switch to %s' this }}">{{@key}}</a>
+			{{/each}}
+			- <a href="/admin">{{ __ 'Admin' }}</a>
+		</footer>
 	</main>
 </body>
 </html>

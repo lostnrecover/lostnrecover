@@ -22,5 +22,6 @@
   "Recipient for notification sent when tag is found. If empty, the user account email will be notified.": "Destinataire des notifications lorsque l'étiquette est trouvée. Si laissé vide, l'adresse du compte utilisateur sera utilisée.",
   "Email notified when tag is found": "Email pour les notification de cette étiquette",
   "Instructions to the tag holder": "Instructions pour la découverte de l'étiquette",
-  "Instructions sent to the tag finder. Should explain how to return the item or contact you.": "Instructions qui seront communiquées à la personne qui retrouve votre étiquette. Elles devraient expliquer comment retourner l'objet ou comment vous contacter."
+  "Instructions sent to the tag finder. Should explain how to return the item or contact you.": "Instructions qui seront communiquées à la personne qui retrouve votre étiquette. Elles devraient expliquer comment retourner l'objet ou comment vous contacter.",
+	"Switch to %s": "Passer en %s"
 }
