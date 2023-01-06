@@ -1,10 +1,10 @@
 import { nanoid } from "nanoid";
 import { EXCEPTIONS } from './exceptions.js'
 
-export function DiscoveryService(mongodb, logger) {
+export function DiscoveryService(mongodb, parentLogger) {
 	const COLLECTION = 'discovery'
 	const DISCOVERY = mongodb.collection(COLLECTION);
-
+	const logger = parentLogger.child({ service: 'Discovery'})
   // TODO Ensure Init index on tags ?
 
   async function get(id) {
@@ -16,7 +16,7 @@ export function DiscoveryService(mongodb, logger) {
 	}
 
   async function create(tagId, finder, owner) {
-    let discovery = { 
+    let discovery = {
       _id: nanoid(),
       tagId, finder, owner,
       createdAt: new Date(),
@@ -36,10 +36,14 @@ export function DiscoveryService(mongodb, logger) {
 		// TODO remove protected fields
 		let result = await TAGS.updateOne({
 			_id: id
-		}, { $set: {
-			...discovery,
-			updatedAt: new Date()
-		}})
+		}, {
+			$set: {
+				...discovery
+			},
+			$currentDate: {
+				updatedAt: true
+			}
+		})
     // TODO: Check result and eventually throw exception
 		return await get(id);
 	}

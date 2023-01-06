@@ -1,12 +1,12 @@
 import { nanoid } from "nanoid";
 import { AuthTokenService } from "./authtoken.js";
 
-export function UserService(mongodb, logger) {
-	const COLLECTION = 'users'
-	const PUBLIC_PROJECTION = { _id: 1, email: 
-		1, status: 1 }
-	const USERS = mongodb.collection(COLLECTION);
-	const {verify} = AuthTokenService(mongodb, logger);
+export function UserService(mongodb, parentLogger) {
+	const logger = parentLogger.child({ service: 'User' }),
+		COLLECTION = 'users',
+		PUBLIC_PROJECTION = { _id: 1, email:1, status: 1 },
+		USERS = mongodb.collection(COLLECTION),
+		{verify} = AuthTokenService(mongodb, logger);
 
 	async function get(filter, projection) {
 		if(!filter._id && !filter.email) {
@@ -19,7 +19,7 @@ export function UserService(mongodb, logger) {
 		let user = await USERS.findOne({ email }, { projection: PUBLIC_PROJECTION});
 		if(!user) {
 			user = await create({ email })
-		} 
+		}
 		return user
 	}
 

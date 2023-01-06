@@ -4,12 +4,13 @@ import path from 'path'
 import fs from 'fs';
 import { generateKey } from 'crypto';
 
-export function TagService(mongodb, logger, cache) {
-	const COLLECTION = 'tags', 
-		TMPDIR = cache,
+export function TagService(mongodb, parentLogger, config) {
+	const COLLECTION = 'tags',
+		TMPDIR = config.cache_dir,
 		PUBLIC_PROJECTION = { projection: { _id: 1, name: 1, responseText: 1, status: 1, owner: 1, email: 1 }},
 		ALL_PROJECTION = {},
-		TAGS = mongodb.collection(COLLECTION);
+		TAGS = mongodb.collection(COLLECTION),
+		logger = parentLogger.child({ service: 'Tag' })
 
 	async function get(id, projection) {
 		// console.log('get', id)
@@ -42,10 +43,10 @@ export function TagService(mongodb, logger, cache) {
 	}
 	async function update(id, tag) {
 		// let oldTag = await get(id, ALL_PROJECTION);
-		// let newTag = { 
-		// 	...oldTag, 
-		// 	...tag, 
-		// 	createdAt: oldTag.createdAt, 
+		// let newTag = {
+		// 	...oldTag,
+		// 	...tag,
+		// 	createdAt: oldTag.createdAt,
 		// 	updatedAt: new Date(),
 		// 	_id: id
 		// }
@@ -58,44 +59,59 @@ export function TagService(mongodb, logger, cache) {
 		}})
 		return get(id);
 	}
-	async function getQRCodeFile(tagId, domain, format, refreshCache) {
+	async function getQRCodeFile(tagId, format, refreshCache) {
 		let options = {}, cacheFileName, code;
 		options.type = 'svg'
 		if (format == 'png') {
 			options.type = 'png'
 		}
-		cacheFileName = path.join('tmp', `/${tagId}.${options.type}`)
+		cacheFileName = path.join(TMPDIR, `/${tagId}.${options.type}`)
 		if(!fs.existsSync(cacheFileName) || refreshCache) {
-			let t = await generateCode(cacheFileName, domain, tagId, options);
+			let t = await generateCode(cacheFileName, tagId, options);
 		} else {
 			console.log('Using cache', cacheFileName);
 		}
 		return cacheFileName;
 	}
-	async function generateCode(filename, dom, tagId, options) {
-		let domain = 'rtbck.me', text = `${domain}/t/${tagId}`, physicalPath = path.join('public/', filename);
+	async function generateCode(filename, tagId, options) {
+		let domain = config.SHORT_DOMAIN ?? config.DOMAIN,
+			text = `${domain}/t/${tagId}`, physicalPath = path.join(filename);
 		return new Promise((resolve, reject) => {
-			QRCode.toString(text, options, (err, txt) => {
-				if(err) {
-					reject(`Error generating Code: ${err}`)
-				}
-				console.log('Generated', filename, text, options, txt);
-				if(options.type == 'svg') {
-					//Append domain and tagId
-					let domainTag = `<text x="50%" y="1.75" dominant-baseline="middle" text-anchor="middle" font-family="Helvetica" font-size="3">${domain}</text>`
-					let tagTag = `<text x="50%" y="35.5" dominant-baseline="middle" text-anchor="middle" font-family="Courier"  font-size="3">Id: ${tagId}</text> `
-					// let t = txt.replace('</svg>',`${domainTag}${tagTag}</svg>`);
-					fs.writeFileSync(physicalPath, txt);
-				}
-				resolve(filename);
-			})
+			if(options.type == 'png') {
+				QRCode.toFile(physicalPath, text, (err) => {
+					if(err) {
+						console.error(err);
+						reject(`Error generating Code: ${err}`)
+					} else {
+						resolve(filename);
+					}
+				})
+			} else {
+				options.type = 'svg';
+				QRCode.toString(text, options, (err, txt) => {
+					if(err) {
+						reject(`Error generating Code: ${err}`)
+					}
+					console.log('Generated', filename, text, options, txt);
+					if(options.type == 'svg') {
+						//Append domain and tagId
+						// let domainTag = `<text x="50%" y="1.75" dominant-baseline="middle" text-anchor="middle" font-family="Helvetica" font-size="3">${domain}</text>`
+						// let tagTag = `<text x="50%" y="35.5" dominant-baseline="middle" text-anchor="middle" font-family="Courier"  font-size="3">Id: ${tagId}</text> `
+						// let t = txt.replace('</svg>',`${domainTag}${tagTag}</svg>`);
+						fs.writeFileSync(physicalPath, txt);
+					}
+					resolve(filename);
+				})
+			}
 		});
 	}
 	async function findAll() {
 		return TAGS.find({ status: { $not: { $eq: 'archived' } } }).toArray()
 	}
-	async function findForUser(email) {
-		return TAGS.find({ owner: email }).toArray();
+	// TODO: Switch user reference to user._id instead of email
+	async function findForUser(email, filter) {
+		let f = filter ? filter : {}
+		return TAGS.find({ ...filter, owner: email }).toArray();
 	}
 	async function remove(filter) {
 		const deleteManyResult = await TAGS.deleteMany(filter);

@@ -1,0 +1,23 @@
+<form method="post">
+	<p>
+		<label for="displayname">{{ __ 'Display Name' }}</label>
+		<input type="text" id="displayname" name="displayname" value="{{user.displayname}}"/>
+	</p>
+	<p>
+		<label for="locale">{{ __ 'Language' }} {{user.locale}}</label>
+		<select id="locale" name="locale">
+			{{#each config.locales}}
+				<option value="{{@key}}" {{#ifEquals locale @key}}selected="selected"{{/ifEquals}}>{{this}}</option>
+			{{/each}}
+		</select>
+	</p>
+	<p>
+		<label for="timezone">{{ __ 'Timezone' }} {{user.tz}}</label>
+		{{!-- TODO autocomplete instead of select --}}
+		<select id="timezone" name="timezone">
+			{{#each timezones}}
+			<option value="{{this.tzCode}}" {{#ifEquals user.tz this.tzCode}}selected="selected"{{/ifEquals}}>{{this.label}}</option>
+			{{/each}}
+		</select>
+	</p>
+</form>

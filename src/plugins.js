@@ -34,6 +34,8 @@ export function errorHandler(error, request, reply) {
 	// if HTML
 	if(e.redirect) {
 		reply.redirect(e.redirect)
+	} else if (e.view ) {
+		reply.view(e.view, { url: request.url } );
 	} else {
 		reply.view('error', {error: e})
 	}
@@ -78,7 +80,7 @@ export function loadFastifyPlugins(fastify, config) {
 	fastify.addHook("preHandler", function (request, reply, done) {
 		if(!config.DOMAIN || config.DOMAIN == '') {
 			config.DOMAIN = request.hostname
-			fastify.log.info(`Switched domain: ${config.DOMAIN}`)
+			request.log.info(`Switched domain: ${config.DOMAIN}`)
 		}
 		if (Object.keys(config.locales).indexOf(request.query.locale) > -1) {
 			request.session.set('locale', request.query.locale)
@@ -98,25 +100,26 @@ export function loadFastifyPlugins(fastify, config) {
 		root: TPL_DIR,
 		layout: '_layout.hbs'
 	});
-	loadHelpers(Handlebars, TPL_DIR);
-	loadPartials(Handlebars, TPL_DIR);
+	loadHelpers(fastify.log.child({ module: 'helpers' }), Handlebars, TPL_DIR);
+	loadPartials(fastify.log.child({ module: 'partials' }), Handlebars, TPL_DIR);
 	fastify.register(fastifyStatic, {
-		root: path.join(config.app_root_dir, '/public'),
+		root: config.public_dir,
 		prefix: '/public/'
 	});
 	fastify.register(fastifyForm);
 
-	// TODO: external configuration
 	fastify.register(fastifyMailer, {
 		defaults: { from: `${config.appName} <${config.support_email}>` },
 		transport: {
 			...config.mail_transport
 		}
 	});
+	fastify.ready(err => {
+		// executed only once after mailer init (all register ready)
+		fastify.mailer.use('compile', htmlToText())
+	})
 
 	fastify.decorate('sendmail', (options) => {
-		// TODO: move to be exceuted only once
-		fastify.mailer.use('compile', htmlToText())
 		let mailBody = options.text;
 		if (options.template) {
 			let tpl = Handlebars.compile(`{{ localizedFile '${options.template}' }}`, { noEscape: true }),

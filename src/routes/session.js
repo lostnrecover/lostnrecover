@@ -1,23 +1,29 @@
-import {UserService} from '../../services/user.js'
-import { AuthTokenService } from '../../services/authtoken.js'
+import {UserService} from '../services/user.js'
+import { AuthTokenService } from '../services/authtoken.js'
 // import fastifySecureSession from '@fastify/secure-session';
 
-// src/routes/v1/accounts.js
+// src/routes/accounts.js
 export default function(fastify, opts, done) {
-	const SVC = UserService(fastify.mongo.db, fastify.log);
-	const { create, verify} = AuthTokenService(fastify.mongo.db, fastify.log)
+	const logger = fastify.log.child({ controller: 'AccountAPI' }),
+		USERS = UserService(fastify.mongo.db, logger),
+		{ create, verify} = AuthTokenService(fastify.mongo.db, logger);
+
 	fastify.get('/login', async (req, reply) => {
 		reply.view('magicLink/form')
 		return reply
 	})
 	fastify.post('/login', async (req, res) => {
-		let email = req.body.email;
+		let email = req.body.email,
+			redirect = "";
+		if(req.body.redirect) {
+			redirect = `&redirect=${req.body.redirect}`;
+		}
 		if (!email) {
 			res.code(404)
 		} else {
 			// Check user email or create user if not exists
-			let user = await SVC.findOrCreate(email);
-			console.log(user)
+			let user = await USERS.findOrCreate(email);
+			let child = logger.child({user})
 			/* with JWT
 			// Generate token
 			let d = new Date();
@@ -25,7 +31,7 @@ export default function(fastify, opts, done) {
 			const token = fastify.jwt.sign({ email, expiration: d })
 			*/
 			const token = await create(user.email, 3600 / 2);
-			const link = `${req.protocol}://${req.hostname}/auth?token=${token}`
+			let link = `${req.protocol}://${req.hostname}/auth?token=${token}${redirect}`;
 			// Send email
 			fastify.sendmail({
 				to: email,
@@ -33,31 +39,38 @@ export default function(fastify, opts, done) {
 				template: 'mail/email_verify',
 				context: { link, token, email }
 			})
-			console.log('Magic Link', link, email)
+			child.child({link, email}).info('Magic Link')
 		}
-		res.redirect(`/auth?email=${email}`);
+		res.redirect(`/auth?email=${email}${redirect}`);
 	})
-	fastify.get('/auth',{ 
+	fastify.get('/auth',{
 		schema: {
 			// request needs to have a querystring with a `name` parameter
-				querystring: { token: { type: 'string'} } 
+				querystring: { token: { type: 'string'} }
 			}
 		}, async (req, res) => {
 			let data = {};
 			if(req.query.email) {
 				data.email = req.query.email
 			}
+			if(req.query.redirect) {
+				data.redirect = req.query.redirect
+			}
 			if(req.query.token) {
 				// check provided token
-				let email = await SVC.login(req.query.token);
+				let email = await USERS.login(req.query.token);
 				if(!email) {
 					throw('Invalid Token')
 				}
 				// init session
 				req.session.set('email', email);
-				res.redirect(`/`)
+				if(req.query.redirect) {
+					res.redirect(req.query.redirect);
+				} else {
+					res.redirect(`/`)
+				}
 			} else {
-				// Propose to help 
+				// Propose to help
 				res.view('magicLink/instructions', data);
 			}
 			return res
@@ -66,7 +79,11 @@ export default function(fastify, opts, done) {
 		// kill session
 		req.session.delete()
 		//return ok
-		res.redirect('/')
-	})
+		if(req.query.redirect) {
+			res.redirect(req.query.redirect);
+		} else {
+			res.redirect(`/`)
+		}
+	});
 	done();
 }

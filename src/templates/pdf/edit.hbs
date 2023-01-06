@@ -1,0 +1,15 @@
+
+<form method="get">
+	<p class="inline">
+		{{ __ 'Stickers format: ' }}
+		<label><input type="number" name="preview.rows" value="{{ preview.rows }}"/>{{ __ 'rows' }}</label>
+		{{ __ ' with' }}
+		<label> <input type="number" name="preview.perRow" value={{ preview.perRow}} />{{ __ 'per row' }}</label>
+	</p>
+	{{#each qty}}
+	{{#with this}}
+	<p class="inline">{{name}} / {{_id}}: <input type="number" name="qty[{{_id}}]" value="{{ qty }}"</p>
+	{{/with}}
+	{{/each}}
+	<button type="submit">Generate</button>
+</form>

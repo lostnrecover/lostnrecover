@@ -3,10 +3,11 @@ import Agenda from "agenda";
 
 let workerJob = false;
 
-export function MessageService(mongodb, logger, mailer) {
+export function MessageService(mongodb, parentLogger, mailer) {
 	const COLLECTION = 'messages'
 	const MSG = mongodb.collection(COLLECTION);
 	const retentionDays = 2;
+	const logger = parentLogger.child({ service: 'Message' })
 
 	// init agenda job
 	if (!workerJob) {
@@ -106,7 +107,7 @@ export function MessageService(mongodb, logger, mailer) {
 			send(msg._id);
 			idx++
 		});
-		console.log(`Sent ${idx} messages`);
+		logger.info(`Sent ${idx} messages`);
 	}
 
 	async function list() {

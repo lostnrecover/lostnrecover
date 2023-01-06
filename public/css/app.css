@@ -17,16 +17,18 @@ main footer {
 #responseText {
   min-height: 10em;
 }
-.actions { 
+.actions {
   text-align: right;
 }
 button.view {
   background-color: mediumaquamarine;
 }
 
-form.inline input { 
-  width: auto;  
+.inline input {
+  width: auto;
   display: inline;
+	margin-left: 0.5ex;
+	margin-right: 0.5ex;
 }
 
 table.listing {

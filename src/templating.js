@@ -11,30 +11,24 @@ const messages = {
 	'en': enLocale.default
 }
 
-function extractAdditionnalData(args, offset) {
-	let data = [], ar = [...args];
-	if(ar.length > offset) {
-		data = ar.slice(offset,-1);
+export function loadHelpers(logger, Handlebars, templateDir) {
+	function extractAdditionnalData(args, offset) {
+		let data = [], ar = [...args];
+		if(ar.length > offset) {
+			data = ar.slice(offset,-1);
+		}
+		return data;
 	}
-	return data;
-}
 
-// console.log('messages', messages);
-function localizedText(locale, key, data) {
-	let tr = `${key}`, needle = key.replace(/(\r\n|\n|\r)/gm, "").trim();
-	// console.log('locale', locale, needle, data, messages[locale][needle])
-	// let options = args.slice(-1);
-	// // let locale = options.data.locale || 'en';
-	// console.log('helper', options.lookupProperty(this, 'locale'))
-	if(messages[locale] && messages[locale][needle]) {
-		tr = messages[locale][needle];
-	} else if(locale != 'en') {
-		console.error('Missing translation', locale, needle, messages[locale][needle])
+	function localizedText(requestedLocale, key, data) {
+		let tr = `${key}`, needle = key.replace(/(\r\n|\n|\r)/gm, "").trim(), locale = requestedLocale ?? 'en';
+		if(messages[locale] && messages[locale][needle]) {
+			tr = messages[locale][needle];
+		} else if(locale != 'en') {
+			logger.warn('Missing translation', locale, needle)
+		}
+		return format(tr, ...data);
 	}
-	return format(tr, ...data);
-}
-
-export function loadHelpers(Handlebars, templateDir) {
 	Handlebars.registerHelper("__", function(key) {
 		return localizedText(this.locale, key, extractAdditionnalData(arguments, 1));
 	});
@@ -47,7 +41,6 @@ export function loadHelpers(Handlebars, templateDir) {
 	Handlebars.registerHelper('dateFormat', function dateFormat(date, format, options) {
 		let locale = this.locale || options.data.root.locale || 'en';
 		// TODO: Detect timezone at login ? or browser to update the session [ Intl.DateTimeFormat().resolvedOptions().timeZone ]
-		console.log('locale time', locale)
 		return (true) ? moment(date).tz('Europe/Paris').locale(locale).format(format) : moment(date).locale(locale).format(format);
 	});
 	Handlebars.registerHelper('iconLink', function(href, icon, text) {
@@ -68,7 +61,7 @@ export function loadHelpers(Handlebars, templateDir) {
 		for (const idx in files) {
 			if (Object.hasOwnProperty.call(files, idx)) {
 				const file = files[idx], p = path.join(templateDir, file);
-				console.log('try', p, messages[locale][p])
+				logger.debug('try', p, messages[locale][p])
 				if(messages[locale][p]) {
 					return messages[locale][p](this);
 				}
@@ -82,16 +75,15 @@ export function loadHelpers(Handlebars, templateDir) {
 	});
 }
 
-export function loadPartials(Handlebars, templateDir) {
+export function loadPartials(logger, Handlebars, templateDir) {
 	// Handlebars.registerPartial('tagForm', fs.readFileSync(path.join(templateDir, '/tag/_tagForm.hbs')).toString());
 	glob(`${templateDir}/**/__*.hbs`, (error, partials)=> {
 		if(error){
-			return console.log(error)
+			return logger.error(error)
 		}
 		partials.map((partial) => {
 			let pattern = /.*\/__(.*)\.hbs/gi
 			let res = pattern.exec(partial)
-			// console.log('partial found', partial, res[1])
 			Handlebars.registerPartial(res[1], fs.readFileSync(path.join(partial)).toString());
 		});
 	});

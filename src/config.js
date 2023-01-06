@@ -15,14 +15,16 @@ export const config = {
 	PORT: process.env.PORT || 3000,
 	HOST: process.env.HOST || '::',
 	db_url: process.env.DB_URL || 'mongodb://mongodb/lostnfound',
-	app_root_dir: path.join(__dirname, '/..'),
 	cookies: {
 		name: 'lostnfound',
 		secret: fs.readFileSync(cookie_secret_file)
 	},
-	cache: path.join(__dirname, '/tmp'),
 	locales: {'en': 'English', 'fr': 'Français'},
+	app_root_dir: path.join(__dirname, '/..'),
+	cache_dir: path.join(__dirname, '/../public/tmp'),
+	public_dir: path.join(__dirname, '/../public'),
 	template_dir: process.env.TEMPLATE_DIR || path.join(__dirname, './templates'),
+		// TODO external mail configuration
 	mail_transport: {
 		host: 'smtp.ethereal.email',
 		port: 587,

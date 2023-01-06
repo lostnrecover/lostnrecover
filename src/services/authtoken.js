@@ -9,11 +9,12 @@ import { EXCEPTIONS } from './exceptions.js'
 // NB: only fully works if contact email is removed from tag when its archived
 
 
-export function AuthTokenService(mongodb, logger) {
+export function AuthTokenService(mongodb, parentLogger) {
 	const COLLECTION_NAME = 'authtokens'
 	const COLLECTION = mongodb.collection(COLLECTION_NAME);
 	// Check if TTL index exists
 	const TTLIndexName = 'expiration TTL';
+	const logger = parentLogger.child({ service: 'AuthToken'})
 	let indexExpiration = COLLECTION.indexExists(TTLIndexName).then(exists => {
 		if (!exists) {
 			COLLECTION.createIndex({ "expireAt": 1 }, { name: TTLIndexName, expireAfterSeconds: 0 })
@@ -32,7 +33,7 @@ export function AuthTokenService(mongodb, logger) {
 		token.createdAt = new Date();
 		token.validUntil = addSeconds(token.createdAt, (offset || 3600))
 		token.expireAt = addSeconds(token.validUntil, 3600);
-	
+
 		const result = await COLLECTION.insertOne(token);
 		if (!result.acknowledged) {
 			throw (`Impossible to create token for: ${email}`)

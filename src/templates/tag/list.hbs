@@ -20,7 +20,7 @@
       <td>{{name}}</td>
       <td>{{#if status}}{{status}}{{else}}active{{/if}}</td>
       <td>{{#if email }}{{ email }}{{ else }}{{ @root.session.email }}*{{/if}}</td>
-      <td><a href="/t/{{_id}}/code.svg" download="tag-{{_id}}.svg"><img src="/t/{{_id}}/code.svg" /></a></td>
+      <td><a href="/code/svg/{{_id}}" download="tag-{{_id}}.svg"><img src="/code/svg/{{_id}}" /></a></td>
       <td>
         {{!-- <a href="/print/add?tagId={{_id}}"><img src="/public/icons/grid.svg" title="{{ __ 'Add to Print' }}" /></a> --}}
         <a href="/tags/{{ _id }}?edit=1"><img src="/public/icons/edit.svg" title="{{ __ 'Edit ?' }}" /></a>
