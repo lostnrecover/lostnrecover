@@ -22,6 +22,7 @@ export const config = {
 	locales: {'en': 'English', 'fr': 'Français'},
 	app_root_dir: path.join(__dirname, '/..'),
 	cache_dir: path.join(__dirname, '/../public/tmp'),
+	pdf_cache_dir: path.join(__dirname, '../public/pdf'),
 	public_dir: path.join(__dirname, '/../public'),
 	template_dir: process.env.TEMPLATE_DIR || path.join(__dirname, './templates'),
 		// TODO external mail configuration

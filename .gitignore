@@ -4,3 +4,4 @@ _
 .jwt-secret
 .*secret
 tmp
+public/pdf

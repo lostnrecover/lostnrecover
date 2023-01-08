@@ -1,15 +1,29 @@
 
 <form method="get">
-	<p class="inline">
-		{{ __ 'Stickers format: ' }}
-		<label><input type="number" name="preview.rows" value="{{ preview.rows }}"/>{{ __ 'rows' }}</label>
-		{{ __ ' with' }}
-		<label> <input type="number" name="preview.perRow" value={{ preview.perRow}} />{{ __ 'per row' }}</label>
+	<h2>{{ __ 'Print format' }}</h2>
+	<p>
+		<label for="tempalte">{{ __ 'Template' }}</label>
+		<select name="template" id="tempalte">
+			{{#each templates}}
+			<option value="{{@key}}">{{this.name}}</option>
+			{{/each}}
+		</select>
 	</p>
+	<p><label for="skip">{{ __ 'number of labels to skip (when reusing a sheet)' }}</label>
+		<input type="number" value="{{skip}}" name="skip" id="skip"/>
+	</p>
+	<h2>{{ __ 'Number of copies per tag' }}</h2>
 	{{#each qty}}
 	{{#with this}}
-	<p class="inline">{{name}} / {{_id}}: <input type="number" name="qty[{{_id}}]" value="{{ qty }}"</p>
+	<p class="inline"><label for="qty[{{_id}}]">{{name}} / {{_id}}: </label><input type="number" id="qty[{{_id}}]" name="qty[{{_id}}]" value="{{ qty }}"</p>
 	{{/with}}
 	{{/each}}
-	<button type="submit">Generate</button>
+	<p>
+	<button type="submit">{{__ "Generate"}}</button>
+	</p>
 </form>
+{{#if currentPdf}}
+<p><a href="/public/pdf/{{currentPdf}}.pdf">Download</a></p>
+<iframe class="pdfpreview" src="/public/pdf/{{currentPdf}}.pdf"></iframe>
+{{/if}}
+
