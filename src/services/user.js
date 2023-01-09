@@ -4,7 +4,7 @@ import { AuthTokenService } from "./authtoken.js";
 export function UserService(mongodb, parentLogger) {
 	const logger = parentLogger.child({ service: 'User' }),
 		COLLECTION = 'users',
-		PUBLIC_PROJECTION = { _id: 1, email:1, status: 1, tz: 1, locale: 1},
+		PUBLIC_PROJECTION = { _id: 1, email:1, status: 1, tz: 1, locale: 1, displayName: 1},
 		USERS = mongodb.collection(COLLECTION),
 		{verify} = AuthTokenService(mongodb, logger);
 
