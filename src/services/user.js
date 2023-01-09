@@ -4,7 +4,7 @@ import { AuthTokenService } from "./authtoken.js";
 export function UserService(mongodb, parentLogger) {
 	const logger = parentLogger.child({ service: 'User' }),
 		COLLECTION = 'users',
-		PUBLIC_PROJECTION = { _id: 1, email:1, status: 1 },
+		PUBLIC_PROJECTION = { _id: 1, email:1, status: 1, tz: 1, locale: 1},
 		USERS = mongodb.collection(COLLECTION),
 		{verify} = AuthTokenService(mongodb, logger);
 
@@ -61,6 +61,20 @@ export function UserService(mongodb, parentLogger) {
 		return email
 	}
 
+	async function update(id, user) {
+		// remove protected fields
+		delete user.createdAt;
+		delete user.lastLogin;
+		let result = await USERS.updateOne({
+			_id: id
+		}, { $set: {
+			...user,
+			updatedAt: new Date()
+		}});
+		//TODO: check update result.
+		return await get({ _id: id });
+	}
+
 	const SCHEMA = {
 		body: {
 			type: 'object',
@@ -78,6 +92,6 @@ export function UserService(mongodb, parentLogger) {
 	}
 
 	return {
-		SCHEMA, findOrCreate, create, login, list
+		SCHEMA, findOrCreate, create, login, list, update
 	}
 }

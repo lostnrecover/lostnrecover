@@ -10,10 +10,12 @@
 	<main>
 		<header>
 		<h1><a href="/">{{ config.appName }}</a></h1>
-		<nav><a href="/about"><img src="/public/icons/help-circle.svg" title="{{ __ 'About' }}" /></a>{{# if session.email }}
-			<a href="/tags"><img src="/public/icons/user.svg" title="{{ __ 'Account' }}" /></a>
-			<a href="/logout"><img src="/public/icons/log-out.svg" title="{{ __ 'Logout' }}" /></a>{{/if}}
-			{{ showLocale }}
+		<nav><a href="/about"><img src="/public/icons/help-circle.svg" title="{{ __ 'About' }}" /></a>
+		{{# if session.email }}
+			<a href="/tags"><img src="/public/icons/tag.svg" title="{{ __ 'Tags' }}" /></a>
+			<a href="/account"><img src="/public/icons/user.svg" title="{{ __ 'Account' }}" /></a>
+			<a href="/logout"><img src="/public/icons/log-out.svg" title="{{ __ 'Logout' }}" /></a>
+		{{/if}}
 		</nav>
 		</header>
 		{{{body}}}

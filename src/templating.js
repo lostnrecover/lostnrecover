@@ -40,7 +40,8 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 	})
 	Handlebars.registerHelper('dateFormat', function dateFormat(date, format, options) {
 		let locale = this.locale || options.data.root.locale || 'en';
-		// TODO: Detect timezone at login ? or browser to update the session [ Intl.DateTimeFormat().resolvedOptions().timeZone ]
+		// ?TODO: Detect timezone at login ? or browser to update the session [ Intl.DateTimeFormat().resolvedOptions().timeZone ]
+		// TODO: use timezone from user profile
 		return (true) ? moment(date).tz('Europe/Paris').locale(locale).format(format) : moment(date).locale(locale).format(format);
 	});
 	Handlebars.registerHelper('iconLink', function(href, icon, text) {
@@ -72,6 +73,9 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 				}
 			}
 		}
+	});
+	Handlebars.registerHelper('selected', function(selected, option) {
+		return (selected == option) ? 'selected="selected"' : '';
 	});
 }
 

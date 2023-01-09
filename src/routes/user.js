@@ -14,11 +14,17 @@ export default function(fastify, opts, done) {
 		preHandler: authenticated,
 		handler: async (request, reply) => {
 			let user = await USERS.findOrCreate(request.session.email);
+			if(request.body) {
+				user.tz = request.body.timezone;
+				user.locale = request.body.locale;
+				// Update user profile
+				user = 	await USERS.update(user._id, user);
+			}
 			if(!user.tz) {
 				user.tz = 'Europe/Paris';
 			}
 			reply.view('account',  { user, timezones: tz.default.sort((a,b) => {
-				return a.name > b.name
+				return a.label > b.label
 			})});
 			return reply
 		}

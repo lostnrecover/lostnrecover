@@ -4,20 +4,25 @@
 		<input type="text" id="displayname" name="displayname" value="{{user.displayname}}"/>
 	</p>
 	<p>
-		<label for="locale">{{ __ 'Language' }} {{user.locale}}</label>
+		<label for="locale">{{ __ 'Language' }}</label>
 		<select id="locale" name="locale">
 			{{#each config.locales}}
-				<option value="{{@key}}" {{#ifEquals locale @key}}selected="selected"{{/ifEquals}}>{{this}}</option>
+				<option value="{{@key}}" {{{selected @root.user.locale @key}}}>{{this}}</option>
 			{{/each}}
 		</select>
 	</p>
 	<p>
-		<label for="timezone">{{ __ 'Timezone' }} {{user.tz}}</label>
+		<label for="timezone">{{ __ 'Timezone' }}</label>
 		{{!-- TODO autocomplete instead of select --}}
 		<select id="timezone" name="timezone">
 			{{#each timezones}}
-			<option value="{{this.tzCode}}" {{#ifEquals user.tz this.tzCode}}selected="selected"{{/ifEquals}}>{{this.label}}</option>
+			<option value="{{this.tzCode}}" {{{selected @root.user.tz this.tzCode}}} >{{this.label}}</option>
 			{{/each}}
 		</select>
 	</p>
+	<p><button type="submit">{{ __ 'Update' }}</button></p>
 </form>
+
+<pre>
+{{ debug user }}
+</pre>
