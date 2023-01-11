@@ -22,12 +22,13 @@ const fastify = Fastify({
 	querystringParser: str => qs.parse(str, { allowDots: true, allowSparse: true})
 });
 
-
+console.log('Load plugins...')
 // Init server config and extensions
 fastify.decorate('config', config)
 loadFastifyPlugins(fastify, config);
 fastify.setErrorHandler(errorHandler)
 
+console.log('register routes...')
 // Init routes
 fastify.register(Auth);
 fastify.register(Client);
@@ -46,6 +47,7 @@ const start = async () => {
 			port: config.PORT,
 			host: config.HOST
 		});
+		console.log(`Server started ${config.HOST}:${config.PORT}`)
 	} catch(err) {
 		fastify.log.error((err))
 		process.exit(1)

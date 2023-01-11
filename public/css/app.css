@@ -30,10 +30,10 @@ button.view {
 	margin-left: 0.5ex;
 	margin-right: 0.5ex;
 }
-.inline label {
+.inline label:first-child {
 	width: 50%
 }
-.inline label + input {
+.inline label:first-child + input[type=text] {
 	width: calc(50% - 1ex);
 }
 table.listing {

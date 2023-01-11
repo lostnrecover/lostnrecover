@@ -13,9 +13,18 @@
 		<input type="number" value="{{skip}}" name="skip" id="skip"/>
 	</p>
 	<h2>{{ __ 'Number of copies per tag' }}</h2>
-	{{#each qty}}
+	{{#each data}}
 	{{#with this}}
-	<p class="inline"><label for="qty[{{_id}}]">{{name}} / {{_id}}: </label><input type="number" id="qty[{{_id}}]" name="qty[{{_id}}]" value="{{ qty }}"</p>
+	<p class="inline">
+		<label for="qty[{{_id}}]">{{name}} / {{_id}}: </label>
+		<input type="number" id="qty[{{_id}}]" name="qty[{{_id}}]" value="{{ qty }}" />
+	</p>
+		{{#if label}}
+	<p class="inline">
+		<input type="checkbox" id="printlabel[{{_id}}]" name="printlabel[{{_id}}]" value="1" {{#if printlabel}}checked{{/if}}  />
+		<label for="printlabel[{{_id}}]">{{ __ 'Print label: '}} {{label}} </label>
+	</p>
+		{{/if}}
 	{{/with}}
 	{{/each}}
 	<p>

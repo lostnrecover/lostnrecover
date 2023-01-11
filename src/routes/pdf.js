@@ -15,7 +15,7 @@ export default function (fastify, opts, done) {
 		preHandler: AUTH.authentified,
 		handler: async (request, reply) => {
 			let payload = { ...request.body, ...request.query }, //Get and POST
-			qty=[], list = [];
+			data=[], list = [];
 			// preview.cellWidth = preview.pageWidth / preview.perRow;
 			// preview.cellHeight = preview.pageHeight/ preview.rows;
 			let tags = await TAGS.findForUser(request.session.email, { status: 'active' });
@@ -27,15 +27,19 @@ export default function (fastify, opts, done) {
 				if (payload.qty && payload.qty[t._id]) {
 					q.qty = parseInt(payload.qty[t._id]) || 0;
 				}
-				qty.push(q)
+				if (payload.printlabel && payload.printlabel[t._id] && payload.printlabel[t._id] == '1') {
+					q.printlabel = true;
+				}
+				data.push(q)
 			})
+			console.log('print data', data, payload);
 			if(!request.session.currentPdf) {
 				request.session.currentPdf = nanoid();
 			}
 			if(payload.qty) {
-				PDF.generate(request.session.currentPdf, payload.qty, payload.template, payload.skip);
+				PDF.generate(request.session.currentPdf, data, payload.template, payload.skip);
 			}
-			reply.view('pdf/edit', { qty, tags, skip: payload.skip ?? 0, templates: PDF.templates, currentPdf: PDF.exists(request.session.currentPdf) ? request.session.currentPdf : false });
+			reply.view('pdf/edit', { data, tags, skip: payload.skip ?? 0, templates: PDF.templates, currentPdf: PDF.exists(request.session.currentPdf) ? request.session.currentPdf : false });
 			return reply
 		}
 	});

@@ -57,7 +57,7 @@ export function PdfService(mongodb, parentLogger, config) {
 		return doc
 	}
 
-	async function generate(pdfname, quantity, template, offset) {
+	async function generate(pdfname, data, template, offset) {
 		let startAt = offset ? Number(offset) : 0,
 			list = [],
 			p = getCachedFilename(pdfname),
@@ -65,30 +65,38 @@ export function PdfService(mongodb, parentLogger, config) {
 			doc = initDoc(p, tpl.size),
 			labelsPerPage = tpl.perRow * tpl.rows;
 
-		await Promise.all(Object.entries(quantity).map(async (entry) => {
-			let [tag,q] = entry,
-			tagFile = await TAGS.getQRCodeFile(tag, 'png', true),
-			arr = Array(parseInt(q) || 1).fill({tag, tagFile});
-			if(parseInt(q) > 0) {
+		await Promise.all(data.map(async (entry) => {
+			let tagFile = await TAGS.getQRCodeFile(entry._id, 'png', true),
+				arr = Array(parseInt(entry.qty) || 1).fill({...entry, tagFile});
+			if(parseInt(entry.qty) > 0) {
 				list.push(...arr);
 			}
 		}));
 
 		list.forEach((e, index) => {
 			let idx = (index + startAt) % labelsPerPage,
+			angle = -90,
 			posX = getCol(idx, tpl.perRow),
 			posY = getLine(idx, tpl.perRow),
 			x = tpl.marginLeft + posX * (tpl.hspace + tpl.cellWidth) ?? 0,
-			y = tpl.marginTop + posY * (tpl.vspace + tpl.cellHeight) ?? 0;
+			y = tpl.marginTop + posY * (tpl.vspace + tpl.cellHeight) ?? 0,
+			padding = 3,
+			xRot = toPoint(x),
+			yRot = toPoint(y+tpl.cellHeight) - 12;
 			if(idx == 0 && index > 0) {
 				doc.addPage();// {margin: 0});
 			}
 			console.log('img', { e, startAt, idx, index, posX, posY, x, y, labelsPerPage});
-			doc.image(e.tagFile, toPoint(x), toPoint(y), { width: toPoint(tpl.cellWidth) });
+			doc.image(e.tagFile, toPoint(x)+padding, toPoint(y)+padding, { width: toPoint(tpl.cellWidth)-2*padding });
 			// .rect(toPoint(x), toPoint(y), toPoint(tpl.cellWidth), toPoint(tpl.cellHeight))
 			// .stroke();
 			doc.fontSize(8).text( config.SHORT_DOMAIN || config.DOMAIN, toPoint(x), toPoint(y)+2, { width: toPoint(tpl.cellWidth), align: 'center' });
-			doc.fontSize(9).text(e.tag, toPoint(x), toPoint(y+tpl.cellHeight)-9, { width: toPoint(tpl.cellWidth), align: 'center' } )
+			doc.fontSize(9).text(`ID: ${e._id}`, toPoint(x), toPoint(y+tpl.cellHeight)-9, { width: toPoint(tpl.cellWidth), align: 'center' } )
+			if(e.printlabel) {
+				doc.rotate( angle, { origin: [xRot,yRot] });
+				doc.fontSize(9).fillColor('grey').text( `(${e.label})`, xRot, yRot, { width: toPoint(tpl.cellWidth)-24, align: 'center' }).fillColor('black');
+				doc.rotate(angle * (-1), { origin: [xRot, yRot] });
+			}
 		});
 
 		doc.file(Buffer.from(JSON.stringify({
@@ -96,7 +104,7 @@ export function PdfService(mongodb, parentLogger, config) {
 				...tpl,
 				code: template
 			},
-			data: quantity
+			data: data
 		})), {name: 'data.json' })
 		doc.end();
 	}

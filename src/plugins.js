@@ -79,7 +79,7 @@ export function loadFastifyPlugins(fastify, config) {
 	// TODO outsource to a locale dedicated file
 	fastify.addHook("preHandler", function (request, reply, done) {
 		if(!config.DOMAIN || config.DOMAIN == '') {
-			config.DOMAIN = request.hostname
+			config.DOMAIN = `${request.hostname}`
 			request.log.info(`Switched domain: ${config.DOMAIN}`)
 		}
 		if (Object.keys(config.locales).indexOf(request.query.locale) > -1) {

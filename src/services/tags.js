@@ -7,7 +7,7 @@ import { generateKey } from 'crypto';
 export function TagService(mongodb, parentLogger, config) {
 	const COLLECTION = 'tags',
 		TMPDIR = config.cache_dir,
-		PUBLIC_PROJECTION = { projection: { _id: 1, name: 1, responseText: 1, status: 1, owner: 1, email: 1 }},
+		PUBLIC_PROJECTION = { projection: { _id: 1, name: 1, responseText: 1, status: 1, owner: 1, email: 1, label: 1 }},
 		ALL_PROJECTION = {},
 		TAGS = mongodb.collection(COLLECTION),
 		logger = parentLogger.child({ service: 'Tag' })
@@ -75,7 +75,7 @@ export function TagService(mongodb, parentLogger, config) {
 	}
 	async function generateCode(filename, tagId, options) {
 		let domain = config.SHORT_DOMAIN ?? config.DOMAIN,
-			text = `${domain}/t/${tagId}`, physicalPath = path.join(filename);
+			text = `https://${domain}/t/${tagId}`, physicalPath = path.join(filename);
 		return new Promise((resolve, reject) => {
 			if(options.type == 'png') {
 				QRCode.toFile(physicalPath, text, (err) => {
