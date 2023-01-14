@@ -6,7 +6,7 @@ import { AuthTokenService } from '../services/authtoken.js';
 export default function(fastify, opts, done) {
 	const logger = fastify.log.child({ controller: 'Admin' }),
 		AUTH = AuthTokenService(fastify.mongo.db, logger),
-		Messages = MessageService(fastify.mongo.db, logger),
+		Messages = MessageService(fastify.mongo.db, logger, fastify.sendmail),
 		Users = UserService(fastify.mongo.db, logger);
 
   function isAdmin(request) {

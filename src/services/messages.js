@@ -1,29 +1,30 @@
 import { nanoid } from "nanoid";
 import Agenda from "agenda";
 
-let workerJob = false;
+const BATCHSEND = 'Messages.batchSend'
 
 export function MessageService(mongodb, parentLogger, mailer) {
 	const COLLECTION = 'messages'
 	const MSG = mongodb.collection(COLLECTION);
 	const retentionDays = 2;
 	const logger = parentLogger.child({ service: 'Message' })
+	if(!mailer) {
+		throw('Mailer is required');
+	}
 
-	// init agenda job
-	if (!workerJob) {
-		workerJob = new Agenda({ mongo: mongodb });
+	function registerJob(workerJob) {
+		// init agenda job
 		workerJob.define(
-			"send messages",
+			BATCHSEND,
 			{ priority: "high", concurrency: 10 },
 			async (job) => {
-				batchSend()
+				let count = batchSend().then((count) => {
+					logger.info(`${BATCHSEND} executed: Sent ${count} messages`);
+				});
 			}
 		);
-		workerJob.every("1 minute", "send messages");
-		workerJob.start();
-		logger.info('Messages Jobs started...')
-	} else {
-		logger.info('Messages Job already started')
+		workerJob.every("1 minute", BATCHSEND);
+		logger.info(`${BATCHSEND} Jobs registered...`)
 	}
 
 	async function get(id) {
@@ -103,16 +104,16 @@ export function MessageService(mongodb, parentLogger, mailer) {
 	async function batchSend() {
 		const cursor = MSG.find({ status: 'new' });
 		let idx = 0;
-		cursor.stream().on("data", msg => {
+		await cursor.stream().on("data", msg => {
 			send(msg._id);
 			idx++
 		});
-		logger.info(`Sent ${idx} messages`);
+		return idx;
 	}
 
 	async function list() {
 		return await MSG.find().toArray();
 	}
 
-	return { create, get, pause, resume, send, batchSend, list }
+	return { create, get, pause, resume, send, batchSend, list, registerJob }
 }

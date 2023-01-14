@@ -2,6 +2,7 @@
 import Fastify from 'fastify';
 import { loadFastifyPlugins, errorHandler } from './plugins.js';
 import { config } from './config.js';
+import { initJobs } from './jobs.js';
 import qs from 'qs';
 
 import * as TagsAPI from './routes/v1/tags.js';
@@ -48,6 +49,8 @@ const start = async () => {
 			host: config.HOST
 		});
 		console.log(`Server started ${config.HOST}:${config.PORT}`)
+		// Start job worker
+		initJobs(fastify, config);
 	} catch(err) {
 		fastify.log.error((err))
 		process.exit(1)
