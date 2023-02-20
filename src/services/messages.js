@@ -3,7 +3,7 @@ import Agenda from "agenda";
 
 const BATCHSEND = 'Messages.batchSend'
 
-export function MessageService(mongodb, parentLogger, mailer) {
+export function MessageService(mongodb, parentLogger, config, mailer) {
 	const COLLECTION = 'messages'
 	const MSG = mongodb.collection(COLLECTION);
 	const retentionDays = 2;

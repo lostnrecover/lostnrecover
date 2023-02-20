@@ -29,6 +29,18 @@ const templates = {
 		cellWidth: 45,
 		cellHeight: 45,
 		size: 'A4'
+	},
+	"av25x25-S": {
+		name: "Avery A4 25mmx25mm 25x25-S",
+		marginTop: 14.5,
+		marginLeft: 11.5,
+		hspace: 2,
+		vspace: 2,
+		rows: 10,
+		perRow: 7,
+		cellWidth: 25,
+		cellHeight: 25,
+		size: 'A4'
 	}
 }
 

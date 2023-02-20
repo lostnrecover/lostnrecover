@@ -13,10 +13,10 @@ export default function (fastify, opts, done) {
 			let tag = {
 				email: req.session.get('email')
 			}
-			reply.view('tag/new', { tag })
+			reply.view('tag/new', { tag, title: 'Create a Tag' })
 		} else {
 			let tags = await TAGS.findForUser(req.session.get('email'));
-			reply.view('tag/list', { tags });
+			reply.view('tag/list', { tags, title: 'Tags' });
 		}
 		return reply
 	});
@@ -31,19 +31,18 @@ export default function (fastify, opts, done) {
 	}, async (request, reply) => {
 		let tag = await TAGS.get(request.params.tagId);
 		if (!tag) {
-			reply.code(404).view('tag/notfound');
+			reply.code(404).view('tag/notfound', { title: 'Tag not found'});
 		}
-		// fastify.log.info(request.session.get('email'), tag.owner, request.query.edit)
-		if (request.session.get('email') != tag.owner) {
+		if (!request.isCurrentUser(tag.owner)) {
 			// Not the tag owner : redirect to the view path
-			reply.redirect(`/t/${tagId}`);
+			reply.redirect(`/t/${tag._id}`);
 			// reply.view('tag/found', { tag });
 			return reply
 		}
 		if (request.query.edit) {
-			reply.view('tag/edit', { tag });
+			reply.view('tag/edit', { tag, title: 'Edit tag' });
 		} else {
-			reply.view('tag/view', { tag });
+			reply.view('tag/view', { tag, title: 'View Tag' });
 		}
 		return reply;
 	});
@@ -52,7 +51,7 @@ export default function (fastify, opts, done) {
 		if (!tag) {
 			return reply.code(404)
 		}
-		TAGS.update(request.params.tagId, request.body);
+		TAGS.update(tag._id, request.body);
 		reply.redirect(request.url);
 	})
 	done()

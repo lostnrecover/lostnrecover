@@ -5,9 +5,9 @@ import { AuthTokenService } from '../services/authtoken.js';
 
 export default function(fastify, opts, done) {
 	const logger = fastify.log.child({ controller: 'Admin' }),
-		AUTH = AuthTokenService(fastify.mongo.db, logger),
-		Messages = MessageService(fastify.mongo.db, logger, fastify.sendmail),
-		Users = UserService(fastify.mongo.db, logger);
+		AUTH = AuthTokenService(fastify.mongo.db, logger, fastify.config),
+		Messages = MessageService(fastify.mongo.db, logger, fastify.config, fastify.sendmail),
+		Users = UserService(fastify.mongo.db, logger, fastify.config);
 
   function isAdmin(request) {
     if (process.env.ENV != 'dev' && !req.session.admin) {
@@ -20,7 +20,8 @@ export default function(fastify, opts, done) {
 		preHandler: AUTH.authentified
 	}, async (req,reply) => {
     reply.view('admin/index', {
-      users: await Users.list()
+      users: await Users.list(),
+			title: 'Admninistration'
     })
     return reply;
   });
@@ -29,7 +30,8 @@ export default function(fastify, opts, done) {
 		preHandler: AUTH.authentified
 	}, async (request, reply) => {
     reply.view('admin/messages', {
-      messages: await Messages.list()
+      messages: await Messages.list(),
+			title: 'Messages administration'
     });
     return reply
   })

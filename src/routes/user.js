@@ -17,6 +17,7 @@ export default function(fastify, opts, done) {
 				user.tz = 'Europe/Paris';
 			}
 			reply.view('account',  {
+				title: 'Account preferences',
 				user,
 				timezones: tz.default.sort((a,b) => {
 					return a.label > b.label

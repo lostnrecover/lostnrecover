@@ -29,10 +29,10 @@ export const config = {
 	mail_transport: {
 		host: 'smtp.ethereal.email',
 		port: 587,
-		auth: {
-			user: 'elyssa.kessler60@ethereal.email',
-			pass: 'gYRZ7cxFEEtEf1aKvU'
-		}
+    auth: {
+			user: 'yvonne.goyette28@ethereal.email',
+			pass: 'BmWCUYkFXhzPWvrSza'
+	}
 		// transport: {
 		//   host: 'smtp.example.tld',
 		//   port: 465,

@@ -3,6 +3,7 @@ import * as fastifySession from '@fastify/secure-session'
 import fastifyCookie from '@fastify/cookie';
 import * as fastifyView from '@fastify/view';
 import * as fastifyStatic from '@fastify/static';
+import * as fastifyFlash from '@fastify/flash';
 import fastifyForm from '@fastify/formbody';
 
 import fastifyMailer from 'fastify-mailer';
@@ -11,14 +12,14 @@ import { htmlToText } from 'nodemailer-html-to-text';
 import pkg from '../package.json' assert { type: "json" };
 
 // current dir for options
-import path from 'path'
+// import path from 'path'
 
 // Templating
 import Handlebars from 'handlebars';
 import { loadHelpers, loadPartials } from './templating.js';
 import { EXCEPTIONS } from './services/exceptions.js';
 
-export function errorHandler(error, request, reply) {
+export async function errorHandler(error, request, reply) {
 	let e = error;
 	if(typeof error == 'string') {
 		e = {
@@ -37,8 +38,9 @@ export function errorHandler(error, request, reply) {
 	} else if (e.view ) {
 		reply.view(e.view, { url: request.url } );
 	} else {
-		reply.view('error', {error: e})
+		reply.view('error', {title: 'Unexpected Error', error: e})
 	}
+	return reply;
 	// if json
 	// reply.send(error)
 }
@@ -65,6 +67,8 @@ export function loadFastifyPlugins(fastify, config) {
 		}
 	})
 
+	fastify.register(fastifyFlash);
+
 	function templateGlobalContext(locale) {
 		let context = {
 			config: fastify.config,
@@ -86,12 +90,19 @@ export function loadFastifyPlugins(fastify, config) {
 			request.session.set('locale', request.query.locale)
 		}
 		reply.locals = templateGlobalContext(request.session.get('locale') || 'en');
+		reply.locals.error = reply.flash('error');
 		reply.locals.session = {
 			email: request.session.get('email') || false
 		}
 		done();
 	});
-
+	fastify.decorateRequest('isCurrentUser', function(user_refs) {
+		let refs = Array.isArray(user_refs) ? user_refs : [ user_refs ];
+		if(!this.session.get('email')) {
+			return false;
+		}
+		return refs.includes(this.session.get('email'));
+	});
 	const TPL_DIR = config.template_dir
 	fastify.register(fastifyView, {
 		engine: {

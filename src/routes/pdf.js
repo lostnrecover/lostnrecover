@@ -39,7 +39,14 @@ export default function (fastify, opts, done) {
 			if(payload.qty) {
 				PDF.generate(request.session.currentPdf, data, payload.template, payload.skip);
 			}
-			reply.view('pdf/edit', { data, tags, skip: payload.skip ?? 0, templates: PDF.templates, currentPdf: PDF.exists(request.session.currentPdf) ? request.session.currentPdf : false });
+			reply.view('pdf/edit', {
+				title: 'Label generator',
+				data,
+				tags,
+				skip: payload.skip ?? 0,
+				templates: PDF.templates,
+				currentPdf: PDF.exists(request.session.currentPdf) ? request.session.currentPdf : false
+			});
 			return reply
 		}
 	});

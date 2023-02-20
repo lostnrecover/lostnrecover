@@ -6,11 +6,14 @@ import { generateKey } from 'crypto';
 
 export function TagService(mongodb, parentLogger, config) {
 	const COLLECTION = 'tags',
-		TMPDIR = config.cache_dir,
-		PUBLIC_PROJECTION = { projection: { _id: 1, name: 1, responseText: 1, status: 1, owner: 1, email: 1, label: 1 }},
-		ALL_PROJECTION = {},
-		TAGS = mongodb.collection(COLLECTION),
-		logger = parentLogger.child({ service: 'Tag' })
+	TMPDIR = config.cache_dir,
+	PUBLIC_PROJECTION = { projection: { _id: 1, name: 1, responseText: 1, status: 1, owner: 1, email: 1, label: 1 }},
+	ALL_PROJECTION = {},
+	TAGS = mongodb.collection(COLLECTION),
+	logger = parentLogger.child({ service: 'Tag' });
+
+	// TODO : job to check tags for creation in SVG and PNG
+
 
 	async function get(id, projection) {
 		// console.log('get', id)
@@ -59,6 +62,7 @@ export function TagService(mongodb, parentLogger, config) {
 		}})
 		return get(id);
 	}
+	// TODO Move to Code Service ?
 	async function getQRCodeFile(tagId, format, refreshCache) {
 		let options = {}, cacheFileName, code;
 		options.type = 'svg'

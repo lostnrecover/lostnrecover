@@ -5,12 +5,12 @@ export default function(fastify, opts, done) {
     if(req.query.tagId) {
       reply.redirect(`/t/${req.query.tagId}`)
     } else {
-      reply.view('home', {})
+      reply.view('home', { title: 'Home' })
     }
     return reply
   });
   fastify.get('/about', (req,reply) => {
-    reply.view('about', {})
+    reply.view('about', { title: 'About' })
   });
   done()
 }

@@ -2,7 +2,7 @@
 <html>
 
 <head>
-	<title>{{ title }} - {{ config.appName }}</title>
+	<title>{{ __ title }}{{#if title}} - {{/if}}{{ config.appName }}</title>
 	<link rel="stylesheet" href="https://unpkg.com/marx-css/css/marx.min.css" />
 	<link rel="stylesheet" href="/public/css/app.css" />
 </head>
@@ -19,6 +19,9 @@
 		{{/if}}
 		</nav>
 		</header>
+		{{#if error_msg }}
+		<p class="error">{{ error_msg }}</p>
+		{{/if}}
 		{{{body}}}
 		<footer>{{ pkg.displayName }} - v{{ pkg.version }} -
 			{{#each config.locales }}{{#if @first}}{{else}} | {{/if}}

@@ -20,6 +20,7 @@
   "license": "MIT",
   "dependencies": {
     "@fastify/cookie": "^8.3.0",
+    "@fastify/flash": "^5.1.0",
     "@fastify/formbody": "^7.4.0",
     "@fastify/jwt": "^6.5.0",
     "@fastify/mongodb": "^6.2.0",

@@ -2,24 +2,30 @@ import {UserService} from '../services/user.js'
 import { AuthTokenService } from '../services/authtoken.js'
 // import fastifySecureSession from '@fastify/secure-session';
 
+function invalidEmail(email) {
+	return !email
+}
+
 // src/routes/accounts.js
 export default function(fastify, opts, done) {
 	const logger = fastify.log.child({ controller: 'AccountAPI' }),
 		USERS = UserService(fastify.mongo.db, logger),
 		{ create, verify} = AuthTokenService(fastify.mongo.db, logger);
 
-	fastify.get('/login', async (req, reply) => {
-		reply.view('magicLink/form')
+	fastify.get('/login', async (request, reply) => {
+		reply.view('magicLink/form', { title: 'Login', url: request.query.redirect })
 		return reply
 	})
-	fastify.post('/login', async (req, res) => {
-		let email = req.body.email,
+	fastify.post('/login', async (request, reply) => {
+		let email = request.body.email,
 			redirect = "";
-		if(req.body.redirect) {
-			redirect = `&redirect=${req.body.redirect}`;
+		if(request.body.redirect) {
+			redirect = `&redirect=${request.body.redirect}`;
 		}
-		if (!email) {
-			res.code(404)
+		if (invalidEmail(email)) {
+			request.flash('error_msg', 'Invalid email address');
+			reply.redirect(`/login?${redirect}`);
+			return reply;
 		} else {
 			// Check user email or create user if not exists
 			let user = await USERS.findOrCreate(email);
@@ -31,7 +37,8 @@ export default function(fastify, opts, done) {
 			const token = fastify.jwt.sign({ email, expiration: d })
 			*/
 			const token = await create(user.email, 3600 / 2);
-			let link = `${req.protocol}://${req.hostname}/auth?token=${token}${redirect}`;
+			let link = `${request.protocol}://${request.hostname}/auth?token=${token}${redirect}`;
+			// TODO background send >?
 			// Send email
 			fastify.sendmail({
 				to: email,
@@ -39,9 +46,10 @@ export default function(fastify, opts, done) {
 				template: 'mail/email_verify',
 				context: { link, token, email }
 			})
-			child.child({link, email}).info('Magic Link')
+			child.child({token, link, email}).info('Magic Link')
 		}
-		res.redirect(`/auth?email=${email}${redirect}`);
+		reply.redirect(`/auth?email=${email}${redirect}`);
+		return reply;
 	})
 	fastify.get('/auth',{
 		schema: {
@@ -71,6 +79,7 @@ export default function(fastify, opts, done) {
 				}
 			} else {
 				// Propose to help
+				data.title = 'Magiclink instructions'
 				res.view('magicLink/instructions', data);
 			}
 			return res

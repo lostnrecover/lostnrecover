@@ -21,11 +21,19 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 	}
 
 	function localizedText(requestedLocale, key, data) {
-		let tr = `${key}`, needle = key.replace(/(\r\n|\n|\r)/gm, "").trim(), locale = requestedLocale ?? 'en';
+		let tr = `${key}`, needle = "", locale = requestedLocale ?? 'en';
+		if(key) {
+			needle = key.replace(/(\r\n|\n|\r)/gm, "").trim();
+		} else {
+			return "";
+		}
+		if (needle == "") {
+			return "";
+		}
 		if(messages[locale] && messages[locale][needle]) {
 			tr = messages[locale][needle];
 		} else if(locale != 'en') {
-			logger.warn('Missing translation', locale, needle)
+			logger.warn({needle, locale}, 'missing translation');
 		}
 		return format(tr, ...data);
 	}

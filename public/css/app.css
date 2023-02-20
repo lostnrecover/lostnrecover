@@ -8,10 +8,16 @@ main header {
 main footer {
   margin-top: var(--md-pad)
 }
-
 .help {
   vertical-align: top;
   font-size: 65%;
+}
+
+p.error {
+	padding: 1.5ex;
+	border: 3px solid darkred;
+	background-color: lightcoral;
+	border-radius: 5px;
 }
 
 #responseText {
