@@ -53,14 +53,15 @@ export function DiscoveryService(mongodb, parentLogger, config, mailer) {
   async function update(id, discovery) {
 		// TODO remove protected fields
 		let result, set = {...discovery}
-		delete set.status, set.createdAt, set.updatedAt;
-		result = await TAGS.updateOne({
+		delete set._id, set.status, set.createdAt, set.updatedAt;
+		logger.debug('Discovery Update set', set);
+		result = await DISCOVERY.updateOne({
 			_id: id
 		}, {
-			$set: set,
-			$currentDate: {
-				updatedAt: true
-			}
+			// $currentDate: {
+			// 	updatedAt: true
+			// },
+			$set: set
 		})
     // TODO: Check result and eventually throw exception
 		return await get(id);
@@ -101,23 +102,39 @@ export function DiscoveryService(mongodb, parentLogger, config, mailer) {
 		//    if finder: display info that owner has been notified
 		// if active: display instructions, propose to declare return (finder) or reception (owner)
 		// if closed: display status
+	async function setStatus(id, status) {
+		let result = await DISCOVERY.updateOne({
+			_id: id
+		}, {
+			$set: { status: status },
+			$push: { states: {
+				status: status,
+				updatedAt: new Date()
+			}}
+		});
+		return (result.modifiedCount == 1)
+	}
 	async function setPending(id) {
 		let d = await get(id);
 		if(d.status != 'new') {
 			return false;
 		}
-		d.status = 'pending';
-		await update(id, d);
-		return true
+		return setStatus(id, 'pending');
 	}
 	async function activate(id) {
 		let d = await get(id);
 		if(d.status != 'new' && d.status != 'pending') {
 			return false;
 		}
-		d.status = 'active';
-		await update(id, d);
-		return true
+		return setStatus(id, 'active');
+	}
+
+	async function reject(id) {
+		let d = await get(id);
+		if(d.status != 'new' && d.status != 'pending') {
+			return false;
+		}
+		return setStatus(id, 'rejected');
 	}
 
 	async function flagReturned(id) {
@@ -125,19 +142,15 @@ export function DiscoveryService(mongodb, parentLogger, config, mailer) {
 		if(d.status != 'active') {
 			return false;
 		}
-		d.status = 'returned';
-		await update(id, d);
-		return true
+		return setStatus(id, 'returned');
 	}
 	async function close(id) {
 		let d = await get(id);
 		if(d.status != 'active' && d.status != 'returned') {
 			return false;
 		}
-		d.status = 'closed';
-		await update(id, d);
-		return true
+		return setStatus(id, 'recovered');
 	}
 
-  return { create, get, update, setPending, activate, flagReturned, close }
+  return { create, get, update, setPending, activate, flagReturned, close, reject }
 }

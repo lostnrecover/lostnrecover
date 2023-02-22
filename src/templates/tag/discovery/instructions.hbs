@@ -1,12 +1,20 @@
+{{> discoverySummary }}
+
 <h2>{{ __ "Instructions"}}</h2>
+<form method="post">
+{{#if isFinder}}
+{{#ifEquals discovery.status 'active'}}
+	<button type="submit" value="return" name="action">{{ __ 'I have returned this item'}}</button>
+{{/ifEquals}}
+{{/if}}
+{{#if isTagOwner}}
+	<button type="submit" value="close" name="action">{{ __ 'I have received this item'}}</button>
+{{/if}}
+</form>
+
 <pre>
 {{ tag.responseText }}
 </pre>
-
-<form method="post">
-	<button type="submit" value="return" name="action">{{ __ 'I have returned this item'}}</button>
-</form>
-
 
 <h3>{{ __ 'Tag info' }}</h3>
 <dl>
@@ -17,18 +25,10 @@
 	<dt>{{ __ 'Date' }}</dt>
 	<dd>{{ dateFormat discovery.createdAt 'DD/MM/YY hh:mm'}}</dd>
 </dl>
-{{!--
-{{#ifEquals session.email discovery.finder}}
-{{#ifEquals 'active' discovery.status}}
-
-{{else}}
-<p> Test</p>
-{{/ifEquals}}
-{{/ifEquals}} --}}
 
 
 <pre>
 {{ debug tag }}
-----
 {{ debug discovery }}
+{{ debug }}
 </pre>

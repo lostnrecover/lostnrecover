@@ -48,7 +48,11 @@ export default function(fastify, opts, done) {
 			})
 			child.child({token, link, email}).info('Magic Link')
 		}
-		reply.redirect(`/auth?email=${email}${redirect}`);
+		if(process.env.ENV == 'dev') {
+			reply.redirect(link);
+		} else {
+			reply.redirect(`/auth?email=${email}${redirect}`);
+		}
 		return reply;
 	})
 	fastify.get('/auth',{

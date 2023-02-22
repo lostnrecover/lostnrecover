@@ -1,14 +1,7 @@
 <p>{{ __ "This tag has been reported found by someone, but you didn't reported its loss" }}</p>
-<h3>{{ __ 'Tag info' }}</h3>
-<dl>
-	<dt>
-		{{ __ 'Tag' }}
-	</dt>
-	<dd>{{ tag._id }} {{ tag.name }}</dd>
-	<dt>{{ __ 'Date' }}</dt>
-	<dd>{{ dateFormat discovery.createdAt 'DD/MM/YY hh:mm'}}</dd>
-</dl>
 <form method="post">
 	<button type="submit" value="activate" name="action">{{ __ 'Report loss and approve request'}}</button>
 	<button type="submit" value="reject" name="action">{{ __ 'Tag still not lost, reject request'}}</button>
 </form>
+
+{{> discoverySummary }}
