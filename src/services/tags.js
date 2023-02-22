@@ -32,6 +32,7 @@ export function TagService(mongodb, parentLogger, config) {
 		logger.debug(`>>> New id generated ${index} iterations`);
 		return tagid;
 	}
+	// TODO bulk create if parameter is an array
 	async function create(tag) {
 		tag._id = await enforcedUniqueId();
 		if (!tag.status) {
