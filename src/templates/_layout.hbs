@@ -10,13 +10,15 @@
 	<main>
 		<header>
 		<h1><a href="/">{{ config.appName }}</a></h1>
-		<nav><a href="/about"><img src="/public/icons/help-circle.svg" title="{{ __ 'About' }}" /></a>
+		<nav>
 		{{# if session.email }}
+		 	<small>{{ session.email }}</small>
 			<a href="/tags"><img src="/public/icons/tag.svg" title="{{ __ 'Tags' }}" /></a>
 			<a href="/pdf"><img src="/public/icons/grid.svg" title="{{ __ 'Print Tags' }}" /></a>
 			<a href="/account"><img src="/public/icons/user.svg" title="{{ __ 'Account' }}" /></a>
 			<a href="/logout"><img src="/public/icons/log-out.svg" title="{{ __ 'Logout' }}" /></a>
 		{{/if}}
+			<a href="/about"><img src="/public/icons/help-circle.svg" title="{{ __ 'About' }}" /></a>
 		</nav>
 		</header>
 		{{#if error_msg }}
