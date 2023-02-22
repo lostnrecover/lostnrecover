@@ -85,6 +85,9 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 	Handlebars.registerHelper('selected', function(selected, option) {
 		return (selected == option) ? 'selected="selected"' : '';
 	});
+	Handlebars.registerHelper('reverse', function(arr) {
+		return Array.isArray(arr) ? arr.reverse() : arr;
+	});
 }
 
 export function loadPartials(logger, Handlebars, templateDir) {
