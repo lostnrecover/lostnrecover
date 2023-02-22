@@ -18,7 +18,7 @@ import * as CodeController from './routes/code.js';
 // Basic server
 const fastify = Fastify({
 	trustProxy: true,
-	logger: true,
+	logger: { level: process.env.ENV != 'dev' ? 'info' : 'debug' },
 	ignoreTrailingSlash: true,
 	querystringParser: str => qs.parse(str, { allowDots: true, allowSparse: true})
 });
