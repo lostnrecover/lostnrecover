@@ -58,12 +58,11 @@ export function AuthTokenService(mongodb, parentLogger) {
 		}
 		return false
 	}
-	async function authentified(request, reply, done) {
+	async function authentified(request, reply) {
 		let email = request.session.get('email');
 		if (!email) {
 			throw(EXCEPTIONS.NOT_AUTHORISED);
 		}
-		done();
 	}
 	const SCHEMA = {
 		body: {
