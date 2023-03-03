@@ -8,6 +8,7 @@ const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const cookie_secret_file = process.env.COOKIE_SECRET_FILE || path.join(__dirname, '../.session-secret-key')
 
 export const config = {
+	// TODO : config linked to domain
 	support_email: 'lnf@z720.net',
 	appName: 'Lost n Found',
 	DOMAIN: process.env.DOMAIN ?? null,

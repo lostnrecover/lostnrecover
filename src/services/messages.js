@@ -50,7 +50,7 @@ export function MessageService(mongodb, parentLogger, config, mailer) {
 	}
 
 	async function update(id, fields) {
-		// TODO remove protected fields
+		// FIXME remove protected fields
 		let result = await MSG.updateOne({
 			_id: id
 		}, {
@@ -59,7 +59,7 @@ export function MessageService(mongodb, parentLogger, config, mailer) {
 				updatedAt: new Date()
 			}
 		})
-		// TODO: Check result and eventually throw exception
+		// FIXME: Check result and eventually throw exception
 		return await get(id);
 	}
 
@@ -81,6 +81,7 @@ export function MessageService(mongodb, parentLogger, config, mailer) {
 	}
 
 	async function send(msgID) {
+		// CHECK fetch user email for id
 		let msg = await get(msgID), now = new Date(), expireAt = new Date();
 		if (msg.status != 'new' || !msg.to) { // || now < msg.schedule ) {
 			return false;

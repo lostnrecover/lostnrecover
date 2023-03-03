@@ -5,7 +5,7 @@
 <form method="post" action="/t/{{tag._id}}/notify">
 {{#if session.email }}
   <p>
-    <label for="email">{{__ 'Enter you email address to notify the owner and get instructions'}}</label>
+    <label for="email">{{__ 'Email address used to receive instructions from the owner'}}</label>
     <input type="email" id="email" name="email" disabled value="{{session.email}}" />
   </p>
   <p>{{ __ 'Should we share this email with the tag owner ?' }}
@@ -14,7 +14,7 @@
   </p>
 {{else}}
   <p>
-  <label for="email">{{__ 'Enter you email address to notify the owner and get instructions'}}</label>
+  <label for="email">{{__ 'Enter an email address to get instructions from the owner'}}</label>
   <input type="email" id="email" name="email" />
   </p>
 {{/if}}

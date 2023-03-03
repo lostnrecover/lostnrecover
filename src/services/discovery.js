@@ -2,6 +2,19 @@ import { nanoid } from "nanoid";
 import { EXCEPTIONS } from './exceptions.js'
 import { MessageService } from "./messages.js";
 import { TagService } from "./tags.js";
+import { UserService } from "./user.js";
+import { STATUS as TAG_STATUS } from "./tags.js";
+
+export const STATUS = {
+	PENDING: 'pending',
+	NEW: 'new',
+	ACTIVE: 'active',
+	RETURNED: 'returned',
+	RECOVERED: 'recovered',
+	REJECTED: 'rejected'
+}
+
+export const FINAL_STATUS= [ STATUS.RECOVERED, STATUS.REJECTED ]
 
 export function DiscoveryService(mongodb, parentLogger, config, mailer) {
 	const COLLECTION = 'discovery';
@@ -9,24 +22,51 @@ export function DiscoveryService(mongodb, parentLogger, config, mailer) {
 	const logger = parentLogger.child({ service: 'Discovery'});
 	const MSG = MessageService(mongodb, logger, config, mailer);
 	const TAGS = TagService(mongodb, logger, config);
+	const USERS = UserService(mongodb, logger, config);
 
   // TODO Ensure Init index
 
 	// TODO job to process discovery expiration new, closed
 
+	async function search(filter) {
+		return await DISCOVERY.aggregate([
+			{ $match: filter },
+			{
+				$lookup: {
+					from: "users",
+					localField: "finder_id",
+					foreignField: "_id",
+					as: "finder"
+				}
+			},
+			{ $unwind : "$finder" },
+			{
+				$lookup: {
+					from: "tags",
+					localField: "tagId",
+					foreignField: "_id",
+					as: "tag"
+				}
+			},
+			{ $unwind: '$tag'}
+		]
+		).toArray();
+	}
+
   async function get(id) {
-		// console.log('get', id)
 		if(!id) {
 			throw('Missing id');
 		}
-		return await DISCOVERY.findOne({ _id: id });
+		// CHECK aggregate Tag and users ?
+		let d = await search({ _id: id });
+		return d[0];
 	}
 
-  async function create(tag, finder, owner, shareFinder) {
+  async function create(tag, finder_id, owner_id, shareFinder) {
     let discovery = {
       _id: nanoid(),
       tagId: tag._id,
-			finder, owner,
+			finder_id, owner_id,
 			allowFinderSharing: !!shareFinder,
       createdAt: new Date(),
       status: 'new'
@@ -41,11 +81,11 @@ export function DiscoveryService(mongodb, parentLogger, config, mailer) {
 		discovery = await get(result.insertedId);
 		if(tag.status == 'lost') {
 			activate(discovery._id);
-			sendInstructions(discovery, tag);
-			sendOwnerNotification(discovery, tag)
+			sendInstructions(discovery);
+			sendOwnerNotification(discovery)
 		} else {
 			setPending(discovery._id);
-			sendNew(discovery, tag);
+			sendNew(discovery);
 		}
 		return discovery;
   }
@@ -67,31 +107,49 @@ export function DiscoveryService(mongodb, parentLogger, config, mailer) {
 		return await get(id);
 	}
 
-	function finderEmail(finder) {
-		return finder
+	async function finderEmail(finder) {
+		return finder.email
+	}
+	async function discoverySender(discovery) {
+		return `${config.appName} <tag-${discovery._id}@${config.DOMAIN}>`;
+	}
+	async function recipientEmail(discovery) {
+		let id = discovery.tag.recipient_id, r;
+		if(!id) {
+			id = discovery.tag.owner_id;
+		}
+		r = await USERS.findById(id);
+		return r.email;
 	}
 
-	async function sendNew() {
-		// TODO : Notify finder link to get instructions
+	async function sendNew(discovery) {
+		// FIXME : Notify owner to release instructions
+		sendOwnerNotification(discovery);
 	}
 
-	async function sendInstructions(discovery, tag) {
+	async function sendInstructions(discovery) {
 		// TODO: check active session before sending an email to avoid sharing personal information
 		MSG.create({
-			subject: `Instructions for ${tag.name} (${tag._id})`,
+			subject: `Instructions for ${discovery.tag.name} (${discovery.tag._id})`,
 			template: 'mail/instructions',
-			context: { tag, email: finderEmail(discovery.finder) },
-			to: email,
+			context: { tag: discovery.tag, email: await finderEmail(discovery.finder) },
+			// CHECK should be an id
+			to: await finderEmail(discovery.finder),
+			// CHECK should be an id or ?
 			// TODO : email pattern parameters
-			from: `"Tag Owner <tag-${tag._id}@lnf.z720.net>`
+			from: await discoverySender(discovery)
 		});
 	}
-	async function sendOwnerNotification(discovery, tag) {
+	async function sendOwnerNotification(discovery) {
+		// CHECK [X] : should be id
+		let recipient = await recipientEmail(discovery); //tag.recipient_id || tag.owner_id
 		MSG.create({
-			subject: `Tag ${tag.name} was found (${tag._id})`,
+			subject: `Tag ${discovery.tag.name} was found (${discovery.tag._id})`,
 			template: 'mail/found',
-			context: { tag , email: discovery.allowFinderSharing ? finderEmail(discovery.finder) : null },
-			to: tag.email || tag.owner
+			context: { tag: discovery.tag ,
+					email: discovery.allowFinderSharing ? await finderEmail(discovery.finder) : null },
+			to: recipient,
+			from: await discoverySender(discovery)
 		})
 	}
 	// TODO 50% move mail notification to background worker https://www.mongodb.com/basics/change-streams
@@ -114,42 +172,48 @@ export function DiscoveryService(mongodb, parentLogger, config, mailer) {
 		});
 		return (result.modifiedCount == 1)
 	}
+
 	async function setPending(id) {
 		let d = await get(id);
-		if(d.status != 'new') {
+		if(d.status != STATUS.NEW) {
 			return false;
 		}
-		return setStatus(id, 'pending');
+		return setStatus(id, STATUS.PENDING);
 	}
 	async function activate(id) {
 		let d = await get(id);
-		if(d.status != 'new' && d.status != 'pending') {
+		if(d.status != STATUS.NEW && d.status != STATUS.PENDING) {
 			return false;
 		}
-		return setStatus(id, 'active');
+		sendInstructions(d);
+		sendOwnerNotification(d);
+		TAGS.update(d.tagId, { status: TAG_STATUS.LOST })
+		return setStatus(id, STATUS.ACTIVE);
 	}
 
 	async function reject(id) {
 		let d = await get(id);
-		if(d.status != 'new' && d.status != 'pending') {
+		if(d.status != STATUS.NEW && d.status != STATUS.PENDING) {
 			return false;
 		}
-		return setStatus(id, 'rejected');
+		TAGS.update(d.tagId, { status: TAG_STATUS.ACTIVE })
+		return setStatus(id, STATUS.REJECTED);
 	}
 
 	async function flagReturned(id) {
 		let d = await get(id);
-		if(d.status != 'active') {
+		if(d.status != STATUS.ACTIVE) {
 			return false;
 		}
-		return setStatus(id, 'returned');
+		return setStatus(id, STATUS.RETURNED);
 	}
+
 	async function close(id) {
 		let d = await get(id);
-		if(d.status != 'active' && d.status != 'returned') {
+		if(d.status != STATUS.ACTIVE && d.status != STATUS.RETURNED) {
 			return false;
 		}
-		return setStatus(id, 'recovered');
+		return setStatus(id, STATUS.RECOVERED);
 	}
 
   return { create, get, update, setPending, activate, flagReturned, close, reject }

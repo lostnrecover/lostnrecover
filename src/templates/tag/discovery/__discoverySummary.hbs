@@ -1,7 +1,7 @@
 {{#if isTagOwner}}
-<h2>{{ __ 'Tag found: %s' tag.name}}</h2>
+<h2>{{ __ 'Tag found: %s' discovery.tag.name}}</h2>
 	<p>
-	{{ __ 'Tag Label' }}: {{ tag.label }}<br />
+	{{ __ 'Tag Label' }}: {{ discovery.tag.label }}<br />
 	{{ __ 'Status' }}: {{ discovery.status }}
 	</p>
 	{{#each (reverse discovery.states) }}

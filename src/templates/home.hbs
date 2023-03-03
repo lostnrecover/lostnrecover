@@ -5,7 +5,7 @@
 <p>
   {{ __ 'Want to try you own tag: '}}
   {{#if session.email }}
-  <a href="/t?create=1"><button>{{ __ 'Create a Tag' }}</button></a>
+  <a href="/tags?create=1"><button>{{ __ 'Create a Tag' }}</button></a>
   {{else }}
   <a href="/login"><button>{{ __ 'Login or Sign in' }}</button></a>
   {{/if}}

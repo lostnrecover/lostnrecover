@@ -9,6 +9,7 @@
       <th>{{ __ 'Tag Name' }}</th>
 			<th>{{ __ 'Label' }}</th>
       <th>{{ __ 'Status' }}</th>
+			<th>{{ __ 'Open Discovery' }}</th>
       <th>{{ __ 'Notification Email' }}</th>
       <th>{{ __ 'QR Code'}}</th>
       <th>{{ __ 'Action' }}</th>
@@ -21,13 +22,32 @@
       <td><a href="/tags/{{_id}}">{{_id}}</a></td>
       <td>{{ name }}</td>
 			<td>{{ label }}</td>
-      <td>{{#if status}}{{status}}{{else}}active{{/if}}</td>
-      <td>{{#if email }}{{ email }}{{ else }}{{ @root.session.email }}*{{/if}}</td>
+      <td>
+				{{> status status=status type='tag'}}
+			</td>
+			<td>
+				{{#each discoveries}}
+				<a href="/t/{{../_id}}/notify/{{this._id}}">{{>status status=this.status}}</a>
+				{{/each}}
+			</td>
+      <td>{{#if (ne recipient_id owner_id)  }}<em title="{{__ 'Discovery notification are not only sent to the tag owner'}}">{{ recipient.email }}*</em>{{ else }}{{ owner.email }}{{/if}}</td>
       <td><a href="/code/svg/{{_id}}" download="tag-{{_id}}.svg"><img src="/code/svg/{{_id}}" /></a></td>
       <td>
         {{!-- <a href="/print/add?tagId={{_id}}"><img src="/public/icons/grid.svg" title="{{ __ 'Add to Print' }}" /></a> --}}
         <a href="/tags/{{ _id }}?edit=1"><img src="/public/icons/edit.svg" title="{{ __ 'Edit ?' }}" /></a>
         {{!-- <a href="/tags/{{ _id }}/archive"><img src="/public/icons/trash-2.svg" title="{{ __ 'Archive' }}" /></a> --}}
+				{{#ifEquals status 'active'}}
+				<form method="post" action="/tags/{{_id}}/lost">
+					<input type="hidden" name="redirect" value="/tags" />
+					<input type="image" src="/public/icons/eye-off.svg" title="{{ __ 'Lost'}}" />
+				</form>
+				{{/ifEquals}}
+				{{#ifEquals status 'lost'}}
+				<form method="post" action="/tags/{{_id}}/active">
+					<input type="hidden" name="redirect" value="/tags" />
+					<input type="image" src="/public/icons/eye.svg" title="{{ __ 'active'}}" />
+				</form>
+				{{/ifEquals}}
       </td>
     </tr>
     {{/with}}
@@ -38,3 +58,7 @@
 <p>{{ __ 'You have no tag yet!'}}</p>
 {{/if}}
 <p><a href="?create=1"><button>{{ __ 'Create a Tag' }}</button></a></p>
+
+<pre>
+	{{ debug tags}}
+</pre>

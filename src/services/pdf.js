@@ -98,7 +98,7 @@ export function PdfService(mongodb, parentLogger, config) {
 			if(idx == 0 && index > 0) {
 				doc.addPage();// {margin: 0});
 			}
-			console.log('img', { e, startAt, idx, index, posX, posY, x, y, labelsPerPage});
+			logger.child({ e, startAt, idx, index, posX, posY, x, y, labelsPerPage}).debug('img atttributes')
 			doc.image(e.tagFile, toPoint(x)+padding, toPoint(y)+padding, { width: toPoint(tpl.cellWidth)-2*padding });
 			// .rect(toPoint(x), toPoint(y), toPoint(tpl.cellWidth), toPoint(tpl.cellHeight))
 			// .stroke();

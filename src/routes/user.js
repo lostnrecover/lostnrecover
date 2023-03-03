@@ -12,7 +12,7 @@ export default function(fastify, opts, done) {
 
 	fastify.get('/', { preHandler: authenticated },
 		async (request, reply) => {
-			let user = await USERS.findOrCreate(request.session.email);
+			let user = await USERS.findOrFail(request.session.email);
 			if(!user.tz) {
 				user.tz = 'Europe/Paris';
 			}
@@ -28,10 +28,10 @@ export default function(fastify, opts, done) {
 	);
 	fastify.post('/', { preHandler: authenticated },
 		async (request, reply) => {
-			let user = await USERS.findOrCreate(request.session.email);
-			if(!user) {
-				throw EXCEPTIONS.NOT_AUTHORISED;
-			}
+			let user = await USERS.findOrFail(request.session.email);
+			// if(!user) {
+			// 	throw EXCEPTIONS.NOT_AUTHORISED;
+			// }
 			user.displayName = request.body.displayName;
 			user.tz = request.body.timezone;
 			user.locale = request.body.locale;

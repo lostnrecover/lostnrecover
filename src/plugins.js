@@ -40,9 +40,9 @@ export async function errorHandler(error, request, reply) {
 	} else {
 		reply.view('error', {title: 'Unexpected Error', error: e})
 	}
-	return reply;
 	// if json
 	// reply.send(error)
+	return reply;
 }
 
 export function loadFastifyPlugins(fastify, config) {
@@ -92,16 +92,20 @@ export function loadFastifyPlugins(fastify, config) {
 		reply.locals = templateGlobalContext(request.session.get('locale') || 'en');
 		reply.locals.error = reply.flash('error');
 		reply.locals.session = {
-			email: request.session.get('email') || false
+			email: request.session.get('email') || false,
+			user_id: request.session.get('user_id') || false
 		}
 		done();
 	});
 	fastify.decorateRequest('isCurrentUser', function(user_refs) {
 		let refs = Array.isArray(user_refs) ? user_refs : [ user_refs ];
-		if(!this.session.get('email')) {
+		if(!this.session.get('email') || !this.session.get('user_id')) {
 			return false;
 		}
-		return refs.includes(this.session.get('email'));
+		return refs.includes(this.session.get('email')) || refs.includes(this.session.get('user_id'));
+	});
+	fastify.decorateRequest('currentUserId', function() {
+		return this.session.get('user_id');
 	});
 	const TPL_DIR = config.template_dir
 	fastify.register(fastifyView, {

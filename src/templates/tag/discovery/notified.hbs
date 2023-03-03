@@ -7,12 +7,13 @@
 	<dt>
 		{{ __ 'Tag' }}
 	</dt>
-	<dd>{{ tag._id }}</dd>
+	<dd>{{ discovery.tag._id }}</dd>
 	<dt>{{ __ 'Date' }}</dt>
 	<dd>{{ dateFormat discovery.createdAt 'DD/MM/YY hh:mm'}}</dd>
 </dl>
 
 <pre>
 {{ debug tag }}
+-
 {{ debug discovery }}
 </pre>

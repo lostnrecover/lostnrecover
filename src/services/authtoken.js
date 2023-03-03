@@ -2,13 +2,6 @@ import { nanoid } from "nanoid";
 import { EXCEPTIONS } from './exceptions.js'
 
 
-// TODO: Manage a user account collection for future anonymization:
-// an email is link to a user account (nanoid) and the account id should be used for relation
-// anonymization may be obtained by removing the email address from the user account
-// tobe done only if all tags are archived first
-// NB: only fully works if contact email is removed from tag when its archived
-
-
 export function AuthTokenService(mongodb, parentLogger) {
 	const COLLECTION_NAME = 'authtokens'
 	const COLLECTION = mongodb.collection(COLLECTION_NAME);
@@ -28,7 +21,7 @@ export function AuthTokenService(mongodb, parentLogger) {
 	async function newToken(email, type, offset) {
 		let token = {};
 		token._id = nanoid();
-		token.email = email;
+		token.email= email;
 		token.type = type
 		token.createdAt = new Date();
 		token.validUntil = addSeconds(token.createdAt, (offset || 3600))
@@ -48,7 +41,6 @@ export function AuthTokenService(mongodb, parentLogger) {
 			let token =  await COLLECTION.findOne({ _id: tokenid.trim() });
 			if(token) {
 				let now = new Date()
-				// console.log('Compare', token, now, token.validUntil, now.getTime() < token.validUntil.getTime())
 				if(now.getTime() < (token.validUntil.getTime() || 0)) {
 					return token.email
 				}

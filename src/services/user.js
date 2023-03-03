@@ -1,5 +1,12 @@
 import { nanoid } from "nanoid";
 import { AuthTokenService } from "./authtoken.js";
+import { EXCEPTIONS } from "./exceptions.js";
+
+// Manage a user account collection for future anonymization:
+// an email is linked to a user account (nanoid) and the account id should be used for relation
+// anonymization may be obtained by removing the email address from the user account
+// tobe done only if all tags are archived first
+// NB: only fully works if contact email is removed from tag when its archived
 
 export function UserService(mongodb, parentLogger) {
 	const logger = parentLogger.child({ service: 'User' }),
@@ -15,15 +22,28 @@ export function UserService(mongodb, parentLogger) {
 		return USERS.findOne(filter, { projection: projection || PUBLIC_PROJECTION });
 	}
 
-	async function findOrCreate(email) {
+	async function findOrFail(email) {
 		let user = await USERS.findOne({ email }, { projection: PUBLIC_PROJECTION});
 		if(!user) {
-			user = await create({ email })
+			throw EXCEPTIONS.NOT_AUTHORISED;
 		}
-		return user
+		return user;
+	}
+	async function findOrCreate(email, reason) {
+		let user = await USERS.findOne({ email }, { projection: PUBLIC_PROJECTION});
+		if(!user) {
+			user = await create({ email, createdFor: reason });
+		}
+		return user;
+	}
+
+	async function findById(id) {
+		let user = await USERS.findOne({ _id: id }, { projection: PUBLIC_PROJECTION});
+		return user;
 	}
 
 	async function create(user) {
+		// TODO: user data cleanup (according to schema)
 		user._id = nanoid();
 		if (!user.status) {
 			user.status = 'new';
@@ -46,7 +66,7 @@ export function UserService(mongodb, parentLogger) {
 		if(!email) {
 			throw('Invalid Token')
 		}
-		let user = await findOrCreate(email)
+		let user = await findOrCreate(email, 'signin')
 		if(!user) {
 			throw('Invalid Token')
 		}
@@ -58,7 +78,7 @@ export function UserService(mongodb, parentLogger) {
 		}).then(r => {
 			logger.error('Error while updating user status', user)
 		});
-		return email
+		return user
 	}
 
 	async function update(id, user) {
@@ -71,7 +91,7 @@ export function UserService(mongodb, parentLogger) {
 			...user,
 			updatedAt: new Date()
 		}});
-		//TODO: check update result.
+		//FIXME: check update result.
 		return await get({ _id: id });
 	}
 
@@ -92,6 +112,6 @@ export function UserService(mongodb, parentLogger) {
 	}
 
 	return {
-		SCHEMA, findOrCreate, create, login, list, update
+		SCHEMA, findOrCreate, findOrFail, findById, create, login, list, update
 	}
 }

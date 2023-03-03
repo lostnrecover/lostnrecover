@@ -28,7 +28,7 @@ export default function(fastify, opts, done) {
 			return reply;
 		} else {
 			// Check user email or create user if not exists
-			let user = await USERS.findOrCreate(email);
+			let user = await USERS.findOrCreate(email, 'signin');
 			let child = logger.child({user})
 			/* with JWT
 			// Generate token
@@ -46,13 +46,13 @@ export default function(fastify, opts, done) {
 				template: 'mail/email_verify',
 				context: { link, token, email }
 			})
-			child.child({token, link, email}).info('Magic Link')
+			child.child({token, link, email}).info('Magic Link');
+			if(process.env.ENV == 'dev') {
+				reply.redirect(link);
+				return reply
+			}
 		}
-		if(process.env.ENV == 'dev') {
-			reply.redirect(link);
-		} else {
-			reply.redirect(`/auth?email=${email}${redirect}`);
-		}
+		reply.redirect(`/auth?email=${email}${redirect}`);
 		return reply;
 	})
 	fastify.get('/auth',{
@@ -70,12 +70,13 @@ export default function(fastify, opts, done) {
 			}
 			if(req.query.token) {
 				// check provided token
-				let email = await USERS.login(req.query.token);
-				if(!email) {
+				let user = await USERS.login(req.query.token);
+				if(!user) {
 					throw('Invalid Token')
 				}
 				// init session
-				req.session.set('email', email);
+				req.session.set('email', user.email);
+				req.session.set('user_id', user._id )
 				if(req.query.redirect) {
 					res.redirect(req.query.redirect);
 				} else {

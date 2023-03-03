@@ -88,6 +88,12 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 	Handlebars.registerHelper('reverse', function(arr) {
 		return Array.isArray(arr) ? arr.reverse() : arr;
 	});
+	Handlebars.registerHelper('eq', function(arg1, arg2) {
+		return arg1 == arg2;
+	});
+	Handlebars.registerHelper('ne', function(arg1, arg2) {
+		return arg1 != arg2;
+	});
 }
 
 export function loadPartials(logger, Handlebars, templateDir) {

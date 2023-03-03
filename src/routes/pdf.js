@@ -32,7 +32,6 @@ export default function (fastify, opts, done) {
 				}
 				data.push(q)
 			})
-			console.log('print data', data, payload);
 			if(!request.session.currentPdf) {
 				request.session.currentPdf = nanoid();
 			}
