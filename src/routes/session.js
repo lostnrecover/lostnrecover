@@ -7,10 +7,10 @@ function invalidEmail(email) {
 }
 
 // src/routes/accounts.js
-export default function(fastify, opts, done) {
+export default async function(fastify, opts, done) {
 	const logger = fastify.log.child({ controller: 'AccountAPI' }),
-		USERS = UserService(fastify.mongo.db, logger),
-		{ create, verify} = AuthTokenService(fastify.mongo.db, logger);
+		USERS = await UserService(fastify.mongo.db, logger),
+		{ create, verify} = await AuthTokenService(fastify.mongo.db, logger);
 
 	fastify.get('/login', async (request, reply) => {
 		reply.view('magicLink/form', { title: 'Login', url: request.query.redirect })

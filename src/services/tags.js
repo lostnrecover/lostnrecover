@@ -4,6 +4,7 @@ import path from 'path'
 import fs from 'fs';
 import { UserService } from './user.js';
 import { FINAL_STATUS as DISCOVERY_STATUS_FILTER} from './discovery.js';
+import { initCollection } from '../utils/db.js';
 
 export const STATUS = {
 	NEW: 'new',
@@ -12,14 +13,17 @@ export const STATUS = {
 	LOST: 'lost'
 }
 
-export function TagService(mongodb, parentLogger, config) {
+export async function TagService(mongodb, parentLogger, config) {
 	const COLLECTION = 'tags',
 	TMPDIR = config.cache_dir,
 	PUBLIC_PROJECTION = { projection: { _id: 1, name: 1, responseText: 1, status: 1, owner: 1, email: 1, label: 1 }},
 	ALL_PROJECTION = {},
-	TAGS = mongodb.collection(COLLECTION),
+	// TAGS = mongodb.collection(COLLECTION),
 	logger = parentLogger.child({ service: 'Tag' }),
-	USERS = UserService(mongodb, logger, config);
+	USERS = await UserService(mongodb, logger, config);
+
+	let TAGS = await initCollection(mongodb, COLLECTION);
+	//.then(col => TAGS = col);
 
 	// TODO : job to check tags for creation in SVG and PNG
 
@@ -200,6 +204,18 @@ export function TagService(mongodb, parentLogger, config) {
 		const deleteManyResult = await TAGS.deleteMany(filter);
 		return { deleted: deleteManyResult.deletedCount };
 	}
+
+	async function count() {
+		let res = await TAGS.aggregate([{
+			$group:
+				{
+					_id: "$status", // Group key
+					count: { $count: {} }
+				}
+		}]);
+		return res.toArray();
+	}
+
 	const SCHEMA = {
 		body: {
 			type: 'object',
@@ -222,7 +238,8 @@ export function TagService(mongodb, parentLogger, config) {
 		}
 	}
 
+
 	return {
-		SCHEMA, get, findAll, findForUser, remove, create, update, getQRCodeFile
+		SCHEMA, count, get, findAll, findForUser, remove, create, update, getQRCodeFile
 	}
 }

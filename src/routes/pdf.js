@@ -3,11 +3,11 @@ import { AuthTokenService } from '../services/authtoken.js';
 import { PdfService } from "../services/pdf.js";
 import { nanoid } from "nanoid";
 
-export default function (fastify, opts, done) {
+export default async function (fastify, opts, done) {
 	const logger = fastify.log.child({ controller: 'Pdf' }),
-		TAGS = TagService(fastify.mongo.db,  logger, fastify.config),
-		AUTH = AuthTokenService(fastify.mongo.db, logger, fastify.config),
-		PDF = PdfService(fastify.mongo.db, logger, fastify.config)
+		TAGS = await TagService(fastify.mongo.db,  logger, fastify.config),
+		AUTH = await AuthTokenService(fastify.mongo.db, logger, fastify.config),
+		PDF = await PdfService(fastify.mongo.db, logger, fastify.config)
 
 	fastify.route({
 		method: ['GET', 'POST'],

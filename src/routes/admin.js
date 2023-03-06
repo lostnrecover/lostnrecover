@@ -2,12 +2,15 @@ import { UserService } from "../services/user.js";
 import { MessageService } from "../services/messages.js";
 import { EXCEPTIONS } from '../services/exceptions.js';
 import { AuthTokenService } from '../services/authtoken.js';
+import { StatusService } from "../services/status.js";
 
-export default function(fastify, opts, done) {
+
+export default async function(fastify, opts, done) {
 	const logger = fastify.log.child({ controller: 'Admin' }),
-		AUTH = AuthTokenService(fastify.mongo.db, logger, fastify.config),
-		MSG = MessageService(fastify.mongo.db, logger, fastify.config, fastify.sendmail),
-		USERS = UserService(fastify.mongo.db, logger, fastify.config);
+		AUTH = await AuthTokenService(fastify.mongo.db, logger, fastify.config),
+		MSG = await MessageService(fastify.mongo.db, logger, fastify.config, fastify.sendmail),
+		USERS = await UserService(fastify.mongo.db, logger, fastify.config),
+		STATUS = await StatusService(fastify.mongo.db, logger, fastify.config);
 
   function isAdmin(request) {
     if (process.env.ENV != 'dev' && !req.session.admin) {
@@ -24,6 +27,10 @@ export default function(fastify, opts, done) {
     })
     return reply;
   });
+
+	fastify.get('/status', async (request, reply) => {
+		return await STATUS.check("API");
+	})
 
   fastify.get('/messages', {
 		preHandler: AUTH.authentified

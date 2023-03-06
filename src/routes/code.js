@@ -1,9 +1,9 @@
 import { EXCEPTIONS } from '../services/exceptions.js';
 import { TagService } from '../services/tags.js';
 
-export default function (fastify, opts, done) {
+export default async function (fastify, opts, done) {
 	const logger = fastify.log.child({ controller: 'QRCode' }),
-		TAGS = TagService(fastify.mongo.db, logger, fastify.config);
+		TAGS = await TagService(fastify.mongo.db, logger, fastify.config);
 
 // code controller with /code/:format/:tagID route
 	fastify.get('/:format/:tagId', {}, async (request, reply) => {

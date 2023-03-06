@@ -54,9 +54,9 @@ function toPoint(inMM) {
 	return Number(inMM) * pdfpoint
 }
 
-export function PdfService(mongodb, parentLogger, config) {
+export async function PdfService(mongodb, parentLogger, config) {
 	const logger = parentLogger.child({service: 'PDF'})
-	const TAGS = TagService(mongodb, logger, config);
+	const TAGS = await TagService(mongodb, logger, config);
 
 	function initDoc(pdfname, size) {
 		let doc = new PDFDocument({

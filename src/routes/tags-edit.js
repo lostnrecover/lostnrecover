@@ -3,11 +3,11 @@ import { AuthTokenService } from '../services/authtoken.js';
 import { UserService } from '../services/user.js';
 import { EXCEPTIONS } from '../services/exceptions.js';
 
-export default function (fastify, opts, done) {
+export default async function (fastify, opts, done) {
 	const logger = fastify.log.child({ controller: 'TagsEdit' }),
-		TAGS = TagService(fastify.mongo.db, logger, fastify.config),
-		AUTH = AuthTokenService(fastify.mongo.db, logger, fastify.config),
-		USERS = UserService(fastify.mongo.db, logger, fastify.config);
+		TAGS = await TagService(fastify.mongo.db, logger, fastify.config),
+		AUTH = await AuthTokenService(fastify.mongo.db, logger, fastify.config),
+		USERS = await UserService(fastify.mongo.db, logger, fastify.config);
 
 	async function filterInput(request, tag) {
 		tag.name = request.body.name || '';

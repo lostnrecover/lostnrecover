@@ -5,10 +5,10 @@ import { EXCEPTIONS } from '../services/exceptions.js';
 // import fastifySecureSession from '@fastify/secure-session';
 
 // src/routes/accounts.js
-export default function(fastify, opts, done) {
+export default async function(fastify, opts, done) {
 	const logger = fastify.log.child({ controller: 'User' }),
-		USERS = UserService(fastify.mongo.db, logger),
-		{ authenticated } = AuthTokenService(fastify.mongo.db, logger);
+		USERS = await UserService(fastify.mongo.db, logger),
+		{ authenticated } = await AuthTokenService(fastify.mongo.db, logger);
 
 	fastify.get('/', { preHandler: authenticated },
 		async (request, reply) => {

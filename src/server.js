@@ -29,7 +29,7 @@ fastify.decorate('config', config)
 loadFastifyPlugins(fastify, config);
 fastify.setErrorHandler(errorHandler)
 
-console.log('register routes...')
+console.log('Register routes...')
 // Init routes
 fastify.register(Auth);
 fastify.register(Client);

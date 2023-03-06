@@ -1,18 +1,17 @@
 import { nanoid } from "nanoid";
+import { initCollection } from "../utils/db.js";
 import { EXCEPTIONS } from './exceptions.js'
 
 
-export function AuthTokenService(mongodb, parentLogger) {
+export async function AuthTokenService(mongodb, parentLogger) {
 	const COLLECTION_NAME = 'authtokens'
-	const COLLECTION = mongodb.collection(COLLECTION_NAME);
 	// Check if TTL index exists
 	const TTLIndexName = 'expiration TTL';
 	const logger = parentLogger.child({ service: 'AuthToken'})
-	let indexExpiration = COLLECTION.indexExists(TTLIndexName).then(exists => {
-		if (!exists) {
-			COLLECTION.createIndex({ "expireAt": 1 }, { name: TTLIndexName, expireAfterSeconds: 0 })
-		}
-	})
+	let COLLECTION = await initCollection(mongodb, COLLECTION_NAME, [
+		{ options: { name: TTLIndexName, expireAfterSeconds: 0 }, spec: { "expireAt": 1 }}
+	])
+	// .then(col => COLLECTION = col);
 	function addSeconds(date, secondsOffset) {
 		let d = new Date(date.valueOf());
 		d.setSeconds(d.getSeconds() + secondsOffset);

@@ -1,13 +1,15 @@
 import { nanoid } from "nanoid";
-import Agenda from "agenda";
+import { initCollection } from "../utils/db.js";
 
 const BATCHSEND = 'Messages.batchSend'
 
 export function MessageService(mongodb, parentLogger, config, mailer) {
 	const COLLECTION = 'messages'
-	const MSG = mongodb.collection(COLLECTION);
-	const retentionDays = 2;
+	// FIXME to configuration
+	const retentionDays = 14;
 	const logger = parentLogger.child({ service: 'Message' })
+	// const MSG = mongodb.collection(COLLECTION);
+	let MSG = await initCollection(mongodb, COLLECTION);
 	if(!mailer) {
 		throw('Mailer is required');
 	}

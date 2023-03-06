@@ -6,12 +6,12 @@ import { AuthTokenService } from '../services/authtoken.js'
 import { UserService } from '../services/user.js';
 
 // TODO: review authentication
-export default function (fastify, opts, done) {
+export default async function (fastify, opts, done) {
 	const logger = fastify.log.child({ controller: 'Tags' }),
-		TAGS = TagService(fastify.mongo.db, logger, fastify.config),
-		DISCOVERY = DiscoveryService(fastify.mongo.db, logger, fastify.config, fastify.sendmail),
-		AUTH = AuthTokenService(fastify.mongo.db, logger, fastify.config),
-		USERS = UserService(fastify.mongo.db, logger, fastify.config);
+		TAGS = await TagService(fastify.mongo.db, logger, fastify.config),
+		DISCOVERY = await DiscoveryService(fastify.mongo.db, logger, fastify.config, fastify.sendmail),
+		AUTH = await AuthTokenService(fastify.mongo.db, logger, fastify.config),
+		USERS = await UserService(fastify.mongo.db, logger, fastify.config);
 
 	fastify.get('/:tagId', async (request, reply) => {
 		let tag = await TAGS.get(request.params.tagId);

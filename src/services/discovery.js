@@ -4,6 +4,7 @@ import { MessageService } from "./messages.js";
 import { TagService } from "./tags.js";
 import { UserService } from "./user.js";
 import { STATUS as TAG_STATUS } from "./tags.js";
+import { initCollection } from "../utils/db.js";
 
 export const STATUS = {
 	PENDING: 'pending',
@@ -16,17 +17,17 @@ export const STATUS = {
 
 export const FINAL_STATUS= [ STATUS.RECOVERED, STATUS.REJECTED ]
 
-export function DiscoveryService(mongodb, parentLogger, config, mailer) {
+export async function DiscoveryService(mongodb, parentLogger, config, mailer) {
 	const COLLECTION = 'discovery';
-	const DISCOVERY = mongodb.collection(COLLECTION);
+	// const DISCOVERY = mongodb.collection(COLLECTION);
 	const logger = parentLogger.child({ service: 'Discovery'});
-	const MSG = MessageService(mongodb, logger, config, mailer);
-	const TAGS = TagService(mongodb, logger, config);
-	const USERS = UserService(mongodb, logger, config);
-
-  // TODO Ensure Init index
-
+	const MSG = await MessageService(mongodb, logger, config, mailer);
+	const TAGS = await TagService(mongodb, logger, config);
+	const USERS = await UserService(mongodb, logger, config);
+	let DISCOVERY = await initCollection(mongodb, COLLECTION);
+	//.then(col => DISCOVERY = col);
 	// TODO job to process discovery expiration new, closed
+  // TODO Ensure Init index if any
 
 	async function search(filter) {
 		return await DISCOVERY.aggregate([

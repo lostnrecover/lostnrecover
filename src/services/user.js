@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import { initCollection } from "../utils/db.js";
 import { AuthTokenService } from "./authtoken.js";
 import { EXCEPTIONS } from "./exceptions.js";
 
@@ -8,12 +9,14 @@ import { EXCEPTIONS } from "./exceptions.js";
 // tobe done only if all tags are archived first
 // NB: only fully works if contact email is removed from tag when its archived
 
-export function UserService(mongodb, parentLogger) {
+export async function UserService(mongodb, parentLogger) {
 	const logger = parentLogger.child({ service: 'User' }),
 		COLLECTION = 'users',
 		PUBLIC_PROJECTION = { _id: 1, email:1, status: 1, tz: 1, locale: 1, displayName: 1},
-		USERS = mongodb.collection(COLLECTION),
+		// USERS = mongodb.collection(COLLECTION),
 		{verify} = AuthTokenService(mongodb, logger);
+	let USERS = await initCollection(mongodb, COLLECTION);
+	//.then(col => USERS = col);
 
 	async function get(filter, projection) {
 		if(!filter._id && !filter.email) {
@@ -95,6 +98,17 @@ export function UserService(mongodb, parentLogger) {
 		return await get({ _id: id });
 	}
 
+	async function count() {
+		let res = await USERS.aggregate([{
+			$group:
+				{
+					_id: "$status", // Group key
+					count: { $count: {} }
+				}
+		}]);
+		return res.toArray();
+	}
+
 	const SCHEMA = {
 		body: {
 			type: 'object',
@@ -112,6 +126,6 @@ export function UserService(mongodb, parentLogger) {
 	}
 
 	return {
-		SCHEMA, findOrCreate, findOrFail, findById, create, login, list, update
+		SCHEMA, findOrCreate, findOrFail, findById, create, login, list, update, count
 	}
 }
