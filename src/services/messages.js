@@ -3,7 +3,7 @@ import { initCollection } from "../utils/db.js";
 
 const BATCHSEND = 'Messages.batchSend'
 
-export function MessageService(mongodb, parentLogger, config, mailer) {
+export async function MessageService(mongodb, parentLogger, config, mailer) {
 	const COLLECTION = 'messages'
 	// FIXME to configuration
 	const retentionDays = 14;

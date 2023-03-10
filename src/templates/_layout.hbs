@@ -21,8 +21,14 @@
 			<a href="/about"><img src="/public/icons/help-circle.svg" title="{{ __ 'About' }}" /></a>
 		</nav>
 		</header>
-		{{#if error_msg }}
-		<p class="error">{{ error_msg }}</p>
+		{{#if error }}
+		<p class="error">{{ error }}</p>
+		{{/if}}
+		{{#if info}}
+		<p class="info">{{ info }}</p>
+		{{/if}}
+		{{#if warning}}
+		<p class="warning">{{ warning }}</p>
 		{{/if}}
 		{{{body}}}
 		<footer>{{ pkg.displayName }} - v{{ pkg.version }} -
@@ -32,5 +38,8 @@
 			- <a href="/admin">{{ __ 'Admin' }}</a>
 		</footer>
 	</main>
+	<pre>
+		{{debug flash}}
+	</pre>
 </body>
 </html>

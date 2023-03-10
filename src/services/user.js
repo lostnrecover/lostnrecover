@@ -14,7 +14,7 @@ export async function UserService(mongodb, parentLogger) {
 		COLLECTION = 'users',
 		PUBLIC_PROJECTION = { _id: 1, email:1, status: 1, tz: 1, locale: 1, displayName: 1},
 		// USERS = mongodb.collection(COLLECTION),
-		{verify} = AuthTokenService(mongodb, logger);
+		{verify} = await AuthTokenService(mongodb, logger);
 	let USERS = await initCollection(mongodb, COLLECTION);
 	//.then(col => USERS = col);
 

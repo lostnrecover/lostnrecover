@@ -81,7 +81,7 @@ export function loadFastifyPlugins(fastify, config) {
 	}
 
 	// TODO outsource to a locale dedicated file
-	fastify.addHook("preHandler", function (request, reply, done) {
+	fastify.addHook("preHandler", async function (request, reply) {
 		if(!config.DOMAIN || config.DOMAIN == '') {
 			config.DOMAIN = `${request.hostname}`
 			request.log.info(`Switched domain: ${config.DOMAIN}`)
@@ -90,12 +90,12 @@ export function loadFastifyPlugins(fastify, config) {
 			request.session.set('locale', request.query.locale)
 		}
 		reply.locals = templateGlobalContext(request.session.get('locale') || 'en');
-		reply.locals.error = reply.flash('error');
+		reply.locals.flash = reply.flash();
 		reply.locals.session = {
 			email: request.session.get('email') || false,
 			user_id: request.session.get('user_id') || false
 		}
-		done();
+		// done();
 	});
 	fastify.decorateRequest('isCurrentUser', function(user_refs) {
 		let refs = Array.isArray(user_refs) ? user_refs : [ user_refs ];

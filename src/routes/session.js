@@ -3,7 +3,14 @@ import { AuthTokenService } from '../services/authtoken.js'
 // import fastifySecureSession from '@fastify/secure-session';
 
 function invalidEmail(email) {
-	return !email
+	const INVALID = true, OK = false;
+	if(!email) {
+		return INVALID;
+	}
+	if (email.lastIndexOf('@') < email.length) {
+		return OK;
+	}
+	return INVALID;
 }
 
 // src/routes/accounts.js
@@ -23,7 +30,7 @@ export default async function(fastify, opts, done) {
 			redirect = `&redirect=${request.body.redirect}`;
 		}
 		if (invalidEmail(email)) {
-			request.flash('error_msg', 'Invalid email address');
+			request.flash('error', 'Invalid email address');
 			reply.redirect(`/login?${redirect}`);
 			return reply;
 		} else {
@@ -48,6 +55,7 @@ export default async function(fastify, opts, done) {
 			})
 			child.child({token, link, email}).info('Magic Link');
 			if(process.env.ENV == 'dev') {
+				request.flash('warning', `Auto logged in as  ${email}`);
 				reply.redirect(link);
 				return reply
 			}
