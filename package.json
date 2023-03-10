@@ -29,6 +29,7 @@
     "@fastify/static": "^6.6.0",
     "@fastify/view": "^7.3.0",
     "agenda": "^5.0.0",
+    "connection-string": "^4.3.6",
     "fastify": "^4.10.2",
     "fastify-mailer": "^2.3.1",
     "handlebars": "^4.7.7",

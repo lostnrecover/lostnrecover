@@ -76,7 +76,7 @@ export function loadFastifyPlugins(fastify, config) {
 			pkg,
 		}
 		delete context.config.cookies;
-		delete context.config.mail_transport;
+		// delete context.config.mail_transport;
 		return context;
 	}
 
