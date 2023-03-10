@@ -1,6 +1,6 @@
 node_modules/
 _
-.vscode
+.vscode/**
 .session-secret-key
 .jwt-secret
 .*secret
