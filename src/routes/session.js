@@ -1,5 +1,6 @@
 import {UserService} from '../services/user.js'
 import { AuthTokenService } from '../services/authtoken.js'
+import { MessageService } from '../services/messages.js';
 // import fastifySecureSession from '@fastify/secure-session';
 
 function invalidEmail(email) {
@@ -16,7 +17,8 @@ function invalidEmail(email) {
 // src/routes/accounts.js
 export default async function(fastify, opts, done) {
 	const logger = fastify.log.child({ controller: 'AccountAPI' }),
-		USERS = await UserService(fastify.mongo.db, logger),
+		USERS = await UserService(fastify.mongo.db, logger, fastify.config),
+		MSG = await MessageService(fastify.mongo.db, logger, fastify.config, fastify.sendmail),
 		{ create, verify} = await AuthTokenService(fastify.mongo.db, logger);
 
 	fastify.get('/login', async (request, reply) => {
@@ -47,12 +49,12 @@ export default async function(fastify, opts, done) {
 			let link = `${request.protocol}://${request.hostname}/auth?token=${token}${redirect}`;
 			// TODO background send >?
 			// Send email
-			fastify.sendmail({
+			MSG.create({
 				to: email,
-				subject: 'Please verify your email to unlock your account',
+				subject: 'Please verify your email',
 				template: 'mail/email_verify',
-				context: { link, token, email }
-			})
+				context: { link, token, email },
+			});
 			child.child({token, link, email}).info('Magic Link');
 			if(process.env.ENV == 'dev') {
 				request.flash('warning', `Auto logged in as  ${email}`);
@@ -84,7 +86,8 @@ export default async function(fastify, opts, done) {
 				}
 				// init session
 				req.session.set('email', user.email);
-				req.session.set('user_id', user._id )
+				req.session.set('user_id', user._id );
+				// TODO set isAdmin session flag for specific users (Pattern, List or Profile attr)
 				if(req.query.redirect) {
 					res.redirect(req.query.redirect);
 				} else {

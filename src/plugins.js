@@ -144,7 +144,7 @@ export function loadFastifyPlugins(fastify, config) {
 		if(!mailBody) {
 			throw EXCEPTIONS.EMPTY_MAIL_BODY;
 		}
-		fastify.mailer.sendMail({
+		return fastify.mailer.sendMail({
 			to: options.to,
 			from: options.from || `${config.appName} <${config.support_email}>`, //`"Tag Owner <tag-${tag._id}@lnf.z720.net>`,
 			subject: `${config.appName}: ${options.subject || 'Notification'}`, //`Lost n Found: Instructions for ${tag.name} (${tag._id})`,

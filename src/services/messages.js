@@ -95,12 +95,32 @@ export async function MessageService(mongodb, parentLogger, config, mailer) {
 			to: msg.to,
 			from: msg.from
 		});
+		/*
+{
+  accepted: [
+    "seb@z720.net",
+  ],
+  rejected: [
+  ],
+  envelopeTime: 71,
+  messageTime: 81,
+  messageSize: 1637,
+  response: "250 Accepted [STATUS=new MSGID=Y-DqFykOP3YSqbYuZAw7gjbzlc7YMgW8AAAAIs4eGe6SCKTQi0wAn8imGmk]",
+  envelope: {
+    from: "tag-sMreGDDN5s9e7eTX-cxXG@dev.lostnrecover.me",
+    to: [
+      "seb@z720.net",
+    ],
+  },
+  messageId: "<4fd9d2e1-ef01-efd5-04d6-a63ee1743dd4@dev.lostnrecover.me>",
+}
+		*/
 		if (!res) {
-			update(msgID, { status: 'error' });
+			update(msgID, { status: 'error', response: res.repsonse });
 			return false;
 		}
 		expireAt.setDate(now.getDate() + retentionDays)
-		update(msgID, { status: 'sent', sentAt: new Date(), expireAt: expireAt });
+		update(msgID, { status: 'sent', sentAt: new Date(), expireAt: expireAt, response: { id: res.messageId, response: res.response } });
 		return true;
 	}
 
