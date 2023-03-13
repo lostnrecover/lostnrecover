@@ -55,6 +55,12 @@ export async function AuthTokenService(mongodb, parentLogger) {
 			throw(EXCEPTIONS.NOT_AUTHORISED);
 		}
 	}
+	async function isAdmin(request, reply) {
+		let isAdmin = request.session.get('isAdmin');
+		if(process.env.ENV != 'dev' && !isAdmin) {
+			throw(EXCEPTIONS.NOT_AUTHORISED);
+		}
+	}
 	const SCHEMA = {
 		body: {
 			type: 'object',
@@ -71,5 +77,5 @@ export async function AuthTokenService(mongodb, parentLogger) {
 			}
 		}
 	}
-	return { SCHEMA, create, verify, authentified }
+	return { SCHEMA, create, verify, authentified, isAdmin }
 }

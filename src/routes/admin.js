@@ -12,14 +12,8 @@ export default async function(fastify, opts, done) {
 		USERS = await UserService(fastify.mongo.db, logger, fastify.config),
 		STATUS = await StatusService(fastify.mongo.db, logger, fastify.config);
 
-  function isAdmin(request) {
-    if (process.env.ENV != 'dev' && !req.session.admin) {
-      throw EXCEPTIONS.NOT_FOUND;
-    }
-  }
-
   fastify.get('/', {
-		preHandler: AUTH.authentified
+		preHandler: AUTH.isAdmin
 	}, async (req,reply) => {
     reply.view('admin/index', {
       users: await USERS.list(),
@@ -33,7 +27,7 @@ export default async function(fastify, opts, done) {
 	})
 
   fastify.get('/messages', {
-		preHandler: AUTH.authentified
+		preHandler: AUTH.isAdmin
 	}, async (request, reply) => {
     reply.view('admin/messages', {
       messages: await MSG.list(),
