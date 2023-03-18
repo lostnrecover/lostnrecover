@@ -1,7 +1,4 @@
 import { nanoid } from 'nanoid';
-import QRCode from 'qrcode';
-import path from 'path'
-import fs from 'fs';
 import { UserService } from './user.js';
 import { FINAL_STATUS as DISCOVERY_STATUS_FILTER} from './discovery.js';
 import { initCollection } from '../utils/db.js';
@@ -141,53 +138,6 @@ export async function TagService(mongodb, parentLogger, config) {
 		}})
 		return get(id);
 	}
-	// FIXME Move to Code Service ?
-	async function getQRCodeFile(tagId, format, refreshCache) {
-		let options = {}, cacheFileName, code;
-		options.type = 'svg'
-		if (format == 'png') {
-			options.type = 'png'
-		}
-		cacheFileName = path.join(TMPDIR, `/${tagId}.${options.type}`)
-		if(!fs.existsSync(cacheFileName) || refreshCache) {
-			let t = await generateCode(cacheFileName, tagId, options);
-		} else {
-			logger.info(`using cache file ${cacheFileName}`);
-		}
-		return cacheFileName;
-	}
-	async function generateCode(filename, tagId, options) {
-		let domain = config.SHORT_DOMAIN ?? config.DOMAIN,
-			text = `https://${domain}/t/${tagId}`, physicalPath = path.join(filename);
-		return new Promise((resolve, reject) => {
-			if(options.type == 'png') {
-				QRCode.toFile(physicalPath, text, (err) => {
-					if(err) {
-						console.error(err);
-						reject(`Error generating Code: ${err}`)
-					} else {
-						resolve(filename);
-					}
-				})
-			} else {
-				options.type = 'svg';
-				QRCode.toString(text, options, (err, txt) => {
-					if(err) {
-						reject(`Error generating Code: ${err}`)
-					}
-					logger.child({filename, text, options, txt}).info('Generated')
-					if(options.type == 'svg') {
-						//Append domain and tagId
-						// let domainTag = `<text x="50%" y="1.75" dominant-baseline="middle" text-anchor="middle" font-family="Helvetica" font-size="3">${domain}</text>`
-						// let tagTag = `<text x="50%" y="35.5" dominant-baseline="middle" text-anchor="middle" font-family="Courier"  font-size="3">Id: ${tagId}</text> `
-						// let t = txt.replace('</svg>',`${domainTag}${tagTag}</svg>`);
-						fs.writeFileSync(physicalPath, txt);
-					}
-					resolve(filename);
-				})
-			}
-		});
-	}
 
 	async function findAll() {
 		return await search({ status: { $not: { $eq: STATUS.ARCHIVED } } });
@@ -240,6 +190,6 @@ export async function TagService(mongodb, parentLogger, config) {
 
 
 	return {
-		SCHEMA, count, get, findAll, findForUser, remove, create, update, getQRCodeFile
+		SCHEMA, count, get, findAll, findForUser, remove, create, update
 	}
 }

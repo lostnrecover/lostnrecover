@@ -1,6 +1,7 @@
 import PDFDocument from 'pdfkit';
 import { createWriteStream, existsSync } from 'fs';
 import { TagService } from './tags.js';
+import { QRService } from './qr.js';
 import { join } from 'path';
 
 const pdfpoint = 2.834666667;
@@ -57,6 +58,7 @@ function toPoint(inMM) {
 export async function PdfService(mongodb, parentLogger, config) {
 	const logger = parentLogger.child({service: 'PDF'})
 	const TAGS = await TagService(mongodb, logger, config);
+	const QR = await QRService(mongodb, logger, config);
 
 	function initDoc(pdfname, size) {
 		let doc = new PDFDocument({
@@ -78,7 +80,7 @@ export async function PdfService(mongodb, parentLogger, config) {
 			labelsPerPage = tpl.perRow * tpl.rows;
 
 		await Promise.all(data.map(async (entry) => {
-			let tagFile = await TAGS.getQRCodeFile(entry._id, 'png', true),
+			let tagFile = await QR.getQRCodeFile(entry._id, 'png', true),
 				arr = Array(parseInt(entry.qty) || 1).fill({...entry, tagFile});
 			if(parseInt(entry.qty) > 0) {
 				list.push(...arr);
