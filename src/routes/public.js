@@ -1,6 +1,5 @@
 
 
-// TODO rename file
 export default function(fastify, opts, done) {
 	const logger = fastify.log.child({ controller: 'Client' });
 

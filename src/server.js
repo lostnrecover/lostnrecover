@@ -10,7 +10,7 @@ import * as Auth from './routes/session.js';
 import * as User from './routes/user.js';
 import * as TagsEditController from './routes/tags-edit.js';
 import * as TagsController from './routes/tags.js';
-import * as Client from './routes/client.js';
+import * as Public from './routes/public.js';
 import * as Admin from './routes/admin.js';
 import * as PdfContoller from './routes/pdf.js';
 import * as CodeController from './routes/code.js';
@@ -32,13 +32,13 @@ fastify.setErrorHandler(errorHandler)
 console.log('Register routes...')
 // Init routes
 fastify.register(Auth);
-fastify.register(Client);
+fastify.register(Public);
 fastify.register(Admin, { prefix: '/admin' });
 fastify.register(TagsController, { prefix: '/t' });
 fastify.register(TagsEditController, { prefix: '/tags'});
 fastify.register(CodeController, { prefix: '/code' })
 fastify.register(PdfContoller, { prefix: '/pdf' });
-fastify.register(TagsAPI, { prefix: '/api/1/tags'});
+// fastify.register(TagsAPI, { prefix: '/api/1/tags'});
 fastify.register(User, { prefix: '/account' })
 
 // Start server
