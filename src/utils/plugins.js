@@ -9,7 +9,7 @@ import fastifyForm from '@fastify/formbody';
 import fastifyMailer from 'fastify-mailer';
 import { htmlToText } from 'nodemailer-html-to-text';
 
-import pkg from '../package.json' assert { type: "json" };
+import pkg from '../../package.json' assert { type: "json" };
 
 // current dir for options
 // import path from 'path'
@@ -17,7 +17,7 @@ import pkg from '../package.json' assert { type: "json" };
 // Templating
 import Handlebars from 'handlebars';
 import { loadHelpers, loadPartials } from './templating.js';
-import { EXCEPTIONS } from './services/exceptions.js';
+import { EXCEPTIONS } from '../services/exceptions.js';
 
 export async function errorHandler(error, request, reply) {
 	let e = error;

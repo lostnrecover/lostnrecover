@@ -1,5 +1,5 @@
 import Agenda from "agenda";
-import { MessageService } from './services/messages.js'
+import { MessageService } from '../services/messages.js'
 let workerJob;
 
 export async function initJobs(fastify, config) {

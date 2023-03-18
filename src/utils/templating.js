@@ -1,7 +1,7 @@
 import { format } from 'util'
 import moment from 'moment-timezone';
-import * as enLocale from './templates/locales/en.json' assert { type: "json" };
-import * as frLocale from './templates/locales/fr.json' assert { type: "json" };
+import * as enLocale from '../templates/locales/en.json' assert { type: "json" };
+import * as frLocale from '../templates/locales/fr.json' assert { type: "json" };
 import fs from 'fs'
 import path from 'path'
 import glob from 'glob';

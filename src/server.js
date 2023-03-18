@@ -1,8 +1,8 @@
 // Fastify
 import Fastify from 'fastify';
-import { loadFastifyPlugins, errorHandler } from './plugins.js';
+import { loadFastifyPlugins, errorHandler } from './utils/plugins.js';
 import { config } from './config.js';
-import { initJobs } from './jobs.js';
+import { initJobs } from './utils/jobs.js';
 import qs from 'qs';
 
 import * as TagsAPI from './routes/v1/tags.js';
