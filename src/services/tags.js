@@ -92,7 +92,7 @@ export async function TagService(mongodb, parentLogger, config) {
 
 	async function cleanup(tag) {
 		// FIXME add tag schema compliance cleanup.
-		if (!tag.status) {
+		if (!tag.status || !Object.values(STATUS).includes(tag.status)) {
 			tag.status = STATUS.NEW;
 		}
 		if(tag.owner) {
@@ -135,8 +135,14 @@ export async function TagService(mongodb, parentLogger, config) {
 		}, { $set: {
 			...tag,
 			updatedAt: new Date()
-		}})
+		}});
 		return get(id);
+	}
+	async function release(id) {
+		let tag = await get(id), newTag = {...tag};
+		// Release a tag for a new owner
+		// move history to archived tag
+		// cleanup fileds and set new status.
 	}
 
 	async function findAll() {
@@ -148,7 +154,7 @@ export async function TagService(mongodb, parentLogger, config) {
 		if(!user_id) {
 			return null
 		}
-		return await search({ ...filter, owner_id: user_id });
+		return await search({ ...filter, $or: [{owner_id: user_id}, {recipient_id: user_id}] });
 	}
 	async function remove(filter) {
 		const deleteManyResult = await TAGS.deleteMany(filter);
@@ -190,6 +196,6 @@ export async function TagService(mongodb, parentLogger, config) {
 
 
 	return {
-		SCHEMA, count, get, findAll, findForUser, remove, create, update
+		SCHEMA, count, get, findAll, findForUser, remove, create, update, release
 	}
 }

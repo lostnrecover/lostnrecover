@@ -23,7 +23,6 @@ export const config = {
 		secret: fs.readFileSync(cookie_secret_file)
 	},
 	locales: {'en': 'English', 'fr': 'Français'},
-	app_root_dir: path.join(__dirname, '/..'),
 	cache_dir: path.join(__dirname, '/../tmp'),
 	pdf_cache_dir: path.join(__dirname, '../public/pdf'),
 	public_dir: path.join(__dirname, '/../public'),

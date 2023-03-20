@@ -1,6 +1,6 @@
 import path from 'path'
 import { EXCEPTIONS } from '../services/exceptions.js';
-import { TagService } from '../services/tags.js';
+import { TagService, STATUS } from '../services/tags.js';
 import { DiscoveryService } from '../services/discovery.js';
 import { AuthTokenService } from '../services/authtoken.js'
 import { UserService } from '../services/user.js';
@@ -16,6 +16,12 @@ export default async function (fastify, opts, done) {
 	fastify.get('/:tagId', async (request, reply) => {
 		let tag = await TAGS.get(request.params.tagId);
 		if (!tag) {
+			throw EXCEPTIONS.TAG_NOT_FOUND;
+		}
+		// if(tag.status == STATUS.NEW && !tag.owner_id) {
+		// 	reply.view('tag/take_ownership', { tag, title: 'Take tag ownership' })
+		// }
+		if(![STATUS.ACTIVE, STATUS.LOST].includes(tag.status)) {
 			throw EXCEPTIONS.TAG_NOT_FOUND;
 		}
 		if(request.isCurrentUser(tag.owner_id)) {

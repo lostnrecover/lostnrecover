@@ -50,8 +50,8 @@ export async function AuthTokenService(mongodb, parentLogger) {
 		return false
 	}
 	async function authentified(request, reply) {
-		let email = request.session.get('email');
-		if (!email) {
+		let id = request.session.get('user_id');
+		if (!id) {
 			throw(EXCEPTIONS.NOT_AUTHORISED);
 		}
 	}
