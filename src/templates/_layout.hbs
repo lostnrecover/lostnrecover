@@ -31,7 +31,7 @@
 		<p class="warning">{{ warning }}</p>
 		{{/if}}
 		{{{body}}}
-		<footer>{{ pkg.displayName }} - v{{ pkg.version }} -
+		<footer>{{ config.appName}} - v{{ pkg.version }} -
 			{{#each config.locales }}{{#if @first}}{{else}} | {{/if}}
 			<a href="?locale={{@key}}" title="{{ __loc @key 'Switch to %s' this }}">{{@key}}</a>
 			{{/each}}

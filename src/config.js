@@ -19,7 +19,7 @@ export const config = {
 	HOST: process.env.HOST || '::',
 	db_url: process.env.DB_URL || 'mongodb://mongodb/lostnfound',
 	cookies: {
-		name: 'lostnfound',
+		name: 'lnr',
 		secret: fs.readFileSync(cookie_secret_file)
 	},
 	locales: {'en': 'English', 'fr': 'Français'},

@@ -1,0 +1,23 @@
+# docker-compose.yml
+version: '3'
+services:
+  app:
+    build:
+    # build from Dockerfile
+      context: .
+      dockerfile: Dockerfile
+    ports:
+    - "4000:${PORT:-3000}"
+    links: 
+    - mongodb
+    depends_on:
+    - mongodb
+    environment:
+      APP_NAME: "Lost n Recover"
+  mongodb:
+    image: mongo:latest
+    volumes:
+    - "dbdata:/data/db"
+
+volumes:
+  dbdata:
