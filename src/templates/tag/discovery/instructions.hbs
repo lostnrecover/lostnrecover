@@ -2,10 +2,8 @@
 
 <h2>{{ __ "Instructions"}}</h2>
 <form method="post">
-{{#if isFinder}}
-{{#ifEquals discovery.status 'active'}}
+{{#if (and isFinder (eq discovery.status 'active'))}}
 	<button type="submit" value="return" name="action">{{ __ 'I have returned this item'}}</button>
-{{/ifEquals}}
 {{/if}}
 {{#if isTagOwner}}
 	<button type="submit" value="close" name="action">{{ __ 'I have received this item'}}</button>

@@ -1,10 +1,10 @@
-{{#ifEquals locale 'en' }}
+{{#if (eq locale 'en') }}
 <h2>How does it work</h2>
 <ol>
 	<li>Prepare your tags:
 		<ol>
 			<li><a href="/tags">Create a tag</a></li>
-			<li>Print it</li>
+			<li><a href="/pdf">Print it</a></li>
 			<li>Stick it on you stuff</li>
 			<li>Get it lost!</li>
 		</ol>
@@ -27,15 +27,15 @@
 	With this solution, the item can be retrieved without the fear of being harrassed by phone or at your house: you can
 	choose what kind of
 	information to disclose and only for people willing to return it.</p>
-{{/ifEquals}}
+{{/if}}
 
-{{#ifEquals locale 'fr' }}
+{{#if (eq locale 'fr') }}
 <h2>Comment ça marche</h2>
 <ol>
 	<li>Preparer vos tags:
 		<ol>
 			<li><a href="/tags">Créer un tag</a></li>
-			<li>Imprimer le</li>
+			<li><a href="/pdf">Imprimer le</a></li>
 			<li>Coller le sur vos affaires</li>
 			<li>Perdez vos affaires!</li>
 		</ol>
@@ -59,4 +59,4 @@
 	peut choisir la nature des informations à divulguer et
 	celles-ci sont transmise à des personnes qui ont réekllement envie de rendre ce qui a été perdu.
 </p>
-{{/ifEquals}}
+{{/if}}

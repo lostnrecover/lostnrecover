@@ -58,12 +58,6 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 	Handlebars.registerHelper('iconButton', function( icon, text) {
 		return `<button type="submit"><img src="public/icons/${icon}.svg" alt="${text}" /></button>`
 	});
-	Handlebars.registerHelper('ifEquals', function(arg1, arg2, options) {
-		return (arg1 == arg2) ? options.fn(this) : options.inverse(this);
-	});
-	Handlebars.registerHelper('ifNotEquals', function(arg1, arg2, options) {
-		return (arg1 != arg2) ? options.fn(this) : options.inverse(this);
-	});
 	Handlebars.registerHelper('localizedFile', function(filename, options) {
 		let locale = this.locale || options.data.root.locale || 'en';
 		let files = [ `locales/${filename}.${locale}.hbs`, `locales/${filename}.hbs`, `${filename}.${locale}.hbs`, `${filename}.hbs`];
@@ -93,6 +87,12 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 	});
 	Handlebars.registerHelper('ne', function(arg1, arg2) {
 		return arg1 != arg2;
+	});
+	Handlebars.registerHelper('or', function(arg1, arg2) {
+		return arg1 || arg2;
+	});
+	Handlebars.registerHelper('and', function(arg1, arg2) {
+		return arg1 && arg2;
 	});
 }
 

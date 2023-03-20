@@ -33,21 +33,23 @@
       <td>{{#if (ne recipient_id owner_id)  }}<em title="{{__ 'Discovery notification are not only sent to the tag owner'}}">{{ recipient.email }}*</em>{{ else }}{{ owner.email }}{{/if}}</td>
       <td><a href="/code/svg/{{_id}}" download="tag-{{_id}}.svg"><img src="/code/svg/{{_id}}" /></a></td>
       <td>
+        {{#if (eq recipient_id owner_id)  }}
         {{!-- <a href="/print/add?tagId={{_id}}"><img src="/public/icons/grid.svg" title="{{ __ 'Add to Print' }}" /></a> --}}
         <a href="/tags/{{ _id }}?edit=1"><img src="/public/icons/edit.svg" title="{{ __ 'Edit ?' }}" /></a>
         {{!-- <a href="/tags/{{ _id }}/archive"><img src="/public/icons/trash-2.svg" title="{{ __ 'Archive' }}" /></a> --}}
-				{{#ifEquals status 'active'}}
+				{{#if (eq status 'active')}}
 				<form method="post" action="/tags/{{_id}}/lost">
 					<input type="hidden" name="redirect" value="/tags" />
 					<input type="image" src="/public/icons/eye-off.svg" title="{{ __ 'Lost'}}" />
 				</form>
-				{{/ifEquals}}
-				{{#ifEquals status 'lost'}}
+				{{/if}}
+				{{#if (or (eq status 'new') (eq status 'lost'))}}
 				<form method="post" action="/tags/{{_id}}/active">
 					<input type="hidden" name="redirect" value="/tags" />
 					<input type="image" src="/public/icons/eye.svg" title="{{ __ 'active'}}" />
 				</form>
-				{{/ifEquals}}
+				{{/if}}
+        {{/if}}
       </td>
     </tr>
     {{/with}}
