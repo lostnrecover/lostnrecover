@@ -38,8 +38,7 @@ export async function TagService(mongodb, parentLogger, config) {
 					as: "owner"
 				}
 			},
-			{ $unwind : "$owner" },
-			// {$set:{fruit_name:{$ifNull:["$fruit_name",  ]}}}
+			{ $unwind : {path: "$owner", preserveNullAndEmptyArrays: true} },
 			{
 				$lookup: {
 					from: "users",
@@ -48,6 +47,7 @@ export async function TagService(mongodb, parentLogger, config) {
 					as: "recipient"
 				}
 			},
+			{ $unwind : {path: "$recipient", preserveNullAndEmptyArrays: true} },
 			{
 				$lookup: {
 					from: "discovery",
@@ -65,8 +65,7 @@ export async function TagService(mongodb, parentLogger, config) {
 					],
 					as: "discoveries"
 				}
-			},
-			{ $unwind : "$recipient" }
+			}
 		]).toArray();
 	}
 
