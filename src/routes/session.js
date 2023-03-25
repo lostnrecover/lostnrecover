@@ -47,7 +47,6 @@ export default async function(fastify, opts, done) {
 			*/
 			const token = await create(user.email, 3600 / 2);
 			let link = `${request.protocol}://${request.hostname}/auth?token=${token}${redirect}`;
-			// TODO background send >?
 			// Send email
 			MSG.create({
 				to: email,
