@@ -73,6 +73,11 @@ table.listing {
 .tag-lost {
 	background-color: var(--red-600);
 }
-.tag-closed {
+.closed {
 	background-color: var(--grey);
+}
+.new {
+  background-color: var(--yellow);
+	/* background-color: #5dacbd; */
+
 }
