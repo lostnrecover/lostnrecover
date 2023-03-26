@@ -18,9 +18,15 @@ export default async function (fastify, opts, done) {
 		if (!tag) {
 			throw EXCEPTIONS.TAG_NOT_FOUND;
 		}
-		// if(tag.status == STATUS.NEW && !tag.owner_id) {
-		// 	reply.view('tag/take_ownership', { tag, title: 'Take tag ownership' })
-		// }
+		if(tag.status == STATUS.NEW && !tag.owner_id) {
+			let data = { tag, title: 'Take tag ownership' };
+			if(!request.session || !request.session.get('id')) {
+				// throwWithData(EXCEPTIONS.NOT_AUTHORISED, { warning: 'You must be registered to take ownership.' })
+				data.warning = 'You must be registered to take ownership.';
+			}
+			reply.view('tag/take-ownership', data);
+			return reply;
+		}
 		if(![STATUS.ACTIVE, STATUS.LOST].includes(tag.status)) {
 			throw EXCEPTIONS.TAG_NOT_FOUND;
 		}
@@ -44,6 +50,7 @@ export default async function (fastify, opts, done) {
 		}
 		if (!request.session || !request.session.get('email')) {
 			// Check user identity with an email
+			// FIXME: Authentify user ?
 		}
 		if (request.isCurrentUser(tag.owner_id)) {
 			// You can't get notified for your own tag ?

@@ -3,11 +3,11 @@
 <p><a href="/about">{{ __ 'Need help ? Check out how it works.' }}</a></p>
 
 <p>
-  {{ __ 'Want to try you own tag: '}}
-  {{#if session.email }}
+  {{ __ 'Want to try with your own tag?'}}
+  {{#if session.id }}
   <a href="/tags?create=1"><button>{{ __ 'Create a Tag' }}</button></a>
   {{else }}
-  <a href="/login"><button>{{ __ 'Login or Sign in' }}</button></a>
+  <a href="/login"><button>{{ __ 'Login or Register' }}</button></a>
   {{/if}}
 </p>
 <form class="inline">

@@ -20,26 +20,28 @@ import { loadHelpers, loadPartials } from './templating.js';
 import { EXCEPTIONS } from '../services/exceptions.js';
 
 export async function errorHandler(error, request, reply) {
-	let e = error;
+	let e = {...error};
+	request.log.child({error: error}).debug("Original Error");
 	if(typeof error == 'string') {
-		e = {
-			code: 500,
-			details: error
-		}
-	} else if(!e.details && e.message) {
+		e.code = 500;
+		e.details = error;
+	} else if (!error) {
+		e.code = 500;
+	}
+	if(!e.details && e.message) {
 		e.details = e.message
 	}
-	request.log.error(error)
-  // this IS called
-  reply.code(e.code || 500)
+  	// this IS called
+	reply.code(e.code || 500)
 	// if HTML
 	if(e.redirect) {
 		reply.redirect(e.redirect)
-	} else if (e.view ) {
-		reply.view(e.view, { url: request.url } );
+	} else if (e.view) {
+		reply.view(e.view, { url: request.url, ...e.data } );
 	} else {
-		reply.view('error', {title: 'Unexpected Error', error: e})
+		reply.view('error', {title: 'Unexpected Error', error: e, ...e.data})
 	}
+	// TODO JSON API compliant errors 
 	// if json
 	// reply.send(error)
 	return reply;
@@ -90,10 +92,15 @@ export function loadFastifyPlugins(fastify, config) {
 			request.session.set('locale', request.query.locale)
 		}
 		reply.locals = templateGlobalContext(request.session.get('locale') || 'en');
-		reply.locals.flash = reply.flash();
 		reply.locals.session = {
 			email: request.session.get('email') || false,
 			user_id: request.session.get('user_id') || false
+		}
+		// Only get flash for "main" request
+		if(request.routerPath != "/public/*") {
+			reply.locals.warning = reply.flash('warning');
+			reply.locals.error = reply.flash('error');
+			reply.locals.info = reply.flash('info');
 		}
 		// done();
 	});

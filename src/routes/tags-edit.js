@@ -47,7 +47,7 @@ export default async function (fastify, opts, done) {
 	}, async (request, reply) => {
 		let tag = await TAGS.get(request.params.tagId), recipient = null;
 		if (!tag) {
-			reply.code(404).view('tag/notfound', { title: 'Tag not found'});
+			throw(EXCEPTIONS.TAG_NOT_FOUND);
 		}
 		if (!request.isCurrentUser(tag.owner_id)) {
 			// Not the tag owner : redirect to the view path
@@ -69,46 +69,49 @@ export default async function (fastify, opts, done) {
 		}
 		return reply;
 	});
-	fastify.post('/:tagId', { schema: TAGS.SCHEMA, preHandler: AUTH.authentified }, async (request, reply) => {
-		let tag = await TAGS.get(request.params.tagId);
+	fastify.post('/:tagId', { 
+		schema: TAGS.SCHEMA, 
+		preHandler: AUTH.authentified 
+	}, async (request, reply) => {
+		let tag = await TAGS.getForUpdate(request.params.tagId, request.currentUserId());
 		if (!tag) {
-			return reply.code(404)
+			throw(EXCEPTIONS.TAG_NOT_FOUND)
 		}
 		tag = await filterInput(request, tag);
 		await TAGS.update(tag._id, tag);
 		reply.redirect(request.url);
 	});
 
-	// TODO refactor with dynamic route
-	fastify.post('/:tagId/lost', {
-		preHandler: AUTH.authentified
-	}, async (request, reply) => {
-		let tag = await TAGS.get(request.params.tagId);
+
+	async function patchStatus(request, reply, action) {
+		let tag = await TAGS.getForUpdate(request.params.tagId, request.currentUserId()),
+		actions = {
+			'lost': { status: STATUS.LOST },
+			'active': { status: STATUS.ACTIVE, owner_id: request.currentUserId() }
+		};
 		if(!tag) {
-			throw EXCEPTIONS.MISSING_TAG;
+			throw(EXCEPTIONS.TAG_NOT_FOUND)
 		}
-		TAGS.update(tag._id, { status: STATUS.LOST });
+		if(!Object.keys(actions).includes(action)) {
+			throw(EXCEPTIONS.NOT_FOUND);
+		}
+		TAGS.update(tag._id, actions[action]);
 		if(request.body.redirect) {
 			reply.redirect(request.body.redirect);
 		} else {
-			reply.redirect(request.url.replace('/lost',''));
+			reply.redirect(request.url.replace(`/${action}`,''));
 		}
 		return reply;
+	}
+	fastify.post('/:tagId/lost', {
+		preHandler: AUTH.authentified
+	}, async (request, reply) => {
+		return await patchStatus(request, reply, 'lost');
 	});
 	fastify.post('/:tagId/active', {
 		preHandler: AUTH.authentified
 	}, async (request, reply) => {
-		let tag = await TAGS.get(request.params.tagId);
-		if(!tag) {
-			throw EXCEPTIONS.MISSING_TAG;
-		}
-		TAGS.update(tag._id, { status: STATUS.ACTIVE });
-		if(request.body.redirect) {
-			reply.redirect(request.body.redirect);
-		} else {
-			reply.redirect(request.url.replace('/active',''));
-		}
-		return reply;
+		return await patchStatus(request, reply, 'active');
 	});
 	done()
 }

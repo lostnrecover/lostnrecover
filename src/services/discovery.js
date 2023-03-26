@@ -155,7 +155,7 @@ export async function DiscoveryService(mongodb, parentLogger, config, mailer) {
 	}
 	// TODO 50% move mail notification to background worker https://www.mongodb.com/basics/change-streams
 
-		// if new: user was not logged in: propose to resubmit the dscovery
+	// if new: user was not logged in: propose to resubmit the dscovery
 		// if pending: when tag status was not declared lost,
 		//    if owner: approve the lost status of tag
 		//    if finder: display info that owner has been notified

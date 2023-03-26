@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid';
 import { UserService } from './user.js';
 import { FINAL_STATUS as DISCOVERY_STATUS_FILTER} from './discovery.js';
 import { initCollection } from '../utils/db.js';
+import { EXCEPTIONS } from './exceptions.js';
 
 export const STATUS = {
 	NEW: 'new',
@@ -78,6 +79,17 @@ export async function TagService(mongodb, parentLogger, config) {
 		tags = await search({ _id: id });
 		return tags[0];
 	}
+
+	async function getForUpdate(id, userid, projection) {
+		let t = await get(id, projection);
+		if( t.status != STATUS.new 
+			&& t.owner_id != userid 
+			&& t.recipient_id != userid) {
+			throw EXCEPTIONS.ACTION_NOT_AUTHORISED;
+		}
+		return t;
+	}
+
 	async function enforcedUniqueId() {
 		let tag = true, tagid, index=0;
 		while(tag != null) {
@@ -195,6 +207,6 @@ export async function TagService(mongodb, parentLogger, config) {
 
 
 	return {
-		SCHEMA, count, get, findAll, findForUser, remove, create, update, release
+		SCHEMA, count, get, getForUpdate, findAll, findForUser, remove, create, update, release
 	}
 }

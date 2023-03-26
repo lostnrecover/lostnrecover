@@ -19,6 +19,19 @@ p.error {
 	background-color: lightcoral;
 	border-radius: 5px;
 }
+p.info {
+	padding: 1.5ex;
+	border: 3px solid var(--yellow);
+	background-color: var(--primary);
+	border-radius: 5px;
+}
+
+p.warning {
+	padding: 1.5ex;
+	border: 3px solid var(--yellow);
+	background-color: var(--yellow);
+	border-radius: 5px;
+}
 
 #responseText {
   min-height: 10em;

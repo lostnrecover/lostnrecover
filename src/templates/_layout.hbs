@@ -22,13 +22,13 @@
 		</nav>
 		</header>
 		{{#if error }}
-		<p class="error">{{ error }}</p>
+		<p class="error">{{ __ error }}</p>
 		{{/if}}
 		{{#if info}}
-		<p class="info">{{ info }}</p>
+		<p class="info">{{ __ info }}</p>
 		{{/if}}
 		{{#if warning}}
-		<p class="warning">{{ warning }}</p>
+		<p class="warning">{{ __ warning }}</p>
 		{{/if}}
 		{{{body}}}
 		<footer>{{ config.appName}} - v{{ pkg.version }} -
