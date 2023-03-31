@@ -1,5 +1,5 @@
 {{#if isTagOwner}}
-<h2>{{ __ 'Tag found: %s' discovery.tag.name}}</h2>
+<h2>{{ __ 'Tag %s found: %s'  discovery.tag._id  discovery.tag.name}}</h2>
 	<p>
 	{{ __ 'Tag Label' }}: {{ discovery.tag.label }}<br />
 	{{ __ 'Status' }}: {{ discovery.status }}
@@ -12,5 +12,5 @@
 	{{#if @last}}</ul>{{/if}}
 	{{/each}}
 {{else}}
-<h2>{{ __ 'Tag found' }}</h2>
+<h2>{{ __ 'Tag %s found' discovery.tag._id }}</h2>
 {{/if}}

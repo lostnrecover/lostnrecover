@@ -1,6 +1,6 @@
 {{> discoverySummary }}
 
-<h2>{{ __ "Instructions"}}</h2>
+{{#if discovery._id}}
 <form method="post">
 {{#if (and isFinder (eq discovery.status 'active'))}}
 	<button type="submit" value="return" name="action">{{ __ 'I have returned this item'}}</button>
@@ -9,9 +9,11 @@
 	<button type="submit" value="close" name="action">{{ __ 'I have received this item'}}</button>
 {{/if}}
 </form>
+{{/if}}
 
+<h2>{{ __ "Instructions"}}</h2>
 <pre>
-{{ discovery.tag.responseText }}
+{{ discovery.instructions.body }}
 </pre>
 
 <h3>{{ __ 'Tag info' }}</h3>

@@ -1,0 +1,49 @@
+
+<p><a href="?create=1"><button>{{ __ 'New Instructions' }}</button></a></p>
+<!-- TODO Bulk create tags and generate labels (with label prefix ?)-->
+{{#if instructions}}
+<table class="listing">
+  <thead>
+    <tr>
+      {{!-- <th></th> --}}
+      <th>{{ __ 'Name' }}</th>
+			<th>{{ __ 'Summary' }}</th>
+			<th>{{ __ 'Attached Tags' }}</th>
+      <th>{{ __ 'Action' }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each instructions}}
+    {{#with this}}
+    <tr>
+      <td>
+        <a href="/instructions/{{_id}}">{{name}}</a>
+        {{#if isDefault}}
+				{{> status status='Default' type='instructions'}}
+        {{/if}}
+      </td>
+			<td  class="instructions-summary">
+        {{ body }}
+      </td>
+			<td>
+        {{tags.length}}
+			</td>
+      <td>
+        <a href="/instructions/{{ _id }}?edit=1"><img src="/public/icons/edit.svg" title="{{ __ 'Edit ?' }}" /></a>
+				{{#if (and (eq tags.length 0) (eq isDefault false))}}
+				<form method="post" action="/instructions/{{_id}}/delete">
+					<input type="hidden" name="redirect" value="/instructions" />
+					<input type="image" src="/public/icons/trash-2.svg" title="{{ __ 'Delete'}}" />
+				</form>
+				{{/if}}
+      </td>
+    </tr>
+    {{/with}}
+    {{/each}}
+  </tbody>
+</table>
+{{else}}
+<p>{{ __ 'You have no instructions yet!'}}</p>
+{{/if}}
+<p><a href="?create=1"><button>{{ __ 'New Instructions' }}</button></a></p>
+

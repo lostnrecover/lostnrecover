@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid';
 import { UserService } from './user.js';
 import { FINAL_STATUS as DISCOVERY_STATUS_FILTER} from './discovery.js';
+import { InstructionsService } from './instructions.js';
 import { initCollection } from '../utils/db.js';
 import { EXCEPTIONS } from './exceptions.js';
 
@@ -14,11 +15,12 @@ export const STATUS = {
 export async function TagService(mongodb, parentLogger, config) {
 	const COLLECTION = 'tags',
 	TMPDIR = config.cache_dir,
-	PUBLIC_PROJECTION = { projection: { _id: 1, name: 1, responseText: 1, status: 1, owner: 1, email: 1, label: 1 }},
-	ALL_PROJECTION = {},
+	// PUBLIC_PROJECTION = { projection: { _id: 1, name: 1, instructions: 1, status: 1, owner: 1, recipient:1, label: 1 }},
+	// ALL_PROJECTION = {},
 	// TAGS = mongodb.collection(COLLECTION),
 	logger = parentLogger.child({ service: 'Tag' }),
-	USERS = await UserService(mongodb, logger, config);
+	USERS = await UserService(mongodb, logger, config),
+	INSTRUCTIONS = await InstructionsService(mongodb, logger, config);
 
 	let TAGS = await initCollection(mongodb, COLLECTION);
 	//.then(col => TAGS = col);
@@ -31,6 +33,7 @@ export async function TagService(mongodb, parentLogger, config) {
 			{ $set: {
 				'recipient_id': { $ifNull: ['$recipient_id', '$owner_id']} }
 			},
+			// Lookup owner
 			{
 				$lookup: {
 					from: "users",
@@ -40,6 +43,7 @@ export async function TagService(mongodb, parentLogger, config) {
 				}
 			},
 			{ $unwind : {path: "$owner", preserveNullAndEmptyArrays: true} },
+			// lookup recipient
 			{
 				$lookup: {
 					from: "users",
@@ -49,6 +53,17 @@ export async function TagService(mongodb, parentLogger, config) {
 				}
 			},
 			{ $unwind : {path: "$recipient", preserveNullAndEmptyArrays: true} },
+			// lokkup for instructions
+			{
+				$lookup: {
+					from: "instructions",
+					localField: "instructions_id",
+					foreignField: "_id",
+					as: "instructions"
+				}
+			},
+			{ $unwind : {path: "$instructions", preserveNullAndEmptyArrays: true} },
+			// Lookup for a liste of active discoveries
 			{
 				$lookup: {
 					from: "discovery",
@@ -115,6 +130,14 @@ export async function TagService(mongodb, parentLogger, config) {
 		if(tag.email) {
 			delete tag.email
 		}
+		// FIXME not the right place
+		// // set to default if not already set
+		// if(!tag.instructions_id) {
+		// 	let defs = await INSTRUCTIONS.findForUser(tag.owner_id, { isDefault: true });
+		// 	if(defs.length > 0) {
+		// 		tag.instructions_id = defs[0]._id;
+		// 	}
+		// }
 		return tag;
 	}
 
@@ -194,9 +217,6 @@ export async function TagService(mongodb, parentLogger, config) {
 				status: {
 					type: "string",
 					enum: ["new", "active", "lost", "found", "archived"]
-				},
-				responseText: {
-					type: "string"
 				},
 				email: {
 					type: "string"

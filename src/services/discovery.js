@@ -30,27 +30,52 @@ export async function DiscoveryService(mongodb, parentLogger, config, mailer) {
   // TODO Ensure Init index if any
 
 	async function search(filter) {
-		return await DISCOVERY.aggregate([
-			{ $match: filter },
-			{
-				$lookup: {
-					from: "users",
-					localField: "finder_id",
-					foreignField: "_id",
-					as: "finder"
-				}
-			},
-			{ $unwind : "$finder" },
-			{
-				$lookup: {
-					from: "tags",
-					localField: "tagId",
-					foreignField: "_id",
-					as: "tag"
-				}
-			},
-			{ $unwind: '$tag'}
-		]
+		return await DISCOVERY.aggregate(
+      [
+        {
+          '$match': filter
+        }, {
+          '$lookup': {
+            'from': 'users', 
+            'localField': 'finder_id', 
+            'foreignField': '_id', 
+            'as': 'finder'
+          }
+        }, {
+          '$unwind': {
+            'path': '$finder', 
+            'preserveNullAndEmptyArrays': true
+          }
+        }, {
+          '$lookup': {
+            'from': 'tags', 
+            'localField': 'tagId', 
+            'foreignField': '_id', 
+            'as': 'tag'
+          }
+        }, {
+          '$unwind': {
+            'path': '$tag', 
+            'preserveNullAndEmptyArrays': true
+          }
+        }, {
+          '$addFields': {
+            'instructions_id': '$tag.instructions_id'
+          }
+        }, {
+          '$lookup': {
+            'from': 'instructions', 
+            'localField': 'instructions_id', 
+            'foreignField': '_id', 
+            'as': 'instructions'
+          }
+        }, {
+          '$unwind': {
+            'path': '$instructions', 
+            'preserveNullAndEmptyArrays': true
+          }
+        }
+      ]
 		).toArray();
 	}
 
@@ -133,7 +158,7 @@ export async function DiscoveryService(mongodb, parentLogger, config, mailer) {
 		MSG.create({
 			subject: `Instructions for ${discovery.tag.name} (${discovery.tag._id})`,
 			template: 'mail/instructions',
-			context: { tag: discovery.tag, email: await finderEmail(discovery.finder) },
+			context: { discovery, email: await finderEmail(discovery.finder) },
 			// CHECK should be an id
 			to: await finderEmail(discovery.finder),
 			// CHECK should be an id or ?

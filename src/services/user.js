@@ -35,7 +35,7 @@ export async function UserService(mongodb, parentLogger) {
 	async function findOrCreate(email, reason) {
 		let user = await USERS.findOne({ email }, { projection: PUBLIC_PROJECTION});
 		if(!user) {
-			user = await create({ email, createdFor: reason });
+			user = await create({ email, createdFrom: reason });
 		}
 		return user;
 	}

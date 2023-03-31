@@ -1,3 +1,24 @@
+:root {
+  --palette-primary-light: #42a5f5;
+  --palette-primary-main: #1976d2;
+  --palette-primary-dark: #1565c0;
+  --palette-secondary-light: #ba68c8;
+  --palette-secondary-main: #9c27b0;
+  --palette-secondary-dark: #7b1fa2;
+  --palette-error-light: #ef5350;
+  --palette-error-main: #d32f2f;
+  --palette-error-dark: #c62828;
+  --palette-warning-light: #ff9800;
+  --palette-warning-main: #ed6c02;
+  --palette-warning-dark: #e65100;
+  --palette-info-light: #03a9f4;
+  --palette-info-main: #0288d1;
+  --palette-info-dark: #01579b;
+  --palette-success-light: #4caf50;
+  --palette-success-main: #2e7d32;
+  --palette-success-dark: #1b5e20;
+}
+
 main header {
   line-height: 2em;
   border-bottom: 1ps solid grey;
@@ -15,25 +36,32 @@ main footer {
 
 p.error {
 	padding: 1.5ex;
-	border: 3px solid darkred;
-	background-color: lightcoral;
+	border: 3px solid var(--palette-error-dark);
+	background-color: var(--palette-error-light);
 	border-radius: 5px;
 }
 p.info {
 	padding: 1.5ex;
-	border: 3px solid var(--yellow);
-	background-color: var(--primary);
+	border: 3px solid var(--palette-info-dark);
+	background-color: var(--palette-info-light);
 	border-radius: 5px;
 }
+p.success {
+	padding: 1.5ex;
+	border: 3px solid var(--palette-success-dark);
+	background-color: var(--palette-success-light);
+	border-radius: 5px;
+}
+
 
 p.warning {
 	padding: 1.5ex;
-	border: 3px solid var(--yellow);
-	background-color: var(--yellow);
+	border: 3px solid var(--palette-warning-dark);
+	background-color: var(--palette-warning-light);
 	border-radius: 5px;
 }
 
-#responseText {
+#body {
   min-height: 10em;
 }
 .actions {
@@ -41,6 +69,10 @@ p.warning {
 }
 button.view {
   background-color: mediumaquamarine;
+}
+
+td form {
+  display: inline;
 }
 
 .inline input {
@@ -84,13 +116,21 @@ table.listing {
 }
 
 .tag-lost {
-	background-color: var(--red-600);
+	background-color: var(--palette-error-light);
 }
 .closed {
 	background-color: var(--grey);
 }
 .new {
-  background-color: var(--yellow);
+  background-color: var(--palette-secondary-light);
 	/* background-color: #5dacbd; */
 
+}
+
+.instructions-summary {
+  max-width: 20ex;
+  max-height: 1.2em;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap
 }

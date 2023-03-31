@@ -9,12 +9,13 @@ import qs from 'qs';
 import * as TagsAPI from './routes/v1/tags.js';
 import * as Auth from './routes/session.js';
 import * as User from './routes/user.js';
-import * as TagsEditController from './routes/tags-edit.js';
-import * as TagsController from './routes/tags.js';
+import * as PrivateTagsController from './routes/tags-edit.js';
+import * as PublicTagsController from './routes/tags.js';
 import * as Public from './routes/public.js';
 import * as Admin from './routes/admin.js';
 import * as PdfContoller from './routes/pdf.js';
 import * as CodeController from './routes/code.js';
+import * as InstructionsController from './routes/instructions.js';
 
 
 export async function initApp(opts) {
@@ -35,15 +36,17 @@ export async function initApp(opts) {
 
 	console.log('Register routes...')
 	// Init routes
-	fastify.register(Auth);
+	 fastify.register(Auth);
 	fastify.register(Public);
 	fastify.register(Admin, { prefix: '/admin' });
-	fastify.register(TagsController, { prefix: '/t' });
-	fastify.register(TagsEditController, { prefix: '/tags'});
+	fastify.register(PublicTagsController, { prefix: '/t' });
+	fastify.register(PrivateTagsController, { prefix: '/tags'});
 	fastify.register(CodeController, { prefix: '/code' })
 	fastify.register(PdfContoller, { prefix: '/pdf' });
-	// fastify.register(TagsAPI, { prefix: '/api/1/tags'});
 	fastify.register(User, { prefix: '/account' });
+	fastify.register(InstructionsController, { prefix: '/instructions'})
+	
+	// fastify.register(TagsAPI, { prefix: '/api/1/tags'});
 
 	fastify.addHook('onReady', async () => {
 		// Start job worker
