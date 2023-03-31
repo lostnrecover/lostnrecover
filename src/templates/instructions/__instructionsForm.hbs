@@ -1,22 +1,14 @@
 <form method="post" id="editform">
-  <h2>{{ title }} 
-    {{!-- {{> status status=tag.status type=tag }} --}}
+  <h2>{{ title }}          
+    {{#if instructions.isDefault}}
+				{{> status status='Default' type='instructions'}}
+    {{/if}}
   </h2>
   <fieldset>
     <p>
       <label for="name">{{ __ 'Name' }}</label>
       <input name="name" id="name" type="text" value="{{instructions.name}}" />
     </p>
-     {{#if instructions.isDefault}}
-    <p>
-      {{ __ "Default instructions"}}
-    </p>
-    {{else}}
-    <p>
-      <label for="isDefault">{{ __ 'Set as default instructions for future tags' }}</label>
-      <input name="isDefault" id="isDefault" type="checkbox" value="true" />
-    </p>
-    {{/if}}
     <p>
       <label for="body">
         {{ __ 'Instructions' }}
@@ -29,6 +21,11 @@
     </pre></blockquote>
   </fieldset>
   <p class="actions">
+    {{#if instructions.isDefault}}
+    {{else}}
+      <label for="isDefault">{{ __ 'Set as default instructions for future tags' }}</label>
+      <input name="isDefault" id="isDefault" type="checkbox" value="true" />
+    {{/if}}
     <button type="submit" form="editform" >{{#if submitText }}submitText{{else}}{{ __ ' Submit' }} {{/if}}</button>
   </p>
 </form>

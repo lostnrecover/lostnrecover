@@ -4,7 +4,6 @@ import { EXCEPTIONS } from './exceptions.js';
 
 export async function InstructionsService(mongodb, parentLogger, config) {
 	const COLLECTION = 'instructions',
-	// PUBLIC_PROJECTION = { projection: { _id: 1, name: 1, body: 1, owner: 1, isDefault: 1 }},
 	logger = parentLogger.child({ service: 'Instruction' });
 
 	let INSTRUCTIONS = await initCollection(mongodb, COLLECTION);
@@ -12,9 +11,6 @@ export async function InstructionsService(mongodb, parentLogger, config) {
 	async function search(filter) {
 		let res = await INSTRUCTIONS.aggregate([
 			{ $match: filter},
-	// 		{ $set: {
-	// 			'recipient_id': { $ifNull: ['$recipient_id', '$owner_id']} }
-	// 		},
 			{
 				$lookup: {
 					from: "users",
@@ -24,30 +20,18 @@ export async function InstructionsService(mongodb, parentLogger, config) {
 				}
 			},
 			{ $unwind : {path: "$owner", preserveNullAndEmptyArrays: true} },
-	// 		{
-	// 			$lookup: {
-	// 				from: "users",
-	// 				localField: "recipient_id",
-	// 				foreignField: "_id",
-	// 				as: "recipient"
-	// 			}
-	// 		},
-	// 		{ $unwind : {path: "$recipient", preserveNullAndEmptyArrays: true} },
 			{
 				$lookup: {
 					from: "tags",
 					localField: "_id",
 					foreignField: "instructions_id",
-					// pipeline: [
-					// 	{ $match:
-					// 		{ $expr:
-					// 				{ $not: [
-					// 					{$in: ["$status", DISCOVERY_STATUS_FILTER ]}
-					// 				]}
-					// 		}
-					// 	}
-					// ],
 					as: "tags"
+				}
+			}, 
+			{ $addFields: {
+					isDefault: {
+						$eq: [ "$_id", "$owner.defaultInstructions"]
+					}
 				}
 			}
 		]);
@@ -83,6 +67,7 @@ export async function InstructionsService(mongodb, parentLogger, config) {
 		if(instructions.tags) {
 			delete instructions.tags;
 		}
+		delete instructions.isDefault;
 		return instructions;
 	}
 
@@ -90,26 +75,18 @@ export async function InstructionsService(mongodb, parentLogger, config) {
 	async function create(instructionsInput) {
 		let instructions = await cleanup(instructionsInput),
 			defs = await search({
-				owner_id: instructions.owner_id, 
-				isDefault: true
+				owner_id: instructions.owner_id
 			});
 		instructions._id = nanoid();
 		instructions.createdAt = new Date();
 		// Get current default value
 		if (defs.length == 0) {
-			instructions.isDefault = true;
+			// TODO LNR-22 : First should be saved as default
+			// Update user ?
 		}
 		const result = await INSTRUCTIONS.insertOne(instructions);
 		if(!result.acknowledged) {
 			throw('Impossible to save instructions')
-		} else {
-			if (instructions.isDefault) {
-				// TODO store default at user level ?
-				defs.forEach(i => {
-					i.isDefault = false;
-					update(i._id, i);
-				});
-			}
 		}
 		return await get(result.insertedId)
 	}

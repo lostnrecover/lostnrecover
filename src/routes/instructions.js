@@ -1,11 +1,13 @@
 import { EXCEPTIONS } from "../services/exceptions.js";
 import { InstructionsService } from "../services/instructions.js";
 import { AuthTokenService } from '../services/authtoken.js';
+import { UserService } from "../services/user.js";
 
 export default async function (fastify, opts, done) {
 	const logger = fastify.log.child({ controller: 'Instructions' }),
 	AUTH = await AuthTokenService(fastify.mongo.db, logger, fastify.config),
-	INSTRUCTIONS = await InstructionsService(fastify.mongo.db, logger, fastify.config);
+	INSTRUCTIONS = await InstructionsService(fastify.mongo.db, logger, fastify.config),
+	USERS = await UserService(fastify.mongo.db, logger, fastify.config);
 
 	async function filterInput(request, instructions) {
 		instructions.name = request.body.name || '';
@@ -36,6 +38,11 @@ export default async function (fastify, opts, done) {
 	}, async (request, reply) => {
 		let newInstr = await filterInput(request, { owner_id: request.currentUserId() });
 		let inst = await INSTRUCTIONS.create(newInstr);
+		if(newInstr.isDefault) {
+			USERS.update(request.currentUserId(), { defaultInstructions: inst._id }).catch(e => {
+				logger.error({error:e, instructions: inst}, "Failed to save default instructions");
+			})
+		}
 		reply.redirect(`${opts.prefix}/${inst._id}?edit=1`);
 		return reply;
 	})
@@ -59,6 +66,11 @@ export default async function (fastify, opts, done) {
 		}
 		instructions = await filterInput(request, instructions);
 		await INSTRUCTIONS.update(instructions._id, instructions);
+		if(request.body.isDefault) {
+			USERS.update(request.currentUserId(), { defaultInstructions: instructions._id }).catch(e => {
+				logger.error({error:e, instructions}, "Failed to save default instructions");
+			})
+		}
 		reply.redirect(request.url);
 		return reply;
 	});

@@ -23,8 +23,9 @@
     <legend>{{ __ 'Instructions to the tag holder' }}</legend>
     <p>
       <select name="instructions_id">
+        <option>--</option>
         {{#each instructions}}
-          <option value="{{this._id}}"{{#if (eq instructions_id this._id)}} selected="selected"{{/if}}>{{this.name}}</option>
+          <option value="{{this._id}}" {{#if (or (eq ../tag.instructions_id this._id) this.isDefault)}} selected="selected"{{/if}} {{#if this.isDefault}} class="user-default"{{/if}}>{{this.name}}</option>
         {{/each}}
       </select>
     </p>

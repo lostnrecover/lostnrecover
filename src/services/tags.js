@@ -15,8 +15,6 @@ export const STATUS = {
 export async function TagService(mongodb, parentLogger, config) {
 	const COLLECTION = 'tags',
 	TMPDIR = config.cache_dir,
-	// PUBLIC_PROJECTION = { projection: { _id: 1, name: 1, instructions: 1, status: 1, owner: 1, recipient:1, label: 1 }},
-	// ALL_PROJECTION = {},
 	// TAGS = mongodb.collection(COLLECTION),
 	logger = parentLogger.child({ service: 'Tag' }),
 	USERS = await UserService(mongodb, logger, config),
@@ -90,7 +88,6 @@ export async function TagService(mongodb, parentLogger, config) {
 		if(!id) {
 			throw('Missing id');
 		}
-		// return await TAGS.findOne({ _id: id }, projection || PUBLIC_PROJECTION);
 		tags = await search({ _id: id });
 		return tags[0];
 	}
@@ -150,7 +147,7 @@ export async function TagService(mongodb, parentLogger, config) {
 		if(!result.acknowledged) {
 			throw('Impossible to save tag')
 		}
-		return await get(result.insertedId, PUBLIC_PROJECTION)
+		return await get(result.insertedId)
 	}
 	// TODO Status history like Discovery
 	async function update(id, t) {
