@@ -21,6 +21,8 @@
 			<a href="/about"><img src="/public/icons/help-circle.svg" title="{{ __ 'About' }}" /></a>
 		</nav>
 		</header>
+		{{#if flash }}
+		{{#with flash }}
 		{{#if error }}
 		<p class="error">{{ __ error }}</p>
 		{{/if}}
@@ -29,6 +31,11 @@
 		{{/if}}
 		{{#if warning}}
 		<p class="warning">{{ __ warning }}</p>
+		{{/if}}
+		{{#if success}}
+		<p class="success">{{ __ success }}</p>
+		{{/if}}
+		{{/with}}
 		{{/if}}
 		{{{body}}}
 		<footer>{{ config.appName}} - v{{ pkg.version }} -

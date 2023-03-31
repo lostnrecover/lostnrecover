@@ -98,9 +98,7 @@ export function loadFastifyPlugins(fastify, config) {
 		}
 		// Only get flash for "main" request
 		if(request.routerPath != "/public/*") {
-			reply.locals.warning = reply.flash('warning');
-			reply.locals.error = reply.flash('error');
-			reply.locals.info = reply.flash('info');
+			reply.locals.flash = reply.flash();
 		}
 		// done();
 	});
