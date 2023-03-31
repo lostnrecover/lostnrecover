@@ -19,34 +19,6 @@ import Handlebars from 'handlebars';
 import { loadHelpers, loadPartials } from './templating.js';
 import { EXCEPTIONS } from '../services/exceptions.js';
 
-export async function errorHandler(error, request, reply) {
-	let e = {...error};
-	request.log.child({error: error}).debug("Original Error");
-	if(typeof error == 'string') {
-		e.code = 500;
-		e.details = error;
-	} else if (!error) {
-		e.code = 500;
-	}
-	if(!e.details && e.message) {
-		e.details = e.message
-	}
-  	// this IS called
-	reply.code(e.code || 500)
-	// if HTML
-	if(e.redirect) {
-		reply.redirect(e.redirect)
-	} else if (e.view) {
-		reply.view(e.view, { url: request.url, ...e.data } );
-	} else {
-		reply.view('error', {title: 'Unexpected Error', error: e, ...e.data})
-	}
-	// TODO JSON API compliant errors 
-	// if json
-	// reply.send(error)
-	return reply;
-}
-
 export function loadFastifyPlugins(fastify, config) {
 
 	fastify.register(MongoDB, {
@@ -76,6 +48,7 @@ export function loadFastifyPlugins(fastify, config) {
 			config: fastify.config,
 			locale,
 			pkg,
+			env: process.env.ENV
 		}
 		delete context.config.cookies;
 		// delete context.config.mail_transport;

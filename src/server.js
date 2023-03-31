@@ -1,7 +1,7 @@
 import { initApp } from "./app.js";
 import { config } from './config.js';
 
-let fastify = initApp();
+let fastify = await initApp();
 
 // Start server
 const start = async () => {

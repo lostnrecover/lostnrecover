@@ -1,6 +1,7 @@
 // Fastify
 import Fastify from 'fastify';
-import { loadFastifyPlugins, errorHandler } from './utils/plugins.js';
+import { loadFastifyPlugins } from './utils/plugins.js';
+import { errorHandler } from './utils/errors.js';
 import { initJobs } from './utils/jobs.js';
 import { config } from './config.js';
 import qs from 'qs';
@@ -16,7 +17,7 @@ import * as PdfContoller from './routes/pdf.js';
 import * as CodeController from './routes/code.js';
 
 
-export function initApp(opts) {
+export async function initApp(opts) {
 	// Basic server
 	const defaultOpts = {
 		trustProxy: true,

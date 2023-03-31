@@ -23,7 +23,7 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 	function localizedText(requestedLocale, key, data) {
 		let tr = `${key}`, needle = "", locale = requestedLocale ?? 'en';
 		if(key) {
-			needle = key.replace(/(\r\n|\n|\r)/gm, "").trim();
+			needle = `${key}`.replace(/(\r\n|\n|\r)/gm, "").trim();
 		} else {
 			return "";
 		}

@@ -5,7 +5,7 @@ import url from 'url';
 import fs from 'fs';
 import {ConnectionString} from 'connection-string';
 
-const smtpcs = new ConnectionString(process.env.SMTP_URL || "smtp://yvonne.goyette28%40ethereal.email:BmWCUYkFXhzPWvrSza@smtp.ethereal.email:587");
+const smtpcs = new ConnectionString(process.env.SMTP_URL || "smtp://bradford5%40ethereal.email:jnTpmpbZsUSYuDwxp3@smtp.ethereal.email:587");
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const cookie_secret_file = process.env.COOKIE_SECRET_FILE || path.join(__dirname, '../.session-secret-key')
 
@@ -17,7 +17,7 @@ export const config = {
 	SHORT_DOMAIN: process.env.SHORT_DOMAIN ?? 'dev.rtbk.me',
 	PORT: process.env.PORT || 3000,
 	HOST: process.env.HOST || '::',
-	db_url: process.env.DB_URL || 'mongodb://mongodb/lostnfound',
+	db_url: process.env.DB_URL || `mongodb://mongodb/lostnfound_${process.env.ENV}`,
 	cookies: {
 		name: 'lnr',
 		secret: fs.readFileSync(cookie_secret_file)

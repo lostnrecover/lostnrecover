@@ -2,7 +2,8 @@
 An Error Occured: {{ error.code }}
 </p>
 {{#if error.details }}
-<pre>
-  {{error.details}}
-</pre>
+<pre>{{error.details}}</pre>
+{{/if}}
+{{#if (eq env 'dev')}}
+<pre>{{debug error}}</pre>
 {{/if}}
