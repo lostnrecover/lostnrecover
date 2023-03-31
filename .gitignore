@@ -6,3 +6,4 @@ _
 .*secret
 tmp
 public/pdf
+.nyc_output

@@ -1,0 +1,12 @@
+[
+    {
+        "_id": "owner",
+        "email": "owner@example.com",
+        "status": "active"
+      },
+      {
+        "_id": "finder",
+        "email": "finder@example.com",
+        "status": "active"
+      }
+]

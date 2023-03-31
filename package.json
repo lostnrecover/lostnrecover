@@ -7,7 +7,9 @@
   "scripts": {
     "start": "ENV=prod node src/server.js",
     "dev": "ENV=dev nodemon --watch src -e js,hbs src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "pretest": "mongodb-fixtures --url 'mongodb://mongodb/lostnfound_test' --path test/fixtures rebuild",
+    "test": "ENV=test tap --reporter=list",
+    "test:watch": "ENV=test tap --reporter=list --watch"
   },
   "keywords": [
     "tag",
@@ -45,6 +47,8 @@
     "timezones-list": "^3.0.1"
   },
   "devDependencies": {
-    "nodemon": "^2.0.20"
+    "node-mongodb-fixtures": "^3.2.9",
+    "nodemon": "^2.0.20",
+    "tap": "^16.3.4"
   }
 }
