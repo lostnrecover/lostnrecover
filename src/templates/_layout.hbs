@@ -11,7 +11,7 @@
 		<header>
 		<h1><a href="/">{{ config.appName }}</a></h1>
 		<nav>
-		{{# if session.email }}
+		{{# if session.user_id }}
 		 	<small>{{ session.email }}</small>
 			<a href="/tags"><img src="/public/icons/tag.svg" title="{{ __ 'Tags' }}" /></a>
 			<a href="/pdf"><img src="/public/icons/grid.svg" title="{{ __ 'Print Tags' }}" /></a>

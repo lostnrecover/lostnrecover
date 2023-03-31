@@ -64,7 +64,7 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 		for (const idx in files) {
 			if (Object.hasOwnProperty.call(files, idx)) {
 				const file = files[idx], p = path.join(templateDir, file);
-				logger.debug('try', p, messages[locale][p])
+				logger.debug({msg: 'try', path: p, value: messages[locale][p]})
 				if(messages[locale][p]) {
 					return messages[locale][p](this);
 				}

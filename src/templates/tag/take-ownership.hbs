@@ -1,6 +1,6 @@
 <h1>{{ __ 'New Tag' }}</h1>
 <p>{{ __ 'You found a new tag, would you like to make it yours ?' }}</p>
-{{#if session.id }}
+{{#if session.user_id }}
 <form method="post" action="/tags/{{tag._id}}/active">
 	<button type="submit" value="add" name="action">{{ __ 'Add'}}</button>
 </form>

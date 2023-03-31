@@ -4,7 +4,7 @@
 
 <p>
   {{ __ 'Want to try with your own tag?'}}
-  {{#if session.id }}
+  {{#if session.user_id }}
   <a href="/tags?create=1"><button>{{ __ 'Create a Tag' }}</button></a>
   {{else }}
   <a href="/login"><button>{{ __ 'Login or Register' }}</button></a>
