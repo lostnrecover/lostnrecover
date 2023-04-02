@@ -1,10 +1,12 @@
 import { nanoid } from 'nanoid';
 import { initCollection } from '../utils/db.js';
 import { EXCEPTIONS } from './exceptions.js';
+import { UserService } from './user.js';
 
 export async function InstructionsService(mongodb, parentLogger, config) {
 	const COLLECTION = 'instructions',
-	logger = parentLogger.child({ service: 'Instruction' });
+	logger = parentLogger.child({ service: 'Instruction' }),
+	USERS = await UserService(mongodb, logger);
 
 	let INSTRUCTIONS = await initCollection(mongodb, COLLECTION);
 
@@ -71,23 +73,25 @@ export async function InstructionsService(mongodb, parentLogger, config) {
 		return instructions;
 	}
 
+	async function saveAsUserDefaultIfFirst(user_id, instructions_id) {
+		let list = await findForUser(user_id);
+		if(list && list.length < 2) {
+			USERS.update(user_id, { defaultInstructions: instructions_id }).catch(e => {
+				logger.error({error: e}, 'Failed to set default Instructions');
+			});
+		}
+	}
+
 	// TODO bulk create if parameter is an array
 	async function create(instructionsInput) {
-		let instructions = await cleanup(instructionsInput),
-			defs = await search({
-				owner_id: instructions.owner_id
-			});
+		let instructions = await cleanup(instructionsInput);
 		instructions._id = nanoid();
 		instructions.createdAt = new Date();
-		// Get current default value
-		if (defs.length == 0) {
-			// TODO LNR-22 : First should be saved as default
-			// Update user ?
-		}
 		const result = await INSTRUCTIONS.insertOne(instructions);
 		if(!result.acknowledged) {
 			throw('Impossible to save instructions')
 		}
+		saveAsUserDefaultIfFirst(instructions.owner_id, instructions._id);
 		return await get(result.insertedId)
 	}
 	// TODO Status history like Discovery

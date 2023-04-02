@@ -127,14 +127,9 @@ export async function TagService(mongodb, parentLogger, config) {
 		if(tag.email) {
 			delete tag.email
 		}
-		// FIXME not the right place
-		// // set to default if not already set
-		// if(!tag.instructions_id) {
-		// 	let defs = await INSTRUCTIONS.findForUser(tag.owner_id, { isDefault: true });
-		// 	if(defs.length > 0) {
-		// 		tag.instructions_id = defs[0]._id;
-		// 	}
-		// }
+		if(tag.instructions) {
+			delete tag.instructions;
+		}
 		return tag;
 	}
 
