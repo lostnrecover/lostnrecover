@@ -18,7 +18,7 @@ export default async function (fastify, opts, done) {
 			data=[], list = [];
 			// preview.cellWidth = preview.pageWidth / preview.perRow;
 			// preview.cellHeight = preview.pageHeight/ preview.rows;
-			let tags = await TAGS.findForUser(request.session.email, { status: 'active' });
+			let tags = await TAGS.findForUser(request.currentUserId(), { status: 'active' });
 			tags.forEach(t => {
 				let q = {
 					...t,

@@ -27,7 +27,7 @@ export default function(fastify, opts, done) {
 	fastify.get('/', {
 		preHandler: AUTH.authentified
 	}, async (req, res) => {
-		let tags = TAGS.findForUser(req.session.email)
+		let tags = TAGS.findForUser(req.session.get('email'))
 	});
 	fastify.delete('/inconsistent', {
 		preHandler: AUTH.authentified

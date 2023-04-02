@@ -12,7 +12,7 @@ export default async function(fastify, opts, done) {
 
 	fastify.get('/', { preHandler: authenticated },
 		async (request, reply) => {
-			let user = await USERS.findOrFail(request.session.email);
+			let user = await USERS.findOrFail(request.session.get('email'));
 			if(!user.tz) {
 				user.tz = 'Europe/Paris';
 			}
@@ -28,7 +28,7 @@ export default async function(fastify, opts, done) {
 	);
 	fastify.post('/', { preHandler: authenticated },
 		async (request, reply) => {
-			let user = await USERS.findOrFail(request.session.email);
+			let user = await USERS.findOrFail(request.session.get('email'));
 			// if(!user) {
 			// 	throw EXCEPTIONS.NOT_AUTHORISED;
 			// }
