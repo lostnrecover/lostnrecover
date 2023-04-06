@@ -6,11 +6,11 @@ export default function(fastify, opts, done) {
 	 	TAGS = TagService(fastify.mongo.db,  logger, fastify.config),
 		AUTH = AuthTokenService(fastify.mongo.db, logger);
 
+	// FIXME proper API
 	fastify.post('/', {
 		schema: TAGS.SCHEMA,
 		preHandler: AUTH.authentified
 	}, async (req, res) => {
-		//TODO check match active session
 		let tag = req.body;
 		// Extract user and add it to the tag
 		if (true) {

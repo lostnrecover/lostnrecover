@@ -3,6 +3,9 @@ import { createWriteStream, existsSync } from 'fs';
 import { TagService } from './tags.js';
 import { QRService } from './qr.js';
 import { join } from 'path';
+import { nanoid } from 'nanoid';
+import { initCollection } from '../utils/db.js';
+import { EXCEPTIONS } from './exceptions.js';
 
 const pdfpoint = 2.834666667;
 const defaultTpl = "avL7120";
@@ -56,9 +59,11 @@ function toPoint(inMM) {
 }
 
 export async function PdfService(mongodb, parentLogger, config) {
-	const logger = parentLogger.child({service: 'PDF'})
-	const TAGS = await TagService(mongodb, logger, config);
-	const QR = await QRService(mongodb, logger, config);
+	const logger = parentLogger.child({service: 'PDF'}),
+		COLLECTION = 'prints',
+		TAGS = await TagService(mongodb, logger, config),
+		QR = await QRService(mongodb, logger, config);
+	let PRINTS = await initCollection(mongodb, COLLECTION);
 
 	function initDoc(pdfname, size) {
 		let doc = new PDFDocument({
@@ -69,6 +74,108 @@ export async function PdfService(mongodb, parentLogger, config) {
 		doc.info['Title'] = 'Tag stickers';
 		doc.info['Author'] = config.appName;
 		return doc
+	}
+
+	async function elasticTagBatch(batchId, tagCount, tpl) {
+		let newTags = await TAGS.search({ batchId: batchId , status: 'new' }) // TODO add creator ?
+		;
+		if(newTags.length < tagCount) {
+			// Add more tags
+			let nt = await TAGS.bulkCreate(tpl, tagCount-newTags.length);
+			newTags.push(...nt)
+		} else if(newTags.length > tagCount) {
+			// remove if too much
+			let removed = newTags.splice(tagCount);
+			TAGS.remove({ 
+				$and: [ 
+					{'_id': { $in: removed.map(t => t._id) }},
+					{ batchId: batchId }
+				]
+			 });
+		}
+		return newTags;
+		//  = newTags.map(t => { return {...t, qty: 1, printlabel: false} } )
+	} 
+
+	async function batchPrint(batchId, tagTpl, pageCount, pageFormat, skip) {
+		let batch = {
+				_id: batchId ?? nanoid(),
+				type: 'new-tags',
+				pageFormat: templates.hasOwnProperty(pageFormat) ? pageFormat : defaultTpl,
+				pageCount: pageCount, 
+				tagTemplate: {...tagTpl, status: 'new'},
+				skip
+			},
+			tpl = {...batch.tagTemplate}, 
+			template = templates[pageFormat] ?? templates[defaultTpl], 
+			tagCount = pageCount * template.perRow * template.rows,
+			newTags = await elasticTagBatch(batchId, tagCount, tpl);
+		// 	newTags = await TAGS.search({ batchId: batch._id , status: 'new' }) // TODO add creator ?
+		// ;
+		// if(newTags.length < tagCount) {
+		// 	// Add more tags
+		// 	let nt = await TAGS.bulkCreate(tpl, tagCount-newTags.length);
+		// 	newTags.push(...nt)
+		// } else if(newTags.length > tagCount) {
+		// 	// remove if too much
+		// 	let removed = newTags.splice(tagCount);
+		// 	TAGS.remove({ 
+		// 		$and: [ 
+		// 			{'_id': { $in: removed.map(t => t._id) }},
+		// 			{ batchId: batch._id }
+		// 		]
+		// 	 });
+		// }
+		newTags = newTags.map(t => { return {...t, qty: 1, printlabel: false} } )
+		// generate pdf
+		generate(batch._id, newTags, template, batch.skip);
+		if(exists(batch._id)) {
+			batch.file = getCachedFilename(batch._id);
+		}
+		saveBatch(batch);
+		// TODO Should be saved (prints collections ?)
+		return batch;
+
+	}
+
+	async function updateBatch(batchInput) {
+		let b = await getBatch(batchInput._id),
+			batch = {...b, ...batchInput},
+			template = templates[batch.pageFormat] ?? templates[defaultTpl], 
+			tpl = {...batch.tagTemplate},
+			tagCount = batch.pageCount * template.perRow * template.rows,
+			newTags = [];
+		if(b.status == 'locked') {
+			throw EXCEPTIONS.BAD_REQUEST;
+		}
+		newTags = await elasticTagBatch(batch._id, tagCount, tpl);
+		newTags = newTags.map(t => { return {...t, qty: 1, printlabel: false} } )
+		// generate pdf
+		await generate(batch._id, newTags, batch.pageFormat, batch.skip);
+		if(exists(batch._id)) {
+			batch.file = getCachedFilename(batch._id);
+		}
+		return await saveBatch(batch);
+	}
+
+	async function saveBatch(batch) {
+		const query = { _id: batch._id }, 
+			update = { $set: batch},
+			options = { upsert: true };
+		if(!batch.hasOwnProperty('status')) {
+			batch.status = 'new'
+		}
+		await PRINTS.updateOne(query, update, options);
+		return await getBatch(batch._id);
+	}
+
+	async function getBatches(filter) {
+		let batches = PRINTS.find(filter);
+		return await batches.toArray();
+	}
+	async function getBatch(id) {
+		let res = await getBatches({_id: id});
+		return res[0];
 	}
 
 	async function generate(pdfname, data, template, offset) {
@@ -105,7 +212,7 @@ export async function PdfService(mongodb, parentLogger, config) {
 			// .rect(toPoint(x), toPoint(y), toPoint(tpl.cellWidth), toPoint(tpl.cellHeight))
 			// .stroke();
 			doc.fontSize(8).text( config.SHORT_DOMAIN || config.DOMAIN, toPoint(x), toPoint(y)+2, { width: toPoint(tpl.cellWidth), align: 'center' });
-			doc.fontSize(9).text(`ID: ${e._id}`, toPoint(x), toPoint(y+tpl.cellHeight)-9, { width: toPoint(tpl.cellWidth), align: 'center' } )
+			doc.font('Courier').fontSize(8).text(`ID: ${e._id}`, toPoint(x), toPoint(y+tpl.cellHeight)-8, { width: toPoint(tpl.cellWidth), align: 'center' } )
 			if(e.printlabel) {
 				doc.rotate( angle, { origin: [xRot,yRot] });
 				doc.fontSize(9).fillColor('grey').text( `(${e.label})`, xRot, yRot, { width: toPoint(tpl.cellWidth)-24, align: 'center' }).fillColor('black');
@@ -129,5 +236,5 @@ export async function PdfService(mongodb, parentLogger, config) {
 	function exists(filename) {
 		return existsSync(getCachedFilename(filename));
 	}
-	return { templates, generate, exists}
+	return { templates, generate, exists, batchPrint, getBatches, getBatch, updateBatch}
 }

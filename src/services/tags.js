@@ -144,6 +144,19 @@ export async function TagService(mongodb, parentLogger, config) {
 		}
 		return await get(result.insertedId)
 	}
+	async function bulkCreate(tpl, count) {
+		let tags, list = (new Array(count).fill());
+		if(!(count > 0)) {
+			throw EXCEPTIONS.BAD_REQUEST;
+		}
+		tpl.batchId = tpl.batchId ?? nanoid();
+		tags = await Promise.all(list.map(async e => {
+			let t = await create({...tpl});
+			logger.debug(t, `Created tag in batch ${tpl.batchId}`)
+			return t;
+		}));
+		return tags;
+	}
 	// TODO Status history like Discovery
 	async function update(id, t) {
 		let tag = await cleanup(t);
@@ -219,6 +232,6 @@ export async function TagService(mongodb, parentLogger, config) {
 
 
 	return {
-		SCHEMA, count, get, getForUpdate, findAll, findForUser, remove, create, update, release
+		SCHEMA, count, get, getForUpdate, findAll, findForUser, search, remove, create, bulkCreate, update, release
 	}
 }

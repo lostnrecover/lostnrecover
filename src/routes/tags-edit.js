@@ -43,7 +43,11 @@ export default async function (fastify, opts, done) {
 		return reply
 	});
 	fastify.post('/',{ schema: TAGS.SCHEMA, preHandler: AUTH.authentified }, async (request, reply) => {
-		let newTag = await filterInput(request, {status: STATUS.ACTIVE, owner_id: request.currentUserId()});
+		let newTag = await filterInput(request, {
+			status: STATUS.ACTIVE, 
+			owner_id: request.currentUserId(), 
+			creator_id: request.currentUserId() 
+		});
 		//{status: STATUS.ACTIVE, ...request.body, owner_id: request.currentUserId()};
 		let tag = await TAGS.create(newTag);
 		reply.redirect(`/tags/${tag._id}?edit=1`)

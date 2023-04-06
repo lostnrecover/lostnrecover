@@ -13,6 +13,7 @@ import * as PrivateTagsController from './routes/tags-edit.js';
 import * as PublicTagsController from './routes/tags.js';
 import * as Public from './routes/public.js';
 import * as Admin from './routes/admin.js';
+import * as AdminBatchPrint from './routes/admin/batch-print.js'
 import * as PdfContoller from './routes/pdf.js';
 import * as CodeController from './routes/code.js';
 import * as InstructionsController from './routes/instructions.js';
@@ -39,6 +40,7 @@ export async function initApp(opts) {
 	 fastify.register(Auth);
 	fastify.register(Public);
 	fastify.register(Admin, { prefix: '/admin' });
+	fastify.register(AdminBatchPrint, { prefix: '/admin/print' })
 	fastify.register(PublicTagsController, { prefix: '/t' });
 	fastify.register(PrivateTagsController, { prefix: '/tags'});
 	fastify.register(CodeController, { prefix: '/code' })
