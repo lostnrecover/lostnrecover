@@ -1,14 +1,14 @@
 import { format } from 'util'
 import moment from 'moment-timezone';
-import * as enLocale from '../templates/locales/en.json' assert { type: "json" };
-import * as frLocale from '../templates/locales/fr.json' assert { type: "json" };
-import fs from 'fs'
+// import * as enLocale from '../templates/locales/en.json' assert { type: "json" };
+// import * as frLocale from '../templates/locales/fr.json' assert { type: "json" };
+import fs, { readFileSync } from 'fs'
 import path from 'path'
 import glob from 'glob';
 
 const messages = {
-	'fr': frLocale.default,
-	'en': enLocale.default
+	'fr': JSON.parse(readFileSync('./src/templates/locales/fr.json')), //frLocale.default,
+	'en': JSON.parse(readFileSync('./src/templates/locales/en.json')) //enLocale.default
 }
 
 export function loadHelpers(logger, Handlebars, templateDir) {

@@ -9,7 +9,9 @@ import fastifyForm from '@fastify/formbody';
 import fastifyMailer from 'fastify-mailer';
 import { htmlToText } from 'nodemailer-html-to-text';
 
-import pkg from '../../package.json' assert { type: "json" };
+// import pkg from '../../package.json' assert { type: "json" };
+import { readFileSync } from "fs";
+const pkg = JSON.parse(readFileSync("./package.json")) ?? {};
 
 // current dir for options
 // import path from 'path'
@@ -66,8 +68,9 @@ export function loadFastifyPlugins(fastify, config) {
 		}
 		reply.locals = templateGlobalContext(request.session.get('locale') || 'en');
 		reply.locals.session = {
-			email: request.session.get('email') || false,
-			user_id: request.session.get('user_id') || false
+			email: request.sess ion.get('email') || false,
+			user_id: request.session.get('user_id') || false,
+			isAdmin: request.session.get('isAdmin') || false
 		}
 		// Only get flash for "main" request
 		if(request.routerPath != "/public/*") {
@@ -109,7 +112,11 @@ export function loadFastifyPlugins(fastify, config) {
 	});
 	fastify.ready(err => {
 		// executed only once after mailer init (all register ready)
-		fastify.mailer.use('compile', htmlToText())
+		if(fastify.mailer) {
+			fastify.mailer.use('compile', htmlToText())
+		} else {
+			fastify.log.error("impossible to use htmlToText comiler: mailer not loaded...")
+		}
 	})
 
 	fastify.decorate('sendmail', (options) => {
