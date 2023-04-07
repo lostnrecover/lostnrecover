@@ -1,0 +1,7 @@
+{{#if session.isAdmin}}
+<ul class="tabmenu">
+	<li><a href="/admin" class="{{users}}">{{ __ 'Users' }}</a></li>
+	<li><a href="/admin/messages" class="{{messages}}">{{ __ 'Messages Queue' }}</a></li>
+	<li><a href="/admin/print/batch">{{ __ 'Batch Print' }}</a></li>
+</ul>
+{{/if}}

@@ -9,7 +9,9 @@
     "dev": "ENV=dev nodemon --watch src -e js,hbs src/server.js",
     "pretest": "mongodb-fixtures --url 'mongodb://mongodb/lostnfound_test' --path test/fixtures rebuild",
     "test": "ENV=test tap --reporter=list",
-    "test:watch": "ENV=test tap --reporter=list --watch"
+    "test:watch": "ENV=test tap --reporter=list --watch",
+    "cli:set-admin": "node src/cli/admin.js set ",
+    "cli:unset-admin": "node src/cli/admin.js unset "
   },
   "keywords": [
     "tag",
@@ -49,6 +51,7 @@
   "devDependencies": {
     "node-mongodb-fixtures": "^3.2.9",
     "nodemon": "^2.0.20",
+    "pino-pretty": "^10.0.0",
     "tap": "^16.3.4"
   }
 }

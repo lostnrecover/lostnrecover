@@ -86,7 +86,7 @@ export default async function(fastify, opts, done) {
 				// init session
 				req.session.set('email', user.email);
 				req.session.set('user_id', user._id );
-				// TODO set isAdmin session flag for specific users (Pattern, List or Profile attr)
+				req.session.set('isAdmin', !!user.isAdmin);
 				if(req.query.redirect) {
 					res.redirect(req.query.redirect);
 				} else {

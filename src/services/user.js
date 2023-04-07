@@ -22,18 +22,18 @@ export async function UserService(mongodb, parentLogger) {
 		if(!filter._id && !filter.email) {
 			throw("Can't get user without email or _id")
 		}
-		return USERS.findOne(filter, { projection: projection || PUBLIC_PROJECTION });
+		return USERS.findOne(filter); //, { projection: projection || PUBLIC_PROJECTION });
 	}
 
 	async function findOrFail(email) {
-		let user = await USERS.findOne({ email }, { projection: PUBLIC_PROJECTION});
+		let user = await USERS.findOne({ email }); //, { projection: PUBLIC_PROJECTION});
 		if(!user) {
 			throw EXCEPTIONS.NOT_AUTHORISED;
 		}
 		return user;
 	}
 	async function findOrCreate(email, reason) {
-		let user = await USERS.findOne({ email }, { projection: PUBLIC_PROJECTION});
+		let user = await USERS.findOne({ email }) //, { projection: PUBLIC_PROJECTION});
 		if(!user) {
 			user = await create({ email, createdFrom: reason });
 		}
@@ -41,7 +41,7 @@ export async function UserService(mongodb, parentLogger) {
 	}
 
 	async function findById(id) {
-		let user = await USERS.findOne({ _id: id }, { projection: PUBLIC_PROJECTION});
+		let user = await USERS.findOne({ _id: id }); //, { projection: PUBLIC_PROJECTION});
 		return user;
 	}
 
@@ -56,7 +56,7 @@ export async function UserService(mongodb, parentLogger) {
 		if(!result.acknowledged) {
 			throw('Impossible to create user profile')
 		}
-		return get({ _id: result.insertedId }, PUBLIC_PROJECTION)
+		return get({ _id: result.insertedId }) //, PUBLIC_PROJECTION)
 	}
 
 	async function list(filter) {
