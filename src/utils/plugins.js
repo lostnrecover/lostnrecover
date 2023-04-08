@@ -68,7 +68,7 @@ export function loadFastifyPlugins(fastify, config) {
 		}
 		reply.locals = templateGlobalContext(request.session.get('locale') || 'en');
 		reply.locals.session = {
-			email: request.sess ion.get('email') || false,
+			email: request.session.get('email') || false,
 			user_id: request.session.get('user_id') || false,
 			isAdmin: request.session.get('isAdmin') || false
 		}
