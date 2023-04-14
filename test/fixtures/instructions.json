@@ -1,0 +1,8 @@
+[
+	{
+		"_id": "default-instructions",
+		"owner_id": "owner",
+		"name": "default",
+		"body": "instructions for finder"
+	}
+]
