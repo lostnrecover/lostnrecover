@@ -2,12 +2,11 @@
 // current dir for options
 import path from 'path'
 import url from 'url';
-import fs from 'fs';
 import {ConnectionString} from 'connection-string';
+import { getSecret } from './utils/secrets.js';
 
 const smtpcs = new ConnectionString(process.env.SMTP_URL || "smtp://bradford5%40ethereal.email:jnTpmpbZsUSYuDwxp3@smtp.ethereal.email:587");
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
-const cookie_secret_file = process.env.COOKIE_SECRET_FILE || path.join(__dirname, '../.session-secret-key')
 
 export const config = {
 	// TODO : config linked to domain
@@ -20,7 +19,7 @@ export const config = {
 	db_url: process.env.DB_URL || `mongodb://mongodb/lostnfound_${process.env.ENV}`,
 	cookies: {
 		name: 'lnr',
-		secret: fs.readFileSync(cookie_secret_file)
+		secret: await getSecret(process.env.COOKIE_SECRET_FILE || path.join(__dirname, '../.session-secret-key')) //fs.readFileSync(cookie_secret_file)
 	},
 	locales: {'en': 'English', 'fr': 'Français'},
 	cache_dir: path.join(__dirname, '/../tmp'),
