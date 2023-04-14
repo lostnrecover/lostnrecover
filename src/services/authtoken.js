@@ -3,7 +3,7 @@ import { initCollection } from "../utils/db.js";
 import { EXCEPTIONS } from './exceptions.js'
 
 
-export async function AuthTokenService(mongodb, parentLogger) {
+export async function AuthTokenService(mongodb, parentLogger, config) {
 	const COLLECTION_NAME = 'authtokens'
 	// Check if TTL index exists
 	const TTLIndexName = 'expiration TTL';
@@ -23,8 +23,8 @@ export async function AuthTokenService(mongodb, parentLogger) {
 		token.email= email;
 		token.type = type
 		token.createdAt = new Date();
-		token.validUntil = addSeconds(token.createdAt, (offset || 3600))
-		token.expireAt = addSeconds(token.validUntil, 3600);
+		token.validUntil = addSeconds(token.createdAt, (offset || config.tokenValidity || 3600 / 2))
+		token.expireAt = addSeconds(token.validUntil, 3600); // expire 1 hour after end of validity (grace debug period)
 
 		const result = await COLLECTION.insertOne(token);
 		if (!result.acknowledged) {

@@ -15,7 +15,7 @@ if(!email) {
 try {
 	// Make the appropriate DB calls
 	// await  listDatabases(client);
-	let USERS = await UserService(cli.db, cli.logger);
+	let USERS = await UserService(cli.db, cli.logger, cli.config);
 	let u = await USERS.findOrFail(email);
 	if(u.isAdmin == state) {
 		cli.logger.warn('User already %s', state ? 'admin' : 'not admin')

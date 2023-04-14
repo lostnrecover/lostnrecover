@@ -9,12 +9,12 @@ import { EXCEPTIONS } from "./exceptions.js";
 // tobe done only if all tags are archived first
 // NB: only fully works if contact email is removed from tag when its archived
 
-export async function UserService(mongodb, parentLogger) {
+export async function UserService(mongodb, parentLogger, config) {
 	const logger = parentLogger.child({ service: 'User' }),
 		COLLECTION = 'users',
 		PUBLIC_PROJECTION = { _id: 1, email:1, status: 1, tz: 1, locale: 1, displayName: 1},
 		// USERS = mongodb.collection(COLLECTION),
-		{verify} = await AuthTokenService(mongodb, logger);
+		{verify} = await AuthTokenService(mongodb, logger, config);
 	let USERS = await initCollection(mongodb, COLLECTION);
 	//.then(col => USERS = col);
 

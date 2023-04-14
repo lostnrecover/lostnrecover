@@ -1,14 +1,13 @@
 import {UserService} from '../services/user.js'
 import { AuthTokenService } from '../services/authtoken.js'
 import tz from 'timezones-list';
-import { EXCEPTIONS } from '../services/exceptions.js';
 // import fastifySecureSession from '@fastify/secure-session';
 
 // src/routes/accounts.js
 export default async function(fastify, opts, done) {
 	const logger = fastify.log.child({ controller: 'User' }),
-		USERS = await UserService(fastify.mongo.db, logger),
-		{ authenticated } = await AuthTokenService(fastify.mongo.db, logger);
+		USERS = await UserService(fastify.mongo.db, logger, fastify.config),
+		{ authenticated } = await AuthTokenService(fastify.mongo.db, logger, fastify.config);
 
 	fastify.get('/', { preHandler: authenticated },
 		async (request, reply) => {

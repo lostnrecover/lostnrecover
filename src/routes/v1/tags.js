@@ -4,7 +4,7 @@ import { AuthTokenService } from '../../services/authtoken.js';
 export default function(fastify, opts, done) {
 	const logger = fastify.log.child({ controller: 'TagApi' }),
 	 	TAGS = TagService(fastify.mongo.db,  logger, fastify.config),
-		AUTH = AuthTokenService(fastify.mongo.db, logger);
+		AUTH = AuthTokenService(fastify.mongo.db, logger, fastify.config);
 
 	// FIXME proper API
 	fastify.post('/', {

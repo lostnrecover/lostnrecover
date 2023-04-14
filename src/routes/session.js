@@ -19,7 +19,7 @@ export default async function(fastify, opts, done) {
 	const logger = fastify.log.child({ controller: 'AccountAPI' }),
 		USERS = await UserService(fastify.mongo.db, logger, fastify.config),
 		MSG = await MessageService(fastify.mongo.db, logger, fastify.config, fastify.sendmail),
-		{ create, verify} = await AuthTokenService(fastify.mongo.db, logger);
+		{ create, verify} = await AuthTokenService(fastify.mongo.db, logger, fastify.config);
 
 	fastify.get('/login', async (request, reply) => {
 		reply.view('magicLink/form', { title: 'Login', url: request.query.redirect })
@@ -38,14 +38,8 @@ export default async function(fastify, opts, done) {
 		} else {
 			// Check user email or create user if not exists
 			let user = await USERS.findOrCreate(email, 'signin');
-			let child = logger.child({user})
-			/* with JWT
-			// Generate token
-			let d = new Date();
-			d.setHours(d.getHours() + 1);
-			const token = fastify.jwt.sign({ email, expiration: d })
-			*/
-			const token = await create(user.email, 3600 / 2);
+			let tokenLogger = logger.child({user})
+			const token = await create(user.email);
 			let link = `${request.protocol}://${request.hostname}/auth?token=${token}${redirect}`;
 			// Send email
 			MSG.create({
@@ -54,7 +48,7 @@ export default async function(fastify, opts, done) {
 				template: 'mail/email_verify',
 				context: { link, token, email },
 			});
-			child.child({token, link, email}).info('Magic Link');
+			tokenLogger.child({token, link, email}).info('Magic Link');
 			if(process.env.ENV == 'dev') {
 				request.flash('warning', `Auto logged in as  ${email}`);
 				reply.redirect(link);

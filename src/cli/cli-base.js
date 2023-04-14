@@ -14,6 +14,7 @@ export async function initCli() {
 	await client.connect();
 	return {
 		logger,
+		config,
 		db: client.db(),
 		close: async () => {
 			return await client.close()
