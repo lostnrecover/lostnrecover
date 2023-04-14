@@ -28,16 +28,16 @@ export async function initApp(opts) {
 		querystringParser: str => qs.parse(str, { allowDots: true, allowSparse: true})
 	},
 	fastify = Fastify({...defaultOpts, ...opts});
-
-	console.log('Load plugins...')
-	// Init server config and extensions
 	fastify.decorate('config', config)
+
+	fastify.log.info('Load plugins...')
+	// Init server config and extensions
 	loadFastifyPlugins(fastify, config);
 	fastify.setErrorHandler(errorHandler)
 
-	console.log('Register routes...')
+	fastify.log.info('Register routes...')
 	// Init routes
-	 fastify.register(Auth);
+	fastify.register(Auth);
 	fastify.register(Public);
 	fastify.register(Admin, { prefix: '/admin' });
 	fastify.register(AdminBatchPrint, { prefix: '/admin/print' })
@@ -50,10 +50,10 @@ export async function initApp(opts) {
 	
 	// fastify.register(TagsAPI, { prefix: '/api/1/tags'});
 
-	fastify.addHook('onReady', async () => {
-		// Start job worker
-		initJobs(fastify, config);
-	});
+	fastify.decorate('initJobs', async () => {
+		// on demande job init
+		return initJobs(fastify, config);
+	})
 
 	return fastify;
 }

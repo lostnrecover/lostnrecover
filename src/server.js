@@ -1,19 +1,21 @@
 import { initApp } from "./app.js";
 import { config } from './config.js';
 
-let fastify = await initApp();
+let server = await initApp();
 
+server.addHook('onReady', async () => {
+	await server.initJobs();
+})
 // Start server
 const start = async () => {
 	try {
-		await fastify.listen({
+		server.listen({
 			port: config.PORT,
 			host: config.HOST
 		});
 		console.log(`Server started ${config.HOST}:${config.PORT}`)
-
 	} catch(err) {
-		fastify.log.error((err))
+		server.log.error((err))
 		process.exit(1)
 	}
 }
