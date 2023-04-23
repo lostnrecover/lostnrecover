@@ -22,6 +22,7 @@ export const config = {
 		secret: await getSecret(process.env.COOKIE_SECRET_FILE || path.join(__dirname, '../.session-secret-key')) //fs.readFileSync(cookie_secret_file)
 	},
 	locales: {'en': 'English', 'fr': 'Français'},
+	log_dir: path.join(__dirname, '/../logs'),
 	cache_dir: path.join(__dirname, '/../tmp'),
 	pdf_cache_dir: path.join(__dirname, '../public/pdf'),
 	public_dir: path.join(__dirname, '/../public'),

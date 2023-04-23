@@ -17,13 +17,14 @@ import * as AdminBatchPrint from './routes/admin/batch-print.js'
 import * as PdfContoller from './routes/pdf.js';
 import * as CodeController from './routes/code.js';
 import * as InstructionsController from './routes/instructions.js';
+import { getLogger } from './utils/logging.js';
 
 
 export async function initApp(opts) {
 	// Basic server
 	const defaultOpts = {
 		trustProxy: true,
-		logger: { level: process.env.ENV != 'dev' ? 'info' : 'debug' },
+		logger: getLogger(config),
 		ignoreTrailingSlash: true,
 		querystringParser: str => qs.parse(str, { allowDots: true, allowSparse: true})
 	},
