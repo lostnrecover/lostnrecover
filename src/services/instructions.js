@@ -6,7 +6,7 @@ import { UserService } from './user.js';
 export async function InstructionsService(mongodb, parentLogger, config) {
 	const COLLECTION = 'instructions',
 	logger = parentLogger.child({ service: 'Instruction' }),
-	USERS = await UserService(mongodb, logger);
+	USERS = await UserService(mongodb, logger, config);
 
 	let INSTRUCTIONS = await initCollection(mongodb, COLLECTION);
 

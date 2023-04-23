@@ -96,32 +96,33 @@ export async function MessageService(mongodb, parentLogger, config, mailer) {
 			from: msg.from
 		});
 		/*
-{
-  accepted: [
-    "seb@z720.net",
-  ],
-  rejected: [
-  ],
-  envelopeTime: 71,
-  messageTime: 81,
-  messageSize: 1637,
-  response: "250 Accepted [STATUS=new MSGID=Y-DqFykOP3YSqbYuZAw7gjbzlc7YMgW8AAAAIs4eGe6SCKTQi0wAn8imGmk]",
-  envelope: {
-    from: "tag-sMreGDDN5s9e7eTX-cxXG@dev.lostnrecover.me",
-    to: [
-      "seb@z720.net",
-    ],
-  },
-  messageId: "<4fd9d2e1-ef01-efd5-04d6-a63ee1743dd4@dev.lostnrecover.me>",
-}
+		{
+			accepted: [
+				"seb@z720.net",
+			],
+			rejected: [
+			],
+			envelopeTime: 71,
+			messageTime: 81,
+			messageSize: 1637,
+			response: "250 Accepted [STATUS=new MSGID=Y-DqFykOP3YSqbYuZAw7gjbzlc7YMgW8AAAAIs4eGe6SCKTQi0wAn8imGmk]",
+			envelope: {
+				from: "tag-sMreGDDN5s9e7eTX-cxXG@dev.lostnrecover.me",
+				to: [
+					"seb@z720.net",
+				],
+			},
+			messageId: "<4fd9d2e1-ef01-efd5-04d6-a63ee1743dd4@dev.lostnrecover.me>",
+		}
 		*/
+		logger.debug({...res, msg: 'SendMail result', msgID})
 		if (!res) {
 			update(msgID, { status: 'error', response: res.repsonse });
 			return false;
 		}
 		expireAt.setDate(now.getDate() + retentionDays)
-		update(msgID, { status: 'sent', sentAt: new Date(), expireAt: expireAt, response: { id: res.messageId, response: res.response } });
-		return true;
+		await update(msgID, { status: 'sent', sentAt: new Date(), expireAt: expireAt, response: { id: res.messageId, response: res.response } });
+		return await get(msgID);
 	}
 
 	async function batchSend() {
@@ -134,8 +135,8 @@ export async function MessageService(mongodb, parentLogger, config, mailer) {
 		return idx;
 	}
 
-	async function list() {
-		return await MSG.find().toArray();
+	async function list(filter) {
+		return await MSG.find(filter).toArray();
 	}
 
 	return { create, get, pause, resume, send, batchSend, list, registerJob }

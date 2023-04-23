@@ -1,6 +1,7 @@
 import {UserService} from '../services/user.js'
 import { AuthTokenService } from '../services/authtoken.js'
 import { MessageService } from '../services/messages.js';
+import { EXCEPTIONS } from '../services/exceptions.js';
 // import fastifySecureSession from '@fastify/secure-session';
 
 function invalidEmail(email) {
@@ -61,37 +62,51 @@ export default async function(fastify, opts, done) {
 	fastify.get('/auth',{
 		schema: {
 			// request needs to have a querystring with a `name` parameter
-				querystring: { token: { type: 'string'} }
-			}
-		}, async (req, res) => {
-			let data = {};
-			if(req.query.email) {
-				data.email = req.query.email
-			}
-			if(req.query.redirect) {
-				data.redirect = req.query.redirect
-			}
-			if(req.query.token) {
-				// check provided token
-				let user = await USERS.login(req.query.token);
-				if(!user) {
-					throw('Invalid Token')
+				querystring: { 
+					token: { type: 'string'} 
+					//, redirect: { type: 'string'}, email: { type: 'string'} 
 				}
-				// init session
-				req.session.set('email', user.email);
-				req.session.set('user_id', user._id );
-				req.session.set('isAdmin', !!user.isAdmin);
-				if(req.query.redirect) {
-					res.redirect(req.query.redirect);
-				} else {
-					res.redirect(`/`)
+			}
+		}, async (request, response) => {
+			let data = {};
+			if(request.query.email) {
+				data.email = request.query.email
+			}
+			if(request.query.redirect) {
+				data.redirect = request.query.redirect
+			}
+			if(request.query.token) {
+				// check provided token
+				try {
+					let user = await USERS.login(request.query.token);
+					if(!user) {
+						throw('Invalid Token');
+					} 
+					// init session
+					request.session.set('email', user.email);
+					request.session.set('user_id', user._id );
+					request.session.set('isAdmin', !!user.isAdmin);
+					if(request.query.redirect) {
+						response.redirect(request.query.redirect);
+					} else {
+						response.redirect(`/`)
+					}
+				} catch(e) {
+					if(e=='Invalid Token') {
+						request.flash('warning', `Invalid token`);
+						data.title = 'Magiclink instructions';
+						response.code(401);
+						response.view('magicLink/instructions', data);
+					} else {
+						throw(e);
+					}
 				}
 			} else {
 				// Propose to help
 				data.title = 'Magiclink instructions'
-				res.view('magicLink/instructions', data);
+				response.view('magicLink/instructions', data);
 			}
-			return res
+			return response
 	})
 	fastify.get('/logout', (req, res) => {
 		// kill session

@@ -110,7 +110,7 @@ export function loadFastifyPlugins(fastify, config) {
 			...config.mail_transport
 		}
 	});
-	fastify.ready(err => {
+	fastify.addHook('onReady', async () => {
 		// executed only once after mailer init (all register ready)
 		if(fastify.mailer) {
 			fastify.mailer.use('compile', htmlToText())
@@ -119,8 +119,8 @@ export function loadFastifyPlugins(fastify, config) {
 		}
 	})
 
-	fastify.decorate('sendmail', (options) => {
-		let mailBody = options.text;
+	fastify.decorate('sendmail', async (options) => {
+		let mailBody = options.text, res;
 		if (options.template) {
 			let tpl = Handlebars.compile(`{{ localizedFile '${options.template}' }}`, { noEscape: true }),
 				context = templateGlobalContext(options.locale || 'en');
@@ -129,12 +129,14 @@ export function loadFastifyPlugins(fastify, config) {
 		if(!mailBody) {
 			throw EXCEPTIONS.EMPTY_MAIL_BODY;
 		}
-		return fastify.mailer.sendMail({
+		res = await fastify.mailer.sendMail({
 			to: options.to,
 			from: options.from || `${config.appName} <${config.support_email}>`, //`"Tag Owner <tag-${tag._id}@lnf.z720.net>`,
 			subject: `${config.appName}: ${options.subject || 'Notification'}`, //`Lost n Found: Instructions for ${tag.name} (${tag._id})`,
 			html: mailBody
-		})
+		});
+		fastify.log.debug({ function: 'sendmail', res });
+		return res;
 	});
 
 }

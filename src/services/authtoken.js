@@ -39,13 +39,15 @@ export async function AuthTokenService(mongodb, parentLogger, config) {
 		try {
 			let token =  await COLLECTION.findOne({ _id: tokenid.trim() });
 			if(token) {
-				let now = new Date()
-				if(now.getTime() < (token.validUntil.getTime() || 0)) {
+				let now = new Date(), 
+					validity = (typeof token.validUntil.getTime === 'function') ? token.validUntil : new Date(token.validUntil);
+				if(now.getTime() < (validity.getTime() || 0)) {
 					return token.email
 				}
+				throw(`Token invalid ${token.validUntil}`);
 			}
 		} catch(e) {
-			logger.error('Verify Token error', e)
+			logger.error({msg: 'Verify Token error', e})
 		}
 		return false
 	}

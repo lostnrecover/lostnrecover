@@ -3,7 +3,7 @@ export async function errorHandler(error, request, reply) {
         code: 500,
         originalError: error
     };
-	request.log.child({error: error}).debug("Original Error");
+	request.log.error({error: error, msg: "Original Error"});
 	if(typeof error == 'string') {
 		e.code = 500;
 		e.details = error;

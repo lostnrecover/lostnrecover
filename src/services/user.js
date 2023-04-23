@@ -78,8 +78,8 @@ export async function UserService(mongodb, parentLogger, config) {
 				status: 'active',
 				lastLogin: new Date()
 			}
-		}).then(r => {
-			logger.error('Error while updating user status', user)
+		}).catch(error => {
+			logger.error({msg: 'Error while updating user status', error, user})
 		});
 		return user
 	}

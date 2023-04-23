@@ -1,6 +1,7 @@
 
 export const EXCEPTIONS = {
   NOT_AUTHORISED: { code: 401, view: 'magicLink/form' },
+  BAD_TOKEN: { code: 401, view: 'magicLink/form', message: 'Unauthorized' },
   NOT_FOUND: { code: 404, message: "Not Found" },
 	TAG_NOT_FOUND: { code: 404, message: "Not Found", view: 'tag/notfound', data: { title: 'Tag not found'} },
   ACTION_NOT_AUTHORISED: { code:401, message: "Not Authorised"},

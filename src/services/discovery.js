@@ -107,8 +107,6 @@ export async function DiscoveryService(mongodb, parentLogger, config, mailer) {
 		discovery = await get(result.insertedId);
 		if(tag.status == 'lost') {
 			activate(discovery._id);
-			sendInstructions(discovery);
-			sendOwnerNotification(discovery)
 		} else {
 			setPending(discovery._id);
 			sendNew(discovery);

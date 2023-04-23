@@ -2,8 +2,9 @@ import path from 'path'
 import { EXCEPTIONS } from '../services/exceptions.js';
 import { TagService, STATUS } from '../services/tags.js';
 import { DiscoveryService } from '../services/discovery.js';
-import { AuthTokenService } from '../services/authtoken.js'
+import { AuthTokenService } from '../services/authtoken.js';
 import { UserService } from '../services/user.js';
+import { MessageService } from '../services/messages.js';
 
 // TODO: review authentication
 export default async function (fastify, opts, done) {
@@ -11,7 +12,8 @@ export default async function (fastify, opts, done) {
 		TAGS = await TagService(fastify.mongo.db, logger, fastify.config),
 		DISCOVERY = await DiscoveryService(fastify.mongo.db, logger, fastify.config, fastify.sendmail),
 		AUTH = await AuthTokenService(fastify.mongo.db, logger, fastify.config),
-		USERS = await UserService(fastify.mongo.db, logger, fastify.config);
+		USERS = await UserService(fastify.mongo.db, logger, fastify.config),
+		MSG = await MessageService(fastify.mongo.db, logger, fastify.config, fastify.sendmail);
 
 	fastify.get('/:tagId', async (request, reply) => {
 		let tag = await TAGS.get(request.params.tagId);
@@ -42,23 +44,40 @@ export default async function (fastify, opts, done) {
 	fastify.post('/:tagId/notify', async (request, reply) => {
 		// TODO Review if action should be authenticated ?
 		let tag = await TAGS.get(request.params.tagId),
-			disc,
+			disc, redirect,
 			email = request.session.get('email') || request.body.email,
 			finder = await USERS.findOrCreate(email, 'finder');
 		if (!tag) {
 			throw EXCEPTIONS.TAG_NOT_FOUND;
 		}
-		if (!request.session || !request.session.get('email')) {
-			// Check user identity with an email
-			// FIXME: Authentify user ?
-		}
 		if (request.isCurrentUser(tag.owner_id)) {
 			// You can't get notified for your own tag ?
 			throw(EXCEPTIONS.CANNOT_NOTIFY_OWNER)
 		}
+		// create a discovery (and eventually notify owner)
 		disc = await DISCOVERY.create(tag, finder._id, tag.recipient_id || tag.owner_id, request.body.share)
-		// tag.status = 'found';
-		reply.redirect(path.join(request.url, `/${disc._id}`));
+		redirect = path.join(request.url, `/${disc._id}`);
+		if (!request.session || !request.session.get('email')) {
+			// User not logged in:
+			// 1. findOrCreate userr account
+			let user = await USERS.findOrCreate(email, 'discovery');
+			// 2. generate a token
+			const token = await AUTH.create(user.email);
+			// 3. magiclink should redirect to -> path.join(request.url, `/${disc._id}`)
+			let link = `${request.protocol}://${request.hostname}/auth?token=${token}&redirect=${redirect}`;
+			// 4. send him a magiclink
+			MSG.create({
+				to: email,
+				subject: 'Please verify your email',
+				template: 'mail/email_verify',
+				context: { link, token, email },
+			});
+			// 5. redirect to token check page (without the token ;)
+			reply.redirect(`${request.protocol}://${request.hostname}/auth?email=${email}&redirect=${redirect}`);
+		} else {
+			// user already logged in and not the owner: redirect
+			reply.redirect(redirect);
+		}
 		return reply
 	});
 

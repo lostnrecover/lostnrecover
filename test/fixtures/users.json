@@ -2,7 +2,8 @@
     {
         "_id": "owner",
         "email": "owner@example.com",
-        "status": "active"
+        "status": "active",
+        "validUntil": "31/12/2099 23:59:59"
       },
       {
         "_id": "finder",

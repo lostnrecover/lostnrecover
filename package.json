@@ -8,7 +8,7 @@
     "start": "ENV=prod node src/server.js",
     "dev": "ENV=dev nodemon --watch src -e js,hbs src/server.js",
     "pretest": "mongodb-fixtures --url 'mongodb://mongodb/lostnfound_test' --path test/fixtures rebuild",
-    "test": "ENV=test tap --reporter=list",
+    "test": "ENV=test tap --reporter=list -T",
     "test:watch": "ENV=test tap --reporter=list --watch",
     "cli:set-admin": "node src/cli/admin.js set ",
     "cli:unset-admin": "node src/cli/admin.js unset "
