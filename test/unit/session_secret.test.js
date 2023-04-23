@@ -25,7 +25,7 @@ test('Secret Management', async (t) => {
 	t.test('create a new secret if not exists', async t => {
 		let secret = await getSecret(missingFile);
 		// a secret is found
-		t.ok(secret.length, 32);
+		t.ok(secret.length, 32, "Secret length = 32");
 		// a secret file exists
 		try {
 			let a = await access(missingFile, constants.R_OK)
