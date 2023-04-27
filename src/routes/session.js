@@ -19,7 +19,7 @@ function invalidEmail(email) {
 export default async function(fastify, opts, done) {
 	const logger = fastify.log.child({ controller: 'AccountAPI' }),
 		USERS = await UserService(fastify.mongo.db, logger, fastify.config),
-		MSG = await MessageService(fastify.mongo.db, logger, fastify.config, fastify.sendmail),
+		MSG = await MessageService(fastify.mongo.db, logger, fastify.config),
 		{ create, verify} = await AuthTokenService(fastify.mongo.db, logger, fastify.config);
 
 	fastify.get('/login', async (request, reply) => {

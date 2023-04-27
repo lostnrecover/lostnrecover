@@ -6,20 +6,13 @@ import * as fastifyStatic from '@fastify/static';
 import * as fastifyFlash from '@fastify/flash';
 import fastifyForm from '@fastify/formbody';
 
-import fastifyMailer from 'fastify-mailer';
-import { htmlToText } from 'nodemailer-html-to-text';
-
-// import pkg from '../../package.json' assert { type: "json" };
-import { readFileSync } from "fs";
-const pkg = JSON.parse(readFileSync("./package.json")) ?? {};
 
 // current dir for options
 // import path from 'path'
 
 // Templating
 import Handlebars from 'handlebars';
-import { loadHelpers, loadPartials } from './templating.js';
-import { EXCEPTIONS } from '../services/exceptions.js';
+import { loadHelpers, loadPartials, templateGlobalContext } from './templating.js';
 
 export function loadFastifyPlugins(fastify, config) {
 
@@ -45,18 +38,6 @@ export function loadFastifyPlugins(fastify, config) {
 
 	fastify.register(fastifyFlash);
 
-	function templateGlobalContext(locale) {
-		let context = {
-			config: fastify.config,
-			locale,
-			pkg,
-			env: process.env.ENV
-		}
-		delete context.config.cookies;
-		// delete context.config.mail_transport;
-		return context;
-	}
-
 	// TODO outsource to a locale dedicated file
 	fastify.addHook("preHandler", async function (request, reply) {
 		if(!config.DOMAIN || config.DOMAIN == '') {
@@ -66,7 +47,7 @@ export function loadFastifyPlugins(fastify, config) {
 		if (Object.keys(config.locales).indexOf(request.query.locale) > -1) {
 			request.session.set('locale', request.query.locale)
 		}
-		reply.locals = templateGlobalContext(request.session.get('locale') || 'en');
+		reply.locals = templateGlobalContext(config, request.session.get('locale') || 'en');
 		reply.locals.session = {
 			email: request.session.get('email') || false,
 			user_id: request.session.get('user_id') || false,
@@ -104,39 +85,5 @@ export function loadFastifyPlugins(fastify, config) {
 	});
 	fastify.register(fastifyForm);
 
-	fastify.register(fastifyMailer, {
-		defaults: { from: `${config.appName} <${config.support_email}>` },
-		transport: {
-			...config.mail_transport
-		}
-	});
-	fastify.addHook('onReady', async () => {
-		// executed only once after mailer init (all register ready)
-		if(fastify.mailer) {
-			fastify.mailer.use('compile', htmlToText())
-		} else {
-			fastify.log.error("impossible to use htmlToText comiler: mailer not loaded...")
-		}
-	})
-
-	fastify.decorate('sendmail', async (options) => {
-		let mailBody = options.text, res;
-		if (options.template) {
-			let tpl = Handlebars.compile(`{{ localizedFile '${options.template}' }}`, { noEscape: true }),
-				context = templateGlobalContext(options.locale || 'en');
-			mailBody = tpl({ ...context, ...options.context, to: options.to})
-		}
-		if(!mailBody) {
-			throw EXCEPTIONS.EMPTY_MAIL_BODY;
-		}
-		res = await fastify.mailer.sendMail({
-			to: options.to,
-			from: options.from || `${config.appName} <${config.support_email}>`, //`"Tag Owner <tag-${tag._id}@lnf.z720.net>`,
-			subject: `${config.appName}: ${options.subject || 'Notification'}`, //`Lost n Found: Instructions for ${tag.name} (${tag._id})`,
-			html: mailBody
-		});
-		fastify.log.debug({ function: 'sendmail', res });
-		return res;
-	});
 
 }

@@ -10,10 +10,10 @@ import { MessageService } from '../services/messages.js';
 export default async function (fastify, opts, done) {
 	const logger = fastify.log.child({ controller: 'Tags' }),
 		TAGS = await TagService(fastify.mongo.db, logger, fastify.config),
-		DISCOVERY = await DiscoveryService(fastify.mongo.db, logger, fastify.config, fastify.sendmail),
+		DISCOVERY = await DiscoveryService(fastify.mongo.db, logger, fastify.config),
 		AUTH = await AuthTokenService(fastify.mongo.db, logger, fastify.config),
 		USERS = await UserService(fastify.mongo.db, logger, fastify.config),
-		MSG = await MessageService(fastify.mongo.db, logger, fastify.config, fastify.sendmail);
+		MSG = await MessageService(fastify.mongo.db, logger, fastify.config);
 
 	fastify.get('/:tagId', async (request, reply) => {
 		let tag = await TAGS.get(request.params.tagId);

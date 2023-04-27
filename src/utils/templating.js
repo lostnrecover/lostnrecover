@@ -11,6 +11,18 @@ const messages = {
 	'en': JSON.parse(readFileSync('./src/templates/locales/en.json')) //enLocale.default
 }
 
+export function templateGlobalContext(config, locale) {
+	let context = {
+		config,
+		locale,
+		pkg: config.pkg,
+		env: process.env.ENV
+	}
+	delete context.config.cookies;
+	// delete context.config.mail_transport;
+	return context;
+}
+
 export function loadHelpers(logger, Handlebars, templateDir) {
 	function extractAdditionnalData(args, offset) {
 		let data = [], ar = [...args];

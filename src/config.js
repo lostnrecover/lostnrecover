@@ -5,12 +5,16 @@ import url from 'url';
 import {ConnectionString} from 'connection-string';
 import { getSecret } from './utils/secrets.js';
 
+import { readFileSync } from "fs";
+const pkg = JSON.parse(readFileSync("./package.json")) ?? {};
+
 const smtpcs = new ConnectionString(process.env.SMTP_URL || "smtp://bradford5%40ethereal.email:jnTpmpbZsUSYuDwxp3@smtp.ethereal.email:587");
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 export const config = {
 	// TODO : config linked to domain
 	appName: 'Lost n Recover',
+	pkg,
 	support_email: 'support@lostnrecover.me',
 	DOMAIN: process.env.DOMAIN ?? 'dev.lostnrecover.me',
 	SHORT_DOMAIN: process.env.SHORT_DOMAIN ?? 'dev.rtbk.me',
@@ -27,6 +31,7 @@ export const config = {
 	pdf_cache_dir: path.join(__dirname, '../public/pdf'),
 	public_dir: path.join(__dirname, '/../public'),
 	template_dir: process.env.TEMPLATE_DIR || path.join(__dirname, './templates'),
+	mail_connection_string: smtpcs,
 	mail_transport: {
 		host: smtpcs.hostname,
 		port: smtpcs.port,

@@ -8,7 +8,7 @@ import { StatusService } from "../services/status.js";
 export default async function(fastify, opts, done) {
 	const logger = fastify.log.child({ controller: 'Admin' }),
 		AUTH = await AuthTokenService(fastify.mongo.db, logger, fastify.config),
-		MSG = await MessageService(fastify.mongo.db, logger, fastify.config, fastify.sendmail),
+		MSG = await MessageService(fastify.mongo.db, logger, fastify.config),
 		USERS = await UserService(fastify.mongo.db, logger, fastify.config),
 		STATUS = await StatusService(fastify.mongo.db, logger, fastify.config);
 

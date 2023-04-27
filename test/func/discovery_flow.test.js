@@ -12,7 +12,7 @@ test('Discovery flow: ', async t => {
     // reset mesagess
     await app.mongo.db.collection('messages').deleteMany({});
     // get message service
-    msg = await MessageService(app.mongo.db, app.log, app.config, app.sendmail);
+    msg = await MessageService(app.mongo.db, app.log, app.config);
   });
   t.teardown(async () => {
     app.close();
@@ -61,6 +61,7 @@ test('Discovery flow: ', async t => {
     notification = notification[0];
     let mail = await sendMail(notification, msg, t)
     // t.match(await notification.content.text(), '/t/lost_tag_1/notify', 'fetch');
+    // Match text only url
     authlink = mail.match(/^http.*(\/auth\?token=.*)$/m);
     t.not(authlink, null, 'Find token pattern');
     authlink = authlink[1];

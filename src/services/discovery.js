@@ -17,11 +17,11 @@ export const STATUS = {
 
 export const FINAL_STATUS= [ STATUS.RECOVERED, STATUS.REJECTED ]
 
-export async function DiscoveryService(mongodb, parentLogger, config, mailer) {
+export async function DiscoveryService(mongodb, parentLogger, config) {
 	const COLLECTION = 'discovery';
 	// const DISCOVERY = mongodb.collection(COLLECTION);
 	const logger = parentLogger.child({ service: 'Discovery'});
-	const MSG = await MessageService(mongodb, logger, config, mailer);
+	const MSG = await MessageService(mongodb, logger, config);
 	const TAGS = await TagService(mongodb, logger, config);
 	const USERS = await UserService(mongodb, logger, config);
 	let DISCOVERY = await initCollection(mongodb, COLLECTION);

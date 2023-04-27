@@ -1,18 +1,17 @@
 import { nanoid } from "nanoid";
 import { initCollection } from "../utils/db.js";
+import { getMailer } from "../utils/mail.js";
 
 const BATCHSEND = 'Messages.batchSend'
 
-export async function MessageService(mongodb, parentLogger, config, mailer) {
+export async function MessageService(mongodb, parentLogger, config) {
 	const COLLECTION = 'messages'
 	// FIXME to configuration
 	const retentionDays = 14;
 	const logger = parentLogger.child({ service: 'Message' })
 	// const MSG = mongodb.collection(COLLECTION);
-	let MSG = await initCollection(mongodb, COLLECTION);
-	if(!mailer) {
-		throw('Mailer is required');
-	}
+	let MSG = await initCollection(mongodb, COLLECTION),
+		mailer = await getMailer(config, logger);
 
 	function registerJob(workerJob) {
 		// init agenda job
@@ -95,7 +94,7 @@ export async function MessageService(mongodb, parentLogger, config, mailer) {
 			to: msg.to,
 			from: msg.from
 		});
-		/*
+		/* Res example
 		{
 			accepted: [
 				"seb@z720.net",
