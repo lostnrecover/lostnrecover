@@ -2,6 +2,8 @@
 
 <h2>{{ __ 'Messages list' }}
 </h2>
+<form method="post">
+<button name="action" value="resend">{{ __ 'Resend' }}</button>
 <table class="listing">
   <thead>
     <tr>
@@ -18,9 +20,9 @@
     {{#each messages}}
     {{#with this}}
     <tr>
-      <td><input type="checkbox" name="selected[]" /></td> 
+      <td>{{#if (or (eq status 'new') (eq status 'sent'))}}<input type="checkbox" name="selected" value="{{ _id}}"/>{{/if}}</td> 
       <td>{{ _id }}</td>
-      <td>{{ status }}</td>
+      <td>{{> status  status=status type='messages'}}</td>
       <td>{{ dateFormat createdAt 'l LTS' }}</td>
       <td>{{ dateFormat sentAt 'l LTS'  }}</td>
       <td>{{ subject }}</td>
@@ -32,3 +34,4 @@
     {{/each}}
   </tbody>
 </table>
+</form>

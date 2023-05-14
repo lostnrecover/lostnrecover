@@ -84,7 +84,7 @@ export async function MessageService(mongodb, parentLogger, config) {
 	async function send(msgID) {
 		// CHECK fetch user email for id
 		let msg = await get(msgID), now = new Date(), expireAt = new Date();
-		if (msg.status != 'new' || !msg.to) { // || now < msg.schedule ) {
+		if (!msg || !msg.status || msg.status != 'new' || !msg.to) { // || now < msg.schedule ) {
 			return false;
 		}
 		let res = await mailer({
@@ -135,7 +135,7 @@ export async function MessageService(mongodb, parentLogger, config) {
 	}
 
 	async function list(filter) {
-		return await MSG.find(filter).toArray();
+		return await MSG.find(filter).sort({ createdAt: -1 }).toArray();
 	}
 
 	return { create, get, pause, resume, send, batchSend, list, registerJob }

@@ -1,6 +1,6 @@
 import { UserService } from "../services/user.js";
 import { MessageService } from "../services/messages.js";
-import { EXCEPTIONS } from '../services/exceptions.js';
+import { EXCEPTIONS, throwWithData } from '../services/exceptions.js';
 import { AuthTokenService } from '../services/authtoken.js';
 import { StatusService } from "../services/status.js";
 
@@ -34,7 +34,31 @@ export default async function(fastify, opts, done) {
 			title: 'Messages administration'
     });
     return reply
-  })
-  // TODO: POST to (re)send error messages in admin
+  });
+	fastify.post('/messages', {
+		preHandler: AUTH.isAdmin
+	}, async (request, reply) => {
+		let list = request.body.selected, action = request.body.action;
+		if(typeof list == "string") {
+			list = [ list ];
+		}
+		if(action == 'resend') {
+			for (const i in list) {
+				if (Object.hasOwnProperty.call(list, i)) {
+					const msgid = list[i];
+					let res = await MSG.send(msgid);
+					if(res) {
+						logger.debug({msgid, res}, "Message resent");
+					} else {
+						logger.error({msgid}, 'Resend messages failed');
+					}
+				}
+			}
+			reply.redirect(request.url);
+		} else {
+			throwWithData(EXCEPTIONS.BAD_REQUEST, {'hint': 'Invalid Action'})
+		}
+		return reply;
+	})
   done()
 }
