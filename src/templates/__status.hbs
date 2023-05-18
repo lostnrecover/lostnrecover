@@ -1,5 +1,5 @@
 	{{#if status}}
-<span class="status {{type}}-{{status}} {{status}}">
+<span class="status {{#if type }}{{type}}-{{status}}{{/if}} {{status}}">
 	{{#if @partial-block}}
 		{{> @partial-block }}
 	{{else}}

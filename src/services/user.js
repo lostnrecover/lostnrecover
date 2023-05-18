@@ -25,6 +25,21 @@ export async function UserService(mongodb, parentLogger, config) {
 		return USERS.findOne(filter); //, { projection: projection || PUBLIC_PROJECTION });
 	}
 
+	async function search(filter) {
+		return await USERS.aggregate([
+			{ $match: filter},
+			// Lookup tokens
+			{
+				$lookup: {
+					from: "authtokens",
+					localField: "email",
+					foreignField: "email",
+					as: "tokens"
+				}
+			}
+		]).toArray();
+	}
+
 	async function findOrFail(email) {
 		let user = await USERS.findOne({ email }); //, { projection: PUBLIC_PROJECTION});
 		if(!user) {
@@ -41,8 +56,8 @@ export async function UserService(mongodb, parentLogger, config) {
 	}
 
 	async function findById(id) {
-		let user = await USERS.findOne({ _id: id }); //, { projection: PUBLIC_PROJECTION});
-		return user;
+		let user = await search({ _id: id }); //, { projection: PUBLIC_PROJECTION});
+		return user[0] ?? false;
 	}
 
 	async function create(user) {
@@ -61,7 +76,7 @@ export async function UserService(mongodb, parentLogger, config) {
 
 	async function list(filter) {
 		let f = filter || {};
-		return await USERS.find(f).toArray();
+		return await search(f);
 	}
 
 	async function login(token) {
@@ -72,6 +87,9 @@ export async function UserService(mongodb, parentLogger, config) {
 		let user = await findOrCreate(email, 'signin')
 		if(!user) {
 			throw('Invalid Token')
+		}
+		if(user.status == 'blocked') {
+			throw('Account locked');
 		}
 		USERS.updateOne({ _id: user._id }, {
 			$set: {

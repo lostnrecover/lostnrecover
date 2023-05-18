@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html>
-
 <head>
 	<title>{{ __ title }}{{#if title}} - {{/if}}{{ config.appName }}</title>
 	<link rel="stylesheet" href="https://unpkg.com/marx-css/css/marx.min.css" />
@@ -11,7 +10,7 @@
 		<header>
 		<h1><a href="/">{{ config.appName }}</a></h1>
 		<nav>
-		{{# if session.user_id }}
+		{{#if session.user_id }}
 		 	<small>{{ session.email }}</small>
 			<a href="/tags"><img src="/public/icons/tag.svg" title="{{ __ 'Tags' }}" /></a>
 			<a href="/instructions"><img src="/public/icons/list.svg" title="{{ __ 'Instructions' }}" /></a>
@@ -43,8 +42,11 @@
 			{{#each config.locales }}{{#if @first}}{{else}} | {{/if}}
 			<a href="?locale={{@key}}" title="{{ __loc @key 'Switch to %s' this }}">{{@key}}</a>
 			{{/each}}
-			- <a href="/admin">{{ __ 'Admin' }}</a>
+			{{#if session.isAdmin }}- <a href="/admin">{{ __ 'Admin' }}</a>{{/if}}
 		</footer>
+		<pre>
+{{ debug session }}
+		</pre>
 	</main>
 </body>
 </html>

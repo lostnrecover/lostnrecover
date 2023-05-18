@@ -38,8 +38,12 @@ export default async function(fastify, opts, done) {
 			return reply;
 		} else {
 			// Check user email or create user if not exists
-			let user = await USERS.findOrCreate(email, 'signin');
-			let tokenLogger = logger.child({user})
+			let user = await USERS.findOrCreate(email, 'signin'), tokenLogger = logger.child({user})
+			if(user.status == 'blocked') {
+				request.flash('error', `Account ${email} is locked, please contact support: ${fastify.config.support_email}`);
+				reply.redirect(`/login?${redirect}`);
+				return reply;
+			}
 			const token = await create(user.email);
 			let link = `${request.protocol}://${request.hostname}/auth?token=${token}${redirect}`;
 			// Send email
@@ -50,11 +54,11 @@ export default async function(fastify, opts, done) {
 				context: { link, token, email },
 			});
 			tokenLogger.child({token, link, email}).info('Magic Link');
-			if(process.env.ENV == 'dev') {
-				request.flash('warning', `Auto logged in as  ${email}`);
-				reply.redirect(link);
-				return reply
-			}
+			// if(process.env.ENV == 'dev') {
+			// 	request.flash('warning', `Auto logged in as  ${email}`);
+			// 	reply.redirect(link);
+			// 	return reply
+			// }
 		}
 		reply.redirect(`/auth?email=${email}${redirect}`);
 		return reply;

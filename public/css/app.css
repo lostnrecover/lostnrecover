@@ -40,7 +40,6 @@ p.success,
 p.warning {
   padding: 1.5ex;
   border-radius: var(--br);
-
 }
 p.error {
 	border: 3px solid var(--palette-error-dark);
@@ -114,7 +113,7 @@ table.listing {
   transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
 }
 
-.tag-lost {
+.tag-lost, .blocked {
 	background-color: var(--palette-error-light);
 }
 .closed {
@@ -129,6 +128,13 @@ table.listing {
 .instructions-summary {
   max-width: 20ex;
   max-height: 1.2em;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap
+}
+
+.compact_id {
+  max-width: 3ex;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap
