@@ -4,7 +4,7 @@ import moment from 'moment-timezone';
 // import * as frLocale from '../templates/locales/fr.json' assert { type: "json" };
 import fs, { readFileSync } from 'fs'
 import path from 'path'
-import glob from 'glob';
+import {glob} from 'glob';
 
 const messages = {
 	'fr': JSON.parse(readFileSync('./src/templates/locales/fr.json')), //frLocale.default,
@@ -108,16 +108,17 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 	});
 }
 
-export function loadPartials(logger, Handlebars, templateDir) {
+export async function loadPartials(logger, Handlebars, templateDir) {
 	// Handlebars.registerPartial('tagForm', fs.readFileSync(path.join(templateDir, '/tag/_tagForm.hbs')).toString());
-	glob(`${templateDir}/**/__*.hbs`, (error, partials)=> {
-		if(error){
-			return logger.error(error)
-		}
-		partials.map((partial) => {
-			let pattern = /.*\/__(.*)\.hbs/gi
-			let res = pattern.exec(partial)
-			Handlebars.registerPartial(res[1], fs.readFileSync(path.join(partial)).toString());
-		});
+	let partials = await glob(`${templateDir}/**/__*.hbs`)
+	
+		// if(error){
+		// 	return logger.error(error)
+		// }
+	partials.map((partial) => {
+		let pattern = /.*\/__(.*)\.hbs/gi
+		let res = pattern.exec(partial)
+		Handlebars.registerPartial(res[1], fs.readFileSync(path.join(partial)).toString());
 	});
+	// });
 }

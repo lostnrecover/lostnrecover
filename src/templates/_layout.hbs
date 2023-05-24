@@ -44,9 +44,11 @@
 			{{/each}}
 			{{#if session.isAdmin }}- <a href="/admin">{{ __ 'Admin' }}</a>{{/if}}
 		</footer>
+		{{#if (eq env 'dev')}}
 		<pre>
-{{ debug session }}
+{{ debug @root }}
 		</pre>
+		{{/if}}
 	</main>
 </body>
 </html>

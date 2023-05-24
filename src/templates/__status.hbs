@@ -3,7 +3,7 @@
 	{{#if @partial-block}}
 		{{> @partial-block }}
 	{{else}}
-		{{status}} 
+		{{ __ status }} 
 	{{/if}}
 </span>
 	{{else}}
@@ -11,7 +11,7 @@
 	{{#if @partial-block}}
 		{{> @partial-block }}
 	{{else}}
-		active
+		{{ __ 'active' }}
 	{{/if}}
 </span>
 	{{/if}}

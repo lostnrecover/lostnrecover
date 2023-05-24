@@ -14,7 +14,7 @@
 		<tr>
 			<td>{{ batch.type }}</td>
 			<td>{{> status status=batch.status}}</td>
-			<td>{{ __ batch.pageCount }}</td>
+			<td>{{ batch.pageCount }}</td>
 			<td>{{#with (lookup @root/templates [pageFormat])~}}{{name}}{{/with}}</td>
 			<td>
 				<a href="/public/pdf/{{ batch._id }}.pdf"><img src="/public/icons/download.svg" title="{{ __ 'Download PDF' }}" /></a>

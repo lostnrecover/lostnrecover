@@ -4,10 +4,14 @@
 </p>
 <form action="/auth" method="get" class="inline">
 {{#if redirect}}<input type="hidden" name="redirect" value="{{redirect}}" />{{/if}}
-<p>{{ __ 'Please click on the magic link provided in the mail.'}}
+<p>
+  <span>
+  {{ __ 'Please click on the magic link provided in the mail.'}}
+  </span>
   <label for="token">{{ __ 'Or enter the received token' }}</label>
   <input type="password" name="token" id="token" />
   <button>{{ __ 'Check' }}</button>
+</p>
 </form>
 </p>
 {{#if email}}

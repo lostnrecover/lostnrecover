@@ -54,11 +54,11 @@ export default async function(fastify, opts, done) {
 				context: { link, token, email },
 			});
 			tokenLogger.child({token, link, email}).info('Magic Link');
-			// if(process.env.ENV == 'dev') {
-			// 	request.flash('warning', `Auto logged in as  ${email}`);
-			// 	reply.redirect(link);
-			// 	return reply
-			// }
+			if(process.env.ENV == 'dev') {
+				request.flash('warning', `Auto logged in as  ${email}`);
+				reply.redirect(link);
+				return reply
+			}
 		}
 		reply.redirect(`/auth?email=${email}${redirect}`);
 		return reply;
