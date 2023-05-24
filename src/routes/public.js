@@ -14,5 +14,8 @@ export default function(fastify, opts, done) {
   fastify.get('/about', (req,reply) => {
     reply.view('about', { title: 'About' })
   });
+  fastify.get('/about/privacy', (req,reply) => {
+    reply.view('privacy', { title: 'Privacy and Personnal data' })
+  });
   done()
 }
