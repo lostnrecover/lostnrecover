@@ -14,11 +14,15 @@
 	<p>
 		<label for="timezone">{{ __ 'Timezone' }}</label>
 		{{!-- TODO autocomplete instead of select --}}
-		<select id="timezone" name="timezone">
-			{{#each timezones}}
-			<option value="{{this.tzCode}}" {{{selected @root.user.tz this.tzCode}}} >{{this.label}}</option>
-			{{/each}}
-		</select>
+		<input list="timezones" name="timezone" id="timezone" value="{{user.tz}}" />
+		{{!-- <select id="timezone" name="timezone">
+			<!-- {{{selected @root.user.tz this.tzCode}}} -->
+		</select> --}}
 	</p>
 	<p><button type="submit">{{ __ 'Update' }}</button></p>
+	<datalist id="timezones">
+		{{#each timezones}}
+		<option value="{{this.tzCode}}" >{{this.name}}</option>
+		{{/each}}
+</datalist>
 </form>
