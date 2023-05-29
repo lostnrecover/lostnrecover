@@ -1,4 +1,6 @@
 
+	{{#each data}}
+	{{#if @first}}
 <form method="get">
 	<h2>{{ __ 'Print format' }}</h2>
 	<p>
@@ -13,7 +15,8 @@
 		<input type="number" value="{{skip}}" name="skip" id="skip"/>
 	</p>
 	<h2>{{ __ 'Number of copies per tag' }}</h2>
-	{{#each data}}
+
+	{{/if}}
 	{{#with this}}
 	<p class="inline">
 		<label for="qty[{{_id}}]">{{name}} / {{_id}}: </label>
@@ -26,11 +29,15 @@
 	</p>
 		{{/if}}
 	{{/with}}
-	{{/each}}
+	{{#if @last}}
 	<p>
 	<button type="submit">{{ __ "Generate"}}</button>
 	</p>
 </form>
+	{{/if}}
+	{{else}}
+	<p><a href="/tags">{{ __ "Create new tags before printing them" }}</a></p>
+	{{/each}}
 {{#if currentPdf}}
 <p><a href="/public/pdf/{{currentPdf}}.pdf">Download</a></p>
 <iframe class="pdfpreview" src="/public/pdf/{{currentPdf}}.pdf"></iframe>
