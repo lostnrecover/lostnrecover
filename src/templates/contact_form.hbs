@@ -1,0 +1,37 @@
+<form method="post">
+	<p class="inline">
+		<label>
+			{{ __ "Reason" }}
+		</label>
+		{{#each reasons }}{{#with this}}
+			<br/><input type="radio" value="{{ value }}" id="reason-{{value}}" name="reason" {{#if (eq @root.reason value)}}checked{{/if}}/><label for="reason-{{value}}">{{ __ name }}</label>
+		{{/with}}{{/each}}
+	</p>
+	<p>
+		<label for="subject">
+			{{ __ 'Subject' }}
+		</label>
+		<input type="text" id="subject" name="subject" value="{{ subject }}" />
+	</p>
+	<p>
+		<label for="message">
+			{{ __ 'Message' }}
+		</label>
+		<textarea id="message" name="message">{{ message }}</textarea>
+	</p>
+	{{#if session.email}}
+	<p>
+		<label for="email">
+			{{ __ 'Your email'}}: {{session.email}}
+		</label>
+	</p>
+	{{else}}
+	<p>
+		<label for="email">
+			{{ __ 'Your email'}}
+		</label>
+		<input type="email" id="email" name="email" value="{{email}}" required />
+	</p>
+	{{/if}}
+	<button type="submit">{{ __ 'Send' }}</button>
+</form>

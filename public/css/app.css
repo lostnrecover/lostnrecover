@@ -82,7 +82,8 @@ td form {
 .inline label:first-child {
 	width: 50%
 }
-.inline label:first-child + input[type=text] {
+.inline label:first-child + input[type=text],
+.inline label:first-child + input[type=email] {
 	width: calc(50% - 1ex);
 }
 table.listing {
@@ -94,6 +95,10 @@ table.listing {
 	height: 80vh;
 }
 
+textarea {
+  min-height: 20em;
+  min-height: calc(10*1.5em + 2*var(--sm-pad))
+}
 
 .status {
 	background-color: var(--primary);

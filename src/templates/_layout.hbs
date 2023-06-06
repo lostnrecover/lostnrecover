@@ -43,6 +43,7 @@
 			<a href="?locale={{@key}}" title="{{ __loc @key 'Switch to %s' this }}">{{@key}}</a>
 			{{/each}}
 			{{#if session.isAdmin }}- <a href="/admin">{{ __ 'Admin' }}</a>{{/if}}
+			- <a href="/support?redirect={{ url }}">{{ __ 'Support' }}</a>
 		</footer>
 		{{#if (eq env 'dev')}}
 		<pre>

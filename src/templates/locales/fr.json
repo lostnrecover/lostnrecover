@@ -114,5 +114,11 @@
   "Tag info": "Info de l'étiquette",
   "Thank you...": "Merci...",
   "The owner has been notified of your discovery. You should receive an email with its instructions to return the tagged item or to contact him to arrange the return.": "Le propriétaire a été informé de votre découverte. Vous devriez recevoir un message contenant des instructions pour renvoyer l'objet ou pour le contacter pour organiser le retour.",
-  "This discovery is closed and tag is considered returned": "Cette découverte est close et l'étiquette est considérée comme renvoyée."
+  "This discovery is closed and tag is considered returned": "Cette découverte est close et l'étiquette est considérée comme renvoyée.",
+  "Reason": "Raison",
+  "Message": "Message",
+  "Your email": "Votre adresse email",
+  "Invalid email address": "Adresse email invalide",
+  "Support and Contact": "Assistance et contact",
+  "Please provide more information about your request": "Merci de renseigner plus de détails dans votre demande"
 }
