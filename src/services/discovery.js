@@ -135,7 +135,8 @@ export async function DiscoveryService(mongodb, parentLogger, config) {
 		return finder.email
 	}
 	async function discoverySender(discovery) {
-		return `${config.appName} <tag-${discovery._id}@${config.DOMAIN}>`;
+		let email = config.tag_email.replace('{ID}', discovery._id)
+		return `${config.appName} <${email}>`;
 	}
 	async function recipientEmail(discovery) {
 		let id = discovery.tag.recipient_id, r;

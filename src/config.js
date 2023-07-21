@@ -11,17 +11,21 @@ dotenv.config();
 
 const pkg = JSON.parse(readFileSync("./package.json")) ?? {};
 
-const smtpcs = new ConnectionString(process.env.SMTP_URL || "smtp://bradford5%40ethereal.email:jnTpmpbZsUSYuDwxp3@smtp.ethereal.email:587");
-const imapcs = new ConnectionString(process.env.IMAP_URL || "imap://bradford5%40ethereal.email:jnTpmpbZsUSYuDwxp3@imap.ethereal.email:993?secure=true")
+const smtpcs = new ConnectionString(process.env.SMTP_URL || "smtp://localhost:587");
+const imapcs = new ConnectionString(process.env.IMAP_URL || "imap://localhost:993?secure=true")
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+
+const DOMAIN = process.env.DOMAIN ?? 'dev.lostnrecover.me';
+const SHORT_DOMAIN = process.env.SHORT_DOMAIN ?? 'dev.rtbk.me';
 
 export const config = {
 	// TODO : config linked to domain
 	appName: 'Lost n Recover',
 	pkg,
-	support_email: 'support@lostnrecover.me',
-	DOMAIN: process.env.DOMAIN ?? 'dev.lostnrecover.me',
-	SHORT_DOMAIN: process.env.SHORT_DOMAIN ?? 'dev.rtbk.me',
+	DOMAIN,
+	SHORT_DOMAIN,
+	support_email: `support@${DOMAIN}`,
+	tag_email: `tag+{ID}@${SHORT_DOMAIN}`,
 	PORT: process.env.PORT || 3000,
 	HOST: process.env.HOST || '::',
 	db_url: process.env.DB_URL || `mongodb://mongodb/lostnfound_${process.env.ENV}`,
