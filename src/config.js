@@ -4,11 +4,15 @@ import path from 'path'
 import url from 'url';
 import {ConnectionString} from 'connection-string';
 import { getSecret } from './utils/secrets.js';
-
+import dotenv from "dotenv";
 import { readFileSync } from "fs";
+
+dotenv.config();
+
 const pkg = JSON.parse(readFileSync("./package.json")) ?? {};
 
 const smtpcs = new ConnectionString(process.env.SMTP_URL || "smtp://bradford5%40ethereal.email:jnTpmpbZsUSYuDwxp3@smtp.ethereal.email:587");
+const imapcs = new ConnectionString(process.env.IMAP_URL || "imap://bradford5%40ethereal.email:jnTpmpbZsUSYuDwxp3@imap.ethereal.email:993?secure=true")
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 export const config = {
@@ -41,4 +45,15 @@ export const config = {
 			pass: smtpcs.password
 		}
 	},
+	imap: {
+		host: imapcs.hostname,
+		port: imapcs.port,
+		tls: imapcs.params?.secure ? true : false,
+		user: imapcs.user,
+		password: imapcs.password,
+		auth: {
+			user: imapcs.user,
+			pass: imapcs.password
+		}
+	}
 }
