@@ -4,7 +4,10 @@ name: ${APP_CODE}_${ENV:-prod}
 services:
   app:
     image: lostnrecover/lostnrecover:1.0
-    hostname: app
+    init: true
+    deploy:
+      mode: replicated
+      replicas: 2
     build:
     # build from Dockerfile
       context: .
@@ -13,9 +16,9 @@ services:
     expose:
     - "${PORT:-3000}"
     links: 
-    - mongodb
+    - database
     depends_on:
-    - mongodb
+    - database
     environment:
       ENV: ${ENV:-prod}
       APP_NAME: ${APP_NAME:-Lost n Recover}
@@ -42,14 +45,17 @@ services:
       start_period: 40s  
     networks:
     - backend
-  mongodb:
+  database:
     image: mongo:latest
+    command: --quiet
     hostname: mongodb
+    deploy:
+      mode: global
     volumes:
     - "dbdata:/data/db"
     restart: on-failure
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      test: echo 'db.runCommand("ping").ok' | mongosh  --quiet mongodb://localhost:27017/test?appName=mongodb-healthcheck
       interval: 10s
       timeout: 10s
       retries: 5

@@ -6,13 +6,23 @@ import {ConnectionString} from 'connection-string';
 import { getSecret } from './utils/secrets.js';
 import dotenv from "dotenv";
 import { readFileSync } from "fs";
+import os from 'os';
 
 dotenv.config();
 
 const pkg = JSON.parse(readFileSync("./package.json")) ?? {};
 
+const appName = process.env.APP_NAME || pkg.displayName;
+
 const smtpcs = new ConnectionString(process.env.SMTP_URL || "smtp://localhost:587");
 const imapcs = new ConnectionString(process.env.IMAP_URL || "imap://localhost:993?secure=true")
+const appId = `${os.hostname()}/${pkg.name}-${pkg.version}`;
+const dbcs = new ConnectionString(process.env.DB_URL || `mongodb://mongodb/lostnfound_${process.env.ENV}`)
+dbcs.setDefaults({
+	params: {
+		appname: `${appId}`
+	}
+});
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 const DOMAIN = process.env.DOMAIN ?? 'dev.lostnrecover.me';
@@ -20,7 +30,8 @@ const SHORT_DOMAIN = process.env.SHORT_DOMAIN ?? 'dev.rtbk.me';
 
 export const config = {
 	// TODO : config linked to domain
-	appName: 'Lost n Recover',
+	appName,
+	appId,
 	pkg,
 	DOMAIN,
 	SHORT_DOMAIN,
@@ -28,7 +39,7 @@ export const config = {
 	tag_email: `tag+{ID}@${SHORT_DOMAIN}`,
 	PORT: process.env.PORT || 3000,
 	HOST: process.env.HOST || '::',
-	db_url: process.env.DB_URL || `mongodb://mongodb/lostnfound_${process.env.ENV}`,
+	db_url: dbcs.toString(),
 	cookies: {
 		name: 'lnr',
 		secret: await getSecret(process.env.COOKIE_SECRET_FILE || path.join(__dirname, '../.session-secret-key')) //fs.readFileSync(cookie_secret_file)

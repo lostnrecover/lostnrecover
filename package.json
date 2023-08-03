@@ -1,6 +1,6 @@
 {
-  "name": "lostnfound",
-  "displayName": "Lost & Found",
+  "name": "lostnrecover",
+  "displayName": "Lost & Recover",
   "version": "1.0.0",
   "description": "Manage tags to get back youir lost items",
   "main": "src/server.js",
@@ -36,6 +36,7 @@
     "connection-string": "^4.3.6",
     "dotenv": "^16.1.4",
     "fastify": "^4.10.2",
+    "glob": "^10.2.5",
     "handlebars": "^4.7.7",
     "handlebars-i18n": "^1.5.1",
     "imap-mailbox": "^1.0.1",
@@ -55,7 +56,6 @@
   },
   "devDependencies": {
     "@istanbuljs/esm-loader-hook": "^0.2.0",
-    "glob": "^10.2.5",
     "node-mongodb-fixtures": "^3.2.9",
     "nodemon": "^2.0.20",
     "pino-pretty": "^10.0.0",

@@ -3,9 +3,12 @@ import { config } from './config.js';
 import { StatusService } from './services/status.js';
 import { MongoClient } from 'mongodb';
 import { pino } from 'pino';
+import {ConnectionString} from 'connection-string';
 
-const logger = pino()
-const client = new MongoClient(config.db_url)
+const logger = pino();
+const dbcs = new ConnectionString(config.db_url);
+dbcs.params.appname=`${dbcs.params.appname}/healthcheck`;
+const client = new MongoClient(dbcs.toString());
 await client.connect();
 let db = client.db();
 
