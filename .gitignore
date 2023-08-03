@@ -1,1 +1,10 @@
 node_modules/
+_
+.vscode/**
+.session-secret-key
+.jwt-secret
+.*secret
+tmp
+public/pdf
+.nyc_output
+.env

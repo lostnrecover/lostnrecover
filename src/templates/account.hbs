@@ -1,0 +1,28 @@
+<form method="post">
+	<p>
+		<label for="displayname">{{ __ 'Display Name' }}</label>
+		<input type="text" id="displayName" name="displayName" value="{{user.displayName}}"/>
+	</p>
+	<p>
+		<label for="locale">{{ __ 'Language' }}</label>
+		<select id="locale" name="locale">
+			{{#each config.locales}}
+				<option value="{{@key}}" {{{selected @root.user.locale @key}}}>{{this}}</option>
+			{{/each}}
+		</select>
+	</p>
+	<p>
+		<label for="timezone">{{ __ 'Timezone' }}</label>
+		{{!-- TODO autocomplete instead of select --}}
+		<input list="timezones" name="timezone" id="timezone" value="{{user.tz}}" />
+		{{!-- <select id="timezone" name="timezone">
+			<!-- {{{selected @root.user.tz this.tzCode}}} -->
+		</select> --}}
+	</p>
+	<p><button type="submit">{{ __ 'Update' }}</button></p>
+	<datalist id="timezones">
+		{{#each timezones}}
+		<option value="{{this.tzCode}}" >{{this.name}}</option>
+		{{/each}}
+</datalist>
+</form>

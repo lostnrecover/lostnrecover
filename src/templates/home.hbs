@@ -1,0 +1,20 @@
+<h1>{{ __ "Welcome"}}</h1>
+<blockquote>{{ __ 'lnf.concept'}}</blockquote>
+<p><a href="/about">{{ __ 'Need help ? Check out how it works.' }}</a></p>
+
+<p>
+  {{ __ 'Want to try with your own tag?' }}
+  {{#if session.user_id }}
+  <a href="/tags?create=1"><button>{{ __ 'Create a Tag' }}</button></a>
+  {{else }}
+  <a href="/login"><button>{{ __ 'Login or Register' }}</button></a>
+  {{/if}}
+</p>
+<form class="inline">
+  <p>{{ __ "Found a tag and don't know what to do ?"}}</p>
+  <p>
+    <label for="tagId">{{ __ 'Enter the Tag Id'}}</label>
+    <input type="text" id="tagId" name="tagId" />
+    <button type="submit">{{ __ 'Check the tag' }}</button>
+  </p>
+</form>

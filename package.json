@@ -1,12 +1,17 @@
 {
-  "name": "lostnfound",
+  "name": "lostnrecover",
+  "displayName": "Lost & Recover",
   "version": "1.0.0",
   "description": "Manage tags to get back youir lost items",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon --watch src src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "ENV=prod node src/server.js",
+    "dev": "ENV=dev nodemon --watch src -e js,hbs,json src/server.js",
+    "pretest": "mongodb-fixtures --url 'mongodb://mongodb/lostnfound_test' --path test/fixtures rebuild",
+    "test": "ENV=test tap -T --reporter=classic --node-arg='--no-warnings' --node-arg='--experimental-loader' --node-arg='@istanbuljs/esm-loader-hook'",
+    "test:watch": "ENV=test tap --reporter=list --watch --node-arg='--no-warnings' --node-arg='--experimental-loader' --node-arg='@istanbuljs/esm-loader-hook'",
+    "cli:set-admin": "node src/cli/admin.js set ",
+    "cli:unset-admin": "node src/cli/admin.js unset "
   },
   "keywords": [
     "tag",
@@ -14,12 +19,49 @@
     "found",
     "qr-code"
   ],
+  "type": "module",
   "author": "z720",
   "license": "MIT",
   "dependencies": {
-    "fastify": "^4.10.2"
+    "@fastify/cookie": "^8.3.0",
+    "@fastify/flash": "^5.1.0",
+    "@fastify/formbody": "^7.4.0",
+    "@fastify/jwt": "^6.5.0",
+    "@fastify/mongodb": "^6.2.0",
+    "@fastify/secure-session": "^5.3.0",
+    "@fastify/session": "^10.1.0",
+    "@fastify/static": "^6.6.0",
+    "@fastify/view": "^7.3.0",
+    "agenda": "^5.0.0",
+    "connection-string": "^4.3.6",
+    "dotenv": "^16.1.4",
+    "fastify": "^4.10.2",
+    "glob": "^10.2.5",
+    "handlebars": "^4.7.7",
+    "handlebars-i18n": "^1.5.1",
+    "imap-mailbox": "^1.0.1",
+    "imapflow": "^1.0.128",
+    "mailboxjs": "^1.0.2",
+    "mailparser": "^3.6.4",
+    "moment": "^2.29.4",
+    "moment-timezone": "^0.5.40",
+    "nanoid": "^4.0.0",
+    "node-imap": "^0.9.6",
+    "nodemailer": "^6.9.1",
+    "nodemailer-html-to-text": "^3.2.0",
+    "pdfkit": "^0.13.0",
+    "qrcode": "^1.5.1",
+    "qs": "^6.11.0",
+    "timezones-list": "^3.0.1"
   },
   "devDependencies": {
-    "nodemon": "^2.0.20"
+    "@istanbuljs/esm-loader-hook": "^0.2.0",
+    "node-mongodb-fixtures": "^3.2.9",
+    "nodemon": "^2.0.20",
+    "pino-pretty": "^10.0.0",
+    "tap": "^16.3.4"
+  },
+  "tap": {
+    "check-coverage": false
   }
 }

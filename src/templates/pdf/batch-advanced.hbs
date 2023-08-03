@@ -1,0 +1,50 @@
+<p>Generate a PDF file to download and print</p>
+<form method="post">
+	<input type="hidden" value="print_id" name="print_id" />
+	<fieldset>
+	<legend>{{ __ 'Print format' }}</legend>
+	<p>
+		<label for="tpl">{{ __ 'Template' }}</label>
+		<select name="tpl" id="tpl">
+			{{#each templates}}
+			<option value="{{@key}}" 
+				{{#if (eq @key @root.tpl)}} selected="selected"{{/if}}>
+				{{this.name}}
+			</option>
+			{{/each}}
+		</select>
+	</p>
+	<p><label for="skip">{{ __ 'number of labels to skip (when reusing a sheet)' }}</label>
+		<input type="number" value="{{skip}}" name="skip" id="skip"/>
+	</p>
+	</fieldset>
+	<fieldset>
+	<legend>{{ __ 'Tags settings' }}</legend>
+	<p class="inline">
+		{{ __ 'This print is for :'}}<br/ >
+		<input type="radio" id="forme" name="forowner" value="1" {{#if (eq forowner 1)}}checked{{/if}}  />
+		<label for="forme">{{ __ 'for me - I\'ll be the owner of all the tags' }}</label>
+		<br />
+		<input type="radio" id="forsomeome" name="forowner" value="0" {{#if (eq forowner 0)}}checked{{/if}}  />
+		<label for="forsomeome">{{ __ 'for someone else' }}</label>
+		<br/><small>{{ __ 'All the tags will be unassigned. A preliminary scan will be necessary to take ownership and activate.' }}</small>
+	</p>
+	<p>
+		<label for="qty">{{ __ 'Number of tags' }}</label>
+		<input type="number" id="qty" name="qty" value="{{ qty }}" />
+	</p>
+	<p>
+		<label for="label"><input type="checkbox" id="withlabel" name="withlabel" value="1" {{#if withlabel}}checked{{/if}}  /> {{ __ 'Add label on each tags'}} </label>
+		<input type="text" id="label" name="label" maxlength="8" />
+		<small>{{ __ 'You can include a # symbol to add an increment after or in the label. Ex: "label #" will get you "label 1", "label 2"...' }}</small>
+	</p>
+	</fieldset>
+	<p>
+	<button type="submit">{{ __ "Generate"}}</button>
+	</p>
+</form>
+{{#if currentPdf}}
+<p><a href="/public/pdf/{{currentPdf}}.pdf">Download</a></p>
+<iframe class="pdfpreview" src="/public/pdf/{{currentPdf}}.pdf"></iframe>
+{{/if}}
+

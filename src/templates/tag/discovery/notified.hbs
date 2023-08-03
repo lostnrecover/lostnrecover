@@ -1,0 +1,13 @@
+<h2>{{ __ 'Thank you...' }}</h2>
+
+<p>{{ __ 'The owner has been notified of your discovery. You should receive an email with its instructions to return the tagged item or to contact him to arrange the return.' }}</p>
+
+<h3>{{ __ 'Tag info' }}</h3>
+<dl>
+	<dt>
+		{{ __ 'Tag' }}
+	</dt>
+	<dd>{{ discovery.tag._id }}</dd>
+	<dt>{{ __ 'Date' }}</dt>
+	<dd>{{ dateFormat discovery.createdAt 'DD/MM/YY hh:mm'}}</dd>
+</dl>

@@ -1,0 +1,39 @@
+<form method="post" id="editform">
+  <h2>{{ title }} {{> status status=tag.status type='tag' }}
+  </h2>
+  <fieldset>
+    <p>
+      <label for="name">{{ __ 'Tag Name' }}</label>
+      <input name="name" id="name" type="text" value="{{tag.name}}" />
+    </p>
+		<p>
+      <label for="label">{{ __ 'Label' }}</label>
+      <input name="label" id="label" type="text" value="{{tag.label}}" maxlength="8" />
+    </p>
+  </fieldset>
+  <fieldset>
+    <legend>{{ __ 'About the owner' }}</legend>
+    <p>
+      <label for="email">{{ __ 'Email notified when tag is found' }}</label>
+      <input name="email" id="email" type="email" value="{{ tag.email }}"/>
+    </p>
+    <p>{{ __ 'Recipient for notification sent when tag is found. If empty, the user account email will be notified.' }}</p>
+  </fieldset>
+  <fieldset>
+    <legend>{{ __ 'Instructions to the tag holder' }}</legend>
+    <p>
+      <select name="instructions_id">
+        <option>--</option>
+        {{#each instructions}}
+          <option value="{{this._id}}" {{#if (or (eq ../tag.instructions_id this._id) this.isDefault)}} selected="selected"{{/if}} {{#if this.isDefault}} class="user-default"{{/if}}>{{this.name}}</option>
+        {{/each}}
+      </select>
+    </p>
+  </fieldset>
+  <p class="actions">
+    {{!-- <a href="?edit=0"><button form="noop" class="view">{{ __ 'View' }}</button></a> --}}
+    <button type="submit" form="editform" >{{#if submitText }}submitText{{else}}{{ __ ' Submit' }} {{/if}}</button>
+  </p>
+</form>
+<!-- end of form -->
+{{!-- TODO: Markdown help and preview --}}

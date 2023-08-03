@@ -1,0 +1,44 @@
+{{> adminMenu }}
+<table class="listing">
+  <thead>
+    <tr>
+      <th>{{ __ 'User id'}}</th>
+      <th>{{ __ 'email' }}</th>
+      <th>{{ __ 'Status' }}</th>
+      <th>{{ __ 'Created At' }}</th>
+      <th>{{ __ 'Last Login' }}</th>
+      <th>{{ __ 'Active tokens' }}</th>
+      <th>{{ __ 'Action' }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each users}}
+    {{#with this}}
+    <tr>
+      <td class="compact_id">{{ _id }}</span></td>
+      <td>{{ email }}{{#if isAdmin}}<span title="{{ __ 'Administrator' }}">*</span>{{/if}}</td>
+      <td>
+        {{#if (or (eq status 'active') (eq status 'new'))}}
+          <button form="form-{{ _id }}" type="submit" name="action" value="block" class="{{status}}">{{status}}</button>
+        {{else}}
+          {{#if (eq status 'blocked')}}
+            <button form="form-{{ _id }}" type="submit" name="action" value="activate"class="{{status}}" >{{status}}</button>
+          {{else}}
+            {{>status status=status}}
+          {{/if}}
+        {{/if}}
+      </td>
+      <td>{{ dateFormat createdAt 'l LTS' }}</td>
+      <td>{{ dateFormat lastLogin 'l LTS' }}</td>
+      <td>{{ tokens.length }}</td>
+      <td>
+        <form method="post" id="form-{{ _id }}">
+          <input type="hidden" name="user_id" value="{{_id}}" />
+          <button type="submit" name="action" value="token">{{ __ 'Token'}}</button>
+        </form>
+      </td>
+    </tr>
+    {{/with}}
+    {{/each}}
+  </tbody>
+</table>

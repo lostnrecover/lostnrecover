@@ -1,0 +1,33 @@
+<form method="post" id="editform">
+  <h2>{{ title }}          
+    {{#if instructions.isDefault}}
+				{{> status status='Default' type='instructions'}}
+    {{/if}}
+  </h2>
+  <fieldset>
+    <p>
+      <label for="name">{{ __ 'Name' }}</label>
+      <input name="name" id="name" type="text" value="{{instructions.name}}" />
+    </p>
+    <p>
+      <label for="body">
+        {{ __ 'Instructions' }}
+      </label>
+      <textarea name="body" id="body">{{ instructions.body }}</textarea>
+    </p>
+    <p>{{ __ 'Instructions sent to the tag finder. Should explain how to return the item or contact you.' }}</p>
+    <blockquote><pre>
+{{ localizedFile 'instructions-sample'}}
+    </pre></blockquote>
+  </fieldset>
+  <p class="actions">
+    {{#if instructions.isDefault}}
+    {{else}}
+      <label for="isDefault">{{ __ 'Set as default instructions for future tags' }}</label>
+      <input name="isDefault" id="isDefault" type="checkbox" value="true" />
+    {{/if}}
+    <button type="submit" form="editform" >{{#if submitText }}submitText{{else}}{{ __ ' Submit' }} {{/if}}</button>
+  </p>
+</form>
+<!-- end of form -->
+{{!-- TODO: Markdown help and preview --}}

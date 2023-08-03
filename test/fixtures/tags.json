@@ -1,0 +1,13 @@
+[
+	{
+		"_id": "lost_tag_1",
+		"status": "lost",
+		"owner_id": "owner",
+		"creator_id": "owner",
+		"name": "Lost Tag 1",
+		"label": "lost",
+		"recipient_id": "owner",
+		"instructions_id": "default-instructions",
+		"discoveries": []
+	}
+]

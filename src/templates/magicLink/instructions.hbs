@@ -1,0 +1,25 @@
+
+<p>
+{{ __ 'To proceed you need to verify your email address and provide a token that was sent to your email address.'}}
+</p>
+<form action="/auth" method="get" class="inline">
+{{#if redirect}}<input type="hidden" name="redirect" value="{{redirect}}" />{{/if}}
+<p>
+  <span>
+  {{ __ 'Please click on the magic link provided in the mail.'}}
+  </span>
+  <label for="token">{{ __ 'Or enter the received token' }}</label>
+  <input type="password" name="token" id="token" />
+  <button>{{ __ 'Check' }}</button>
+</p>
+</form>
+</p>
+{{#if email}}
+<form action="/login" method="post" class="inline">
+{{#if redirect}}<input type="hidden" name="redirect" value="{{redirect}}" />{{/if}}
+<p>{{ __ 'No email received ?'}}
+  <input type="hidden" id="email" name="email" value="{{email}}"/>
+  <button type="submit">{{ __ 'Resend Magic Link' }}</button>
+</p>
+</form>
+{{/if}}

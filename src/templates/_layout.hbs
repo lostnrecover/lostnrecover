@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{{ __ title }}{{#if title}} - {{/if}}{{ config.appName }}</title>
+	<link rel="stylesheet" href="https://unpkg.com/marx-css/css/marx.min.css" />
+	<link rel="stylesheet" href="/public/css/app.css" />
+</head>
+<body>
+	<main>
+		<header>
+		<h1><a href="/">{{ config.appName }}</a></h1>
+		<nav>
+		{{#if session.user_id }}
+		 	<small>{{ session.email }}</small>
+			<a href="/tags"><img src="/public/icons/tag.svg" title="{{ __ 'Tags' }}" /></a>
+			<a href="/instructions"><img src="/public/icons/list.svg" title="{{ __ 'Instructions' }}" /></a>
+			<a href="/pdf"><img src="/public/icons/grid.svg" title="{{ __ 'Print Tags' }}" /></a>
+			<a href="/account"><img src="/public/icons/user.svg" title="{{ __ 'Account' }}" /></a>
+			<a href="/logout"><img src="/public/icons/log-out.svg" title="{{ __ 'Logout' }}" /></a>
+		{{/if}}
+			<a href="/about"><img src="/public/icons/help-circle.svg" title="{{ __ 'About' }}" /></a>
+		</nav>
+		</header>
+		{{#if flash }}
+		{{#with flash }}
+		{{#if error }}
+		<p class="error">{{ __ error }}</p>
+		{{/if}}
+		{{#if info}}
+		<p class="info">{{ __ info }}</p>
+		{{/if}}
+		{{#if warning}}
+		<p class="warning">{{ __ warning }}</p>
+		{{/if}}
+		{{#if success}}
+		<p class="success">{{ __ success }}</p>
+		{{/if}}
+		{{/with}}
+		{{/if}}
+		{{{body}}}
+		<footer>{{ config.appName}} - v{{ pkg.version }} -
+			{{#each config.locales }}{{#if @first}}{{else}} | {{/if}}
+			<a href="?locale={{@key}}" title="{{ __loc @key 'Switch to %s' this }}">{{@key}}</a>
+			{{/each}}
+			{{#if session.isAdmin }}- <a href="/admin">{{ __ 'Admin' }}</a>{{/if}}
+			- <a href="/support?redirect={{ url }}">{{ __ 'Support' }}</a>
+		</footer>
+		{{#if (eq env 'dev')}}
+		<pre>
+{{ debug @root }}
+		</pre>
+		{{/if}}
+	</main>
+</body>
+</html>

@@ -1,0 +1,17 @@
+	{{#if status}}
+<span class="status {{#if type }}{{type}}-{{status}}{{/if}} {{status}}">
+	{{#if @partial-block}}
+		{{> @partial-block }}
+	{{else}}
+		{{ __ status }} 
+	{{/if}}
+</span>
+	{{else}}
+<span class="status active">
+	{{#if @partial-block}}
+		{{> @partial-block }}
+	{{else}}
+		{{ __ 'active' }}
+	{{/if}}
+</span>
+	{{/if}}

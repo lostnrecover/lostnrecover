@@ -1,0 +1,42 @@
+{{> adminMenu }}
+{{#if (eq batch.status 'locked') }}
+<p>
+	{{ __ 'Batch ID: %s (%s pages)' batch._id batch.pageCount }}<br />
+	{{#with (lookup @root.templates batch.pageFormat) }} {{name}} {{/with}}
+</p>
+{{else}}
+<p>Generate a page filled with new tag labels to download and print</p>
+<form method="post">
+	<fieldset>
+	{{!-- <input type="hidden" readonly value="{{batchId}}" name="batchId" /> --}}
+ 	<legend>{{ __ 'Print format' }}</legend>
+	<p>
+		<label for="selectedTemplate">{{ __ 'Template' }}</label>
+		<select name="pageFormat" id="selectedTemplate">
+			{{#each templates}}
+			<option value="{{@key}}" 
+				{{#if (eq @key @root.batch.pageFormat)}} selected="selected"{{/if}}>
+				{{this.name}}
+			</option>
+			{{/each}}
+		</select>
+	</p>
+	<p>
+		<label for="qty">{{ __ 'Page count'}}</label>
+		<input type="number" name="pageCount" value="{{batch.pageCount}}"/>
+	</p>
+	</fieldset>
+	<p>
+	<button type="submit" name="status" value="draft">{{ __ "Generate PDF and preview"}}</button>
+	<button type="submit" name="status" value="locked">{{ __ "Generate PDF and save"}}</button>
+	</p>
+</form>
+{{/if}}
+{{#if currentPdf}}
+<p><a href="/public/pdf/{{currentPdf}}.pdf">
+	<button>
+	{{ __ 'Download' }}
+	</button>
+</a></p>
+<iframe class="pdfpreview" src="/public/pdf/{{currentPdf}}.pdf"></iframe>
+{{/if}}

@@ -1,0 +1,35 @@
+{{> adminMenu }}
+
+<h2>{{ __ 'Messages list' }}
+</h2>
+<form method="post">
+<button name="action" value="resend">{{ __ 'Resend' }}</button>
+<table class="listing">
+  <thead>
+    <tr>
+      <th></th>
+      <th>{{ __ 'Msg id'}}</th>
+      <th>{{ __ 'Status' }}</th>
+      <th>{{ __ 'Created At' }}</th>
+      <th>{{ __ 'Sent' }}</th>
+      <th>{{ __ 'Subject' }}</th>
+      <th>{{ __ 'Recipient' }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each messages}}
+    {{#with this}}
+    <tr>
+      <td>{{#if (or (eq status 'new') (eq status 'sent'))}}<input type="checkbox" name="selected" value="{{ _id}}"/>{{/if}}</td> 
+      <td class="compact_id">{{ _id }}</td>
+      <td>{{> status  status=status type='messages'}}</td>
+      <td>{{ dateFormat createdAt 'l LTS' }}</td>
+      <td>{{ dateFormat sentAt 'l LTS'  }}</td>
+      <td>{{ subject }}</td>
+      <td>{{ to }}</td>
+    </tr>
+    {{/with}}
+    {{/each}}
+  </tbody>
+</table>
+</form>

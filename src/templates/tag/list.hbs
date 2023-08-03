@@ -1,0 +1,66 @@
+
+<p><a href="?create=1"><button>{{ __ 'Create a Tag' }}</button></a></p>
+<!-- TODO Bulk create tags and generate labels (with label prefix ?)-->
+{{#if tags}}
+<table class="listing">
+  <thead>
+    <tr>
+      <th>{{ __ 'Tag Id' }}</th>
+      <th>{{ __ 'Tag Name' }} <br/>
+      <small>{{ __ 'Label' }}</small></th>
+      <th>{{ __ 'Status' }}</th>
+			<th>{{ __ 'Instructions' }}</th>
+			<th>{{ __ 'Recovery' }}</th>
+      {{!-- <th>{{ __ 'Notification Email' }}</th> --}}
+      <th>{{ __ 'QR Code'}}</th>
+      <th>{{ __ 'Action' }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each tags}}
+    {{#with this}}
+    <tr>
+      <td><a href="/tags/{{_id}}">{{_id}}</a></td>
+      <td>{{ name }} <br/>
+      <small>{{ label }}</small>
+      </td>
+      <td>
+				{{> status status=status type='tag'}}
+			</td>
+			<td><a href="/instructions/{{instructions_id}}">{{ instructions.name }}</a></td>
+			<td>
+				{{#each discoveries}}
+				<a href="/t/{{../_id}}/notify/{{this._id}}">{{>status status=this.status}}</a>
+				{{/each}}
+			</td>
+      {{!-- <td>{{#if (ne recipient_id owner_id)  }}<em title="{{__ 'Discovery notification are not only sent to the tag owner'}}">{{ recipient.email }}*</em>{{ else }}{{ owner.email }}{{/if}}</td> --}}
+      <td><a href="/code/svg/{{_id}}" download="tag-{{_id}}.svg"><img src="/code/svg/{{_id}}" /></a></td>
+      <td>
+        {{!-- <a href="/print/add?tagId={{_id}}"><img src="/public/icons/grid.svg" title="{{ __ 'Add to Print' }}" /></a> --}}
+        <a href="/tags/{{ _id }}?edit=1"><img src="/public/icons/edit.svg" title="{{ __ 'Edit ?' }}" /></a>
+        {{!-- <a href="/tags/{{ _id }}/archive"><img src="/public/icons/trash-2.svg" title="{{ __ 'Archive' }}" /></a> --}}
+				{{#if (eq status 'active')}}
+				<form method="post" action="/tags/{{_id}}/lost">
+					<input type="hidden" name="redirect" value="/tags" />
+					<input type="image" src="/public/icons/eye-off.svg" title="{{ __ 'Lost'}}" />
+				</form>
+				{{/if}}
+				{{#if (or (eq status 'new') (eq status 'lost'))}}
+				<form method="post" action="/tags/{{_id}}/active">
+					<input type="hidden" name="redirect" value="/tags" />
+					<input type="image" src="/public/icons/eye.svg" title="{{ __ 'active'}}" />
+				</form>
+				{{/if}}
+        <a href="/tags/{{ _id }}/preview"><img src="/public/icons/list.svg" title="{{ __ 'Preview Instructions' }}" /></a>
+
+      </td>
+    </tr>
+    {{/with}}
+    {{/each}}
+  </tbody>
+</table>
+{{else}}
+<p>{{ __ 'You have no tag yet!'}}</p>
+{{/if}}
+<p><a href="?create=1"><button>{{ __ 'Create a Tag' }}</button></a></p>
+

@@ -1,20 +1,33 @@
-const fastify = require('fastify')({
-	trustProxy: true
-});
-const routes = {
-	tags: require('./routes/v1/tags.js')
-};
-fastify.register(routes.tags, {prefix: '/api/1/tag'});
+import { initApp } from "./app.js";
+import { config } from './config.js';
 
+let server = await initApp();
+
+// reco: https://snyk.io/blog/10-best-practices-to-containerize-nodejs-web-applications-with-docker/
+async function closeGracefully(signal) {
+	console.log(`*^!@4=> Received signal to terminate: ${signal}`)
+
+	await server.close()
+	// await db.close() if we have a db connection in this app
+	// await other things we should cleanup nicely
+	process.kill(process.pid, signal);
+}
+process.once('SIGINT', closeGracefully)
+process.once('SIGTERM', closeGracefully)
+
+server.addHook('onReady', async () => {
+	await server.initJobs();
+})
+// Start server
 const start = async () => {
 	try {
-		const PORT = process.env.PORT || 3000
-		await fastify.listen({
-			port: PORT
+		server.listen({
+			port: config.PORT,
+			host: config.HOST
 		});
-		console.log('Server started', PORT )
+		console.log(`Server started ${config.HOST}:${config.PORT} // ${config.appId}`)
 	} catch(err) {
-		fastify.log.error((err))
+		server.log.error((err))
 		process.exit(1)
 	}
 }

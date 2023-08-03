@@ -1,0 +1,68 @@
+# docker-compose.yml
+version: '3'
+name: ${APP_CODE}_${ENV:-prod}
+services:
+  app:
+    image: lostnrecover/lostnrecover:1.0
+    init: true
+    deploy:
+      mode: replicated
+      replicas: 2
+    build:
+    # build from Dockerfile
+      context: .
+      dockerfile: Dockerfile
+    restart: on-failure
+    expose:
+    - "${PORT:-3000}"
+    links: 
+    - database
+    depends_on:
+    - database
+    environment:
+      ENV: ${ENV:-prod}
+      APP_NAME: ${APP_NAME:-Lost n Recover}
+      SMTP_URL: ${SMTP_URL:-smtp://localhost:587}
+      IMAP_URL: ${IMAP_URL:-imap://localhost:143}
+      DOMAIN: ${DOMAIN}
+      SHORTDOMAIN: ${SHORTDOMAIN}
+      COOKIE_SECRET_FILE: ${COOKIE_SECRET_FILE}
+      PORT: ${PORT:-3000}
+      HOST: ${HOST:-::}
+      DB_URL: "mongodb://mongodb/${APP_CODE}_${ENV:-prod}"
+      TEMPLATE_DIR: ${TEMPLATE_DIR}
+    labels:
+    - traefik.http.routers.${APP_CODE}_${ENV:-prod}.rule=Host(`${DOMAIN}`,`${SHORTDOMAIN}`)
+    - traefik.http.routers.${APP_CODE}_${ENV:-prod}.entrypoints=${TRAEFFIK_ENTRYPOINTS:-websecure}
+    - traefik.http.routers.${APP_CODE}_${ENV:-prod}.tls=true
+    - traefik.http.routers.${APP_CODE}_${ENV:-prod}.tls.certresolver=${TRAEFFIK_CERTRESOLVER:-letsencrypt}
+    - traefik.http.routers.${APP_CODE}_${ENV:-prod}.middlewares=${TRAEFFIK_MIDDLEWARE:-marker,redirectwww}
+    healthcheck:
+      test: ["CMD", "node", "src/healthcheck.js"]
+      interval: 1m
+      timeout: 5s
+      retries: 3
+      start_period: 40s  
+    networks:
+    - backend
+  database:
+    image: mongo:latest
+    command: --quiet
+    hostname: mongodb
+    deploy:
+      mode: global
+    volumes:
+    - "dbdata:/data/db"
+    restart: on-failure
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh  --quiet mongodb://localhost:27017/test?appName=mongodb-healthcheck
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+    - backend
+volumes:
+  dbdata:
+networks:
+  backend: 

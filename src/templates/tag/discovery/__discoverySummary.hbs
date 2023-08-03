@@ -1,0 +1,16 @@
+{{#if isTagOwner}}
+<h2>{{ __ 'Tag %s found: %s'  discovery.tag._id  discovery.tag.name}}</h2>
+	<p>
+	{{ __ 'Tag Label' }}: {{ discovery.tag.label }}<br />
+	{{ __ 'Status' }}: {{ discovery.status }}
+	</p>
+	{{#each (reverse discovery.states) }}
+	 {{#if @first}}<ul>{{/if}}
+		<li>
+		{{ __ this.status }} : {{ dateFormat this.updatedAt 'DD/MM/YY hh:mm'}}
+		</li>
+	{{#if @last}}</ul>{{/if}}
+	{{/each}}
+{{else}}
+<h2>{{ __ 'Tag %s found' discovery.tag._id }}</h2>
+{{/if}}
