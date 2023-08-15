@@ -1,5 +1,5 @@
 <p>Generate a PDF file to download and print</p>
-<form method="post">
+<form method="post" action=".">
 	<input type="hidden" value="print_id" name="print_id" />
 	<fieldset>
 	<legend>{{ __ 'Print format' }}</legend>
@@ -9,7 +9,7 @@
 			{{#each templates}}
 			<option value="{{@key}}" 
 				{{#if (eq @key @root.tpl)}} selected="selected"{{/if}}>
-				{{this.name}}
+				{{this.name}} ({{ this.tagCount }} {{ __ 'Tags per pages'}})
 			</option>
 			{{/each}}
 		</select>
@@ -30,7 +30,7 @@
 		<br/><small>{{ __ 'All the tags will be unassigned. A preliminary scan will be necessary to take ownership and activate.' }}</small>
 	</p>
 	<p>
-		<label for="qty">{{ __ 'Number of tags' }}</label>
+		<label for="qty">{{ __ 'Number of pages' }}</label>
 		<input type="number" id="qty" name="qty" value="{{ qty }}" />
 	</p>
 	<p>

@@ -28,7 +28,7 @@ export default async function (fastify, opts, done) {
 	}, async (request, reply) => {
 		let payload = {batchId: nanoid(), ...request.query, ...request.body}, 
 		tagtpl = { status: 'new', batchId: payload.batchId, creator_id: request.currentUserId() };
-		PDF.batchPrint(payload.batchId, tagtpl, payload.qty ?? 1, payload.selectedTemplate, payload.skip ?? 0);
+		await PDF.batchPrint(payload.batchId, tagtpl, payload.qty ?? 1, payload.selectedTemplate, payload.skip ?? 0);
 		reply.redirect(`${opts.prefix}/batch/${payload.batchId}`);
 		return reply;
 	});
@@ -77,21 +77,24 @@ export default async function (fastify, opts, done) {
 		preHandler: AUTH.isAdmin,
 		handler: async (request, reply) => {
 			let vars = {...request.query, ...request.body};
-			if(1 //request.method.toLowerCase() == 'post' 
+			if(request.method.toLowerCase() == 'post' 
 			&& vars.qty > 0) {
 				// create X tags
 				let tpl = {
 					label: (vars.withlabel ?? false) ? vars.label : "",
-				}, tags = [];
+				}, tags = [], batch;
 				if(vars.forowner == 1) {
 					tpl.owner_id = request.currentUserId();
 					tpl.status = 'active';
 				} else {
 					tpl.status = 'new';
 				}
-				tags = await TAGS.bulkCreate(tpl, parseInt(vars.qty));
-				// generate pdf
-				PDF.generate(tags[0].batchId, tags.map(t => { return {...t, qty: 1, printlabel: vars.withlabel ?? false} } ))
+				batch = await PDF.batchPrint({}, tpl, 1, null, vars.skip)
+				// tags = await TAGS.bulkCreate(tpl, parseInt(vars.qty));
+				// // generate pdf
+				// PDF.generate(tags[0].batchId, tags.map(t => { return {...t, qty: 1, printlabel: vars.withlabel ?? false} } ))
+				reply.redirect(`../${batch._id}`);
+				return reply;
 			}
 			reply.view('pdf/batch-advanced', {
 				title: 'Batch print labels',

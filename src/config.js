@@ -49,6 +49,7 @@ export const config = {
 	cache_dir: path.join(__dirname, '/../tmp'),
 	pdf_cache_dir: path.join(__dirname, '../public/pdf'),
 	public_dir: path.join(__dirname, '/../public'),
+	data_dir: path.join(__dirname, '/../data'),
 	template_dir: process.env.TEMPLATE_DIR || path.join(__dirname, './templates'),
 	mail_connection_string: smtpcs,
 	mail_transport: {

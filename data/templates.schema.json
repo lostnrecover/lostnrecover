@@ -1,0 +1,59 @@
+{
+  "type": "array",
+  "items":
+    {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "marginTop": {
+          "type": "number"
+        },
+        "marginLeft": {
+          "type": "number"
+        },
+        "hspace": {
+          "type": "number"
+        },
+        "vspace": {
+          "type": "number"
+        },
+        "rows": {
+          "type": "integer"
+        },
+        "perRow": {
+          "type": "integer"
+        },
+        "cellWidth": {
+          "type": "number"
+        },
+        "cellHeight": {
+          "type": "number"
+        },
+        "size": {
+          "type": "string",
+					"enum": [
+						"A4", "A3", "A5", "A6",
+						"Letter"
+					]
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "marginTop",
+        "marginLeft",
+        "hspace",
+        "vspace",
+        "rows",
+        "perRow",
+        "cellWidth",
+        "cellHeight",
+        "size"
+      ]
+    }
+}
