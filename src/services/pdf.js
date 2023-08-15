@@ -13,31 +13,21 @@ const ajv = new Ajv();
 const pdfpoint = 2.834666667;
 let defaultTpl = "avL7120";
 const templates = {
-	"avL7120": {
-		name: "Avery A4 35mmx35mm L7120",
-		marginTop: 11,
-		marginLeft: 7.5,
-		hspace: 5,
-		vspace: 5,
-		rows: 7,
-		perRow: 5,
-		cellWidth: 35,
-		cellHeight: 35,
-		size: 'A4',
+	"avery-L7120": {
+		"id": "avL7120",
+		"name": "Avery A4 35mmx35mm L7120",
+		"marginTop": 18.5,
+		"marginLeft": 12,
+		"hspace": 2.5,
+		"vspace": 2.5,
+		"rows": 7,
+		"perRow": 5,
+		"cellWidth": 35,
+		"cellHeight": 35,
+		"size": "A4"
 	},
-	"avL7126": {
-		name: "Avery A4 45mmx45mm L7126",
-		marginTop: 26,
-		marginLeft: 7.5,
-		hspace: 5,
-		vspace: 5,
-		rows: 5,
-		perRow: 4,
-		cellWidth: 45,
-		cellHeight: 45,
-		size: 'A4'
-	},
-	"av25x25-S": {
+	"avery-25x25-S": {
+		id: "avery-25x25-S",
 		name: "Avery A4 25mmx25mm 25x25-S",
 		marginTop: 14.5,
 		marginLeft: 11.5,
