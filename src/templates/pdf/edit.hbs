@@ -4,10 +4,10 @@
 <form method="get">
 	<h2>{{ __ 'Print format' }}</h2>
 	<p>
-		<label for="tempalte">{{ __ 'Template' }}</label>
-		<select name="template" id="tempalte">
-			{{#each templates}}
-			<option value="{{@key}}">{{this.name}}</option>
+		<label for="template">{{ __ 'Template' }}</label>
+		<select name="template" id="template">
+			{{#each @root.templates}}
+			<option value="{{@key}}">{{this.name}}  ({{ this.tagCount }} {{ __ 'Tags per page'}})</option>
 			{{/each}}
 		</select>
 	</p>
@@ -15,21 +15,37 @@
 		<input type="number" value="{{skip}}" name="skip" id="skip"/>
 	</p>
 	<h2>{{ __ 'Number of copies per tag' }}</h2>
-
+	<table class="listing">
+		<tr><th colspan="2">{{ __ 'Tag' }}</th><th>{{ __ 'Quantity' }}</th><th>{{ __ 'Label' }}</th><th>{{ __ 'Print ?' }} </th></tr>
 	{{/if}}
 	{{#with this}}
-	<p class="inline">
-		<label for="qty[{{_id}}]">{{name}} / {{_id}}: </label>
-		<input type="number" id="qty[{{_id}}]" name="qty[{{_id}}]" value="{{ qty }}" />
-	</p>
+		<tr>
+			<td>
+				<label for="qty[{{_id}}]">{{_id}}</label>
+			</td>
+			<td>
+				<label for="qty[{{_id}}]">{{name}}</label>
+			</td>
+			<td>
+				<input type="number" id="qty[{{_id}}]" name="qty[{{_id}}]" value="{{ qty }}" />
+			</td>
 		{{#if label}}
-	<p class="inline">
+			<td>
+		<label for="printlabel[{{_id}}]">{{label}} </label>
+		</td>
+		<td>
 		<input type="checkbox" id="printlabel[{{_id}}]" name="printlabel[{{_id}}]" value="1" {{#if printlabel}}checked{{/if}}  />
-		<label for="printlabel[{{_id}}]">{{ __ 'Print label: '}} {{label}} </label>
-	</p>
+			</td>
+			{{else}}
+			<td colspan="2">/</td>
 		{{/if}}
+		</tr>
+		</td>
+		</tr>
 	{{/with}}
 	{{#if @last}}
+	</form>
+	</table>
 	<p>
 	<button type="submit">{{ __ "Generate"}}</button>
 	</p>
@@ -38,6 +54,8 @@
 	{{else}}
 	<p><a href="/tags">{{ __ "Create new tags before printing them" }}</a></p>
 	{{/each}}
+
+
 {{#if currentPdf}}
 <p><a href="/public/pdf/{{currentPdf}}.pdf">Download</a></p>
 <iframe class="pdfpreview" src="/public/pdf/{{currentPdf}}.pdf"></iframe>

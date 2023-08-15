@@ -6,9 +6,12 @@ import { join } from 'path';
 import { nanoid } from 'nanoid';
 import { initCollection } from '../utils/db.js';
 import { EXCEPTIONS } from './exceptions.js';
+import { readFile } from 'fs/promises';
+import Ajv from 'ajv';
 
+const ajv = new Ajv();
 const pdfpoint = 2.834666667;
-const defaultTpl = "avL7120";
+let defaultTpl = "avL7120";
 const templates = {
 	"avL7120": {
 		name: "Avery A4 35mmx35mm L7120",
@@ -65,6 +68,8 @@ export async function PdfService(mongodb, parentLogger, config) {
 		QR = await QRService(mongodb, logger, config);
 	let PRINTS = await initCollection(mongodb, COLLECTION);
 
+	loadTemplates();
+
 	function initDoc(pdfname, size) {
 		let doc = new PDFDocument({
 			size,
@@ -74,6 +79,28 @@ export async function PdfService(mongodb, parentLogger, config) {
 		doc.info['Title'] = 'Tag stickers';
 		doc.info['Author'] = config.appName;
 		return doc
+	}
+
+	async function loadTemplates() {
+		try {
+			let s = await readFile(join(config.data_dir, 'templates.schema.json')),
+					validate = ajv.compile(JSON.parse(s.toString())),
+					t = await readFile(join(config.data_dir, 'templates.json')),
+					tpls = JSON.parse(t.toString());
+			const valid = validate(tpls);
+			if(!valid) {
+				throw(ajv.errors);
+			}
+			tpls.forEach(e => {
+				e.tagCount = e.perRow * e.rows;
+				templates[e.id] = e;
+			});
+			defaultTpl = tpls[0].id;
+			logger.info(`Loaded ${Object.keys(templates).length} templates (${defaultTpl})`)
+		} catch(e) {
+			logger.error(e);
+			logger.error(`Impossible to load templates from data_dir: ${e}`)
+		}		
 	}
 
 	async function elasticTagBatch(batchId, tagCount, tpl) {

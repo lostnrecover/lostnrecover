@@ -12,6 +12,7 @@ COPY package-lock.json .
 
 RUN npm ci --only=production
 COPY public /app/public
+COPY data /app/data
 COPY src /app/src
 
 FROM node:20-slim

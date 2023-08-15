@@ -26,6 +26,13 @@ export default async function(fastify, opts, done) {
 		return await STATUS.check("API");
 	})
 
+	fastify.get('/config', {
+		preHandler: AUTH.isAdmin
+	}, async (request, reply) => {
+		reply.view('admin/config');
+		return reply;
+	})
+
   fastify.get('/messages', {
 		preHandler: AUTH.isAdmin
 	}, async (request, reply) => {

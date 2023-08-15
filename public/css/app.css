@@ -166,3 +166,8 @@ textarea {
   border-top-left-radius: var(--br);
   border-top-right-radius: var(--br); */
 }
+
+
+table input[type=number] {
+  width: 10ex;
+}
