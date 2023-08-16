@@ -41,6 +41,26 @@ export default async function (fastify, opts, done) {
 		return reply;
 	});
 
+	fastify.post('/:tagId/active', {
+		preHandler: AUTH.authentified
+	}, async (request, reply) => {
+		let tag = await TAGS.get(request.params.tagId);
+		if (!tag) {
+			throw EXCEPTIONS.TAG_NOT_FOUND;
+		}
+		if(tag.status == STATUS.NEW && !tag.owner_id) {
+			// Set current user as owner
+			tag.owner_id = request.currentUserId();
+			tag.status = STATUS.ACTIVE;
+			await TAGS.update(tag._id, tag)
+			// redirect ot tag page for edit
+			reply.redirect(`/tags/${tag._id}`)
+		} else {
+			reply.redirect(`/t/${tag._id}`);
+		}
+		return reply;
+	});
+
 	fastify.post('/:tagId/notify', async (request, reply) => {
 		// TODO Review if action should be authenticated ?
 		let tag = await TAGS.get(request.params.tagId),
