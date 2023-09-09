@@ -11,10 +11,10 @@ import Ajv from 'ajv';
 
 const ajv = new Ajv();
 const pdfpoint = 2.834666667;
-let defaultTpl = "avL7120";
+let DEFAULT_TPL = "avL7120";
 const templates = {
 	"avery-L7120": {
-		"id": "avL7120",
+		"id": "avery-L7120",
 		"name": "Avery A4 35mmx35mm L7120",
 		"marginTop": 18.5,
 		"marginLeft": 12,
@@ -85,8 +85,8 @@ export async function PdfService(mongodb, parentLogger, config) {
 				e.tagCount = e.perRow * e.rows;
 				templates[e.id] = e;
 			});
-			defaultTpl = tpls[0].id;
-			logger.info(`Loaded ${Object.keys(templates).length} templates (${defaultTpl})`)
+			DEFAULT_TPL = tpls[0].id;
+			logger.info(`Loaded ${Object.keys(templates).length} templates (${DEFAULT_TPL})`)
 		} catch(e) {
 			logger.error(e);
 			logger.error(`Impossible to load templates from data_dir: ${e}`)
@@ -94,15 +94,18 @@ export async function PdfService(mongodb, parentLogger, config) {
 	}
 
 	async function elasticTagBatch(batchId, tagCount, tpl) {
-		let newTags = await TAGS.search({ batchId: batchId , status: 'new' }) // TODO add creator ?
-		;
-		if(newTags.length < tagCount) {
-			// Add more tags
-			let nt = await TAGS.bulkCreate(tpl, tagCount-newTags.length);
-			newTags.push(...nt)
-		} else if(newTags.length > tagCount) {
+		let tagsInBatch, 
+			filter={ batchId , status: 'new' }, 
+			tagTemplate = { ...tpl, batchId }
+		TAGS.bulkSet(filter, tagTemplate);
+		tagsInBatch = await TAGS.search(filter); // TODO should we filter with creator ?
+		if(tagsInBatch.length < tagCount) {
+			// Add more tags 
+			let nt = await TAGS.bulkCreate(tagTemplate, tagCount-tagsInBatch.length);
+			tagsInBatch.push(...nt)
+		} else if(tagsInBatch.length > tagCount) {
 			// remove if too much
-			let removed = newTags.splice(tagCount);
+			let removed = tagsInBatch.splice(tagCount);
 			TAGS.remove({ 
 				$and: [ 
 					{'_id': { $in: removed.map(t => t._id) }},
@@ -110,69 +113,49 @@ export async function PdfService(mongodb, parentLogger, config) {
 				]
 			 });
 		}
-		return newTags;
+		// update all with label and other attrbitues from template ?
+		return tagsInBatch;
 		//  = newTags.map(t => { return {...t, qty: 1, printlabel: false} } )
 	} 
 
-	async function batchPrint(batchId, tagTpl, pageCount, pageFormat, skip) {
+	async function createOrUpdateAdvancedBatch(batch) {
+		let tagTemplate = {...batch.tagTemplate }, 
+			pageTemplate = templates[batch.pageFormat] ?? templates[DEFAULT_TPL], 
+			tagCount = (batch.pageCount * pageTemplate.perRow * pageTemplate.rows) - batch.skip,
+			newTags = await elasticTagBatch(batch._id, tagCount, tagTemplate);
+		newTags = newTags.map((t,i) => { return {...t, qty: 1, printlabel: batch.withlabel} } ) 
+		generate(batch._id, newTags, pageTemplate.id, batch.skip);
+		if(exists(batch._id)) {
+			batch.file = getCachedFilename(batch._id);
+			batch.file = batch.file.replace(config.pdf_cache_dir,'');
+		}
+		return await saveBatch(batch);
+	}
+
+	async function batchPrint(batchId, tagTpl, pageCount, pageFormat, skip, withLabel) {
 		let batch = {
 				_id: batchId ?? nanoid(),
 				type: 'new-tags',
-				pageFormat: templates.hasOwnProperty(pageFormat) ? pageFormat : defaultTpl,
+				pageFormat: templates.hasOwnProperty(pageFormat) ? pageFormat : DEFAULT_TPL,
 				pageCount: pageCount, 
+				withlabel: !!withLabel,
 				tagTemplate: {...tagTpl, status: 'new'},
-				skip
-			},
-			tpl = {...batch.tagTemplate}, 
-			template = templates[pageFormat] ?? templates[defaultTpl], 
-			tagCount = pageCount * template.perRow * template.rows,
-			newTags = await elasticTagBatch(batchId, tagCount, tpl);
-		// 	newTags = await TAGS.search({ batchId: batch._id , status: 'new' }) // TODO add creator ?
-		// ;
-		// if(newTags.length < tagCount) {
-		// 	// Add more tags
-		// 	let nt = await TAGS.bulkCreate(tpl, tagCount-newTags.length);
-		// 	newTags.push(...nt)
-		// } else if(newTags.length > tagCount) {
-		// 	// remove if too much
-		// 	let removed = newTags.splice(tagCount);
-		// 	TAGS.remove({ 
-		// 		$and: [ 
-		// 			{'_id': { $in: removed.map(t => t._id) }},
-		// 			{ batchId: batch._id }
-		// 		]
-		// 	 });
-		// }
-		newTags = newTags.map(t => { return {...t, qty: 1, printlabel: false} } )
-		// generate pdf
-		generate(batch._id, newTags, template, batch.skip);
-		if(exists(batch._id)) {
-			batch.file = getCachedFilename(batch._id);
-		}
-		saveBatch(batch);
-		// TODO Should be saved (prints collections ?)
-		return batch;
-
+				skip: skip ?? 0
+			};
+			return await createOrUpdateAdvancedBatch(batch);
 	}
 
 	async function updateBatch(batchInput) {
 		let b = await getBatch(batchInput._id),
-			batch = {...b, ...batchInput},
-			template = templates[batch.pageFormat] ?? templates[defaultTpl], 
-			tpl = {...batch.tagTemplate},
-			tagCount = batch.pageCount * template.perRow * template.rows,
-			newTags = [];
-		if(b.status == 'locked') {
+			batch = {...b, ...batchInput};
+		if(b.status != 'new') {
 			throw EXCEPTIONS.BAD_REQUEST;
 		}
-		newTags = await elasticTagBatch(batch._id, tagCount, tpl);
-		newTags = newTags.map(t => { return {...t, qty: 1, printlabel: false} } )
-		// generate pdf
-		await generate(batch._id, newTags, batch.pageFormat, batch.skip);
-		if(exists(batch._id)) {
-			batch.file = getCachedFilename(batch._id);
+		if(b.type == 'new-tags') {
+			return await createOrUpdateAdvancedBatch(batch);
+		} else {
+			return await saveBatch(b)
 		}
-		return await saveBatch(batch);
 	}
 
 	async function saveBatch(batch) {
@@ -181,6 +164,8 @@ export async function PdfService(mongodb, parentLogger, config) {
 			options = { upsert: true };
 		if(!batch.hasOwnProperty('status')) {
 			batch.status = 'new'
+		} else {
+			batch.status = (batch.status == 'new') ? 'new' : 'locked'
 		}
 		await PRINTS.updateOne(query, update, options);
 		return await getBatch(batch._id);
@@ -199,7 +184,7 @@ export async function PdfService(mongodb, parentLogger, config) {
 		let startAt = offset ? Number(offset) : 0,
 			list = [],
 			p = getCachedFilename(pdfname),
-			tpl = templates[template] ?? templates[defaultTpl],
+			tpl = templates[template] ?? templates[DEFAULT_TPL],
 			doc = initDoc(p, tpl.size),
 			labelsPerPage = tpl.perRow * tpl.rows;
 
@@ -253,5 +238,5 @@ export async function PdfService(mongodb, parentLogger, config) {
 	function exists(filename) {
 		return existsSync(getCachedFilename(filename));
 	}
-	return { templates, generate, exists, batchPrint, getBatches, getBatch, updateBatch}
+	return { templates, generate, exists, batchPrint, getBatches, getBatch, updateBatch }
 }

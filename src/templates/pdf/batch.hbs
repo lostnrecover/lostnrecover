@@ -21,16 +21,27 @@
 			{{/each}}
 		</select>
 	</p>
+	<p><label for="skip">{{ __ 'number of labels to skip (when reusing a sheet)' }}</label>
+		<input type="number" value="{{batch.skip}}" name="skip" id="skip"/>
+	</p>
+	{{#if (eq batch.type 'new-tags')}}
 	<p>
 		<label for="qty">{{ __ 'Page count'}}</label>
 		<input type="number" name="pageCount" value="{{batch.pageCount}}"/>
 	</p>
+	<p>
+		<label for="label"><input type="checkbox" id="withlabel" name="withlabel" value="1" {{#if batch.withlabel}}checked{{/if}}  /> {{ __ 'Add label on each tags'}} </label>
+		<input type="text" id="label" name="label" maxlength="8" value="{{batch.tagTemplate.label}}"/>
+		{{!-- <small>{{ __ 'You can include a # symbol to add an increment after or in the label. Ex: "label #" will get you "label 1", "label 2"...' }}</small> --}}
+	</p>
+	{{/if}}
 	</fieldset>
 	<p>
-	<button type="submit" name="status" value="draft">{{ __ "Generate PDF and preview"}}</button>
+	<button type="submit" name="status" value="new">{{ __ "Generate PDF and preview"}}</button>
 	<button type="submit" name="status" value="locked">{{ __ "Generate PDF and save"}}</button>
 	</p>
 </form>
+<pre>{{ debug batch }}</pre>
 {{/if}}
 {{#if currentPdf}}
 <p><a href="/public/pdf/{{currentPdf}}.pdf">

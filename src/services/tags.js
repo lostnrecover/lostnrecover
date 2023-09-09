@@ -157,6 +157,13 @@ export async function TagService(mongodb, parentLogger, config) {
 		}));
 		return tags;
 	}
+
+	async function bulkSet(filter, template) {
+		let updates = await TAGS.updateMany(filter, { $set: template });
+		if(!updates.acknowledged) {
+			throw('Error Setting bilk');
+		}
+	}
 	// TODO Status history like Discovery
 	async function update(id, t) {
 		let tag = await cleanup(t);
@@ -232,6 +239,6 @@ export async function TagService(mongodb, parentLogger, config) {
 
 
 	return {
-		SCHEMA, count, get, getForUpdate, findAll, findForUser, search, remove, create, bulkCreate, update, release
+		SCHEMA, count, get, getForUpdate, findAll, findForUser, search, remove, create, bulkCreate, bulkSet, update, release
 	}
 }
