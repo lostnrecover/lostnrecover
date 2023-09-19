@@ -17,7 +17,7 @@
 {{#if email}}
 <form action="/login" method="post" class="inline">
 {{#if redirect}}<input type="hidden" name="redirect" value="{{redirect}}" />{{/if}}
-<p>{{ __ 'No email received ?'}}
+<p>{{ __ 'No email received?'}}
   <input type="hidden" id="email" name="email" value="{{email}}"/>
   <button type="submit">{{ __ 'Resend Magic Link' }}</button>
 </p>

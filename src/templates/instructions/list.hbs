@@ -1,5 +1,5 @@
 <p><a href="?create=1"><button>{{ __ 'New Instructions' }}</button></a></p>
-<!-- TODO Bulk create tags and generate labels (with label prefix ?)-->
+<!-- TODO Bulk create tags and generate labels (with label prefix?)-->
 {{#if instructions}}
 <table class="listing">
 	<thead>
@@ -33,7 +33,7 @@
 				{{tags.length}}
 			</td>
 			<td>
-				<a href="/instructions/{{ _id }}?edit=1"><img src="/public/icons/edit.svg" title="{{ __ 'Edit ?' }}" /></a>
+				<a href="/instructions/{{ _id }}?edit=1"><img src="/public/icons/edit.svg" title="{{ __ 'Edit' }}" /></a>
 				{{#if (and (eq tags.length 0) (eq isDefault false))}}
 				<form method="post" action="/instructions/{{_id}}/delete">
 					<input type="hidden" name="redirect" value="/instructions" />
