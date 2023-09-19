@@ -33,8 +33,8 @@ export default async function(fastify, opts, done) {
   });
   fastify.post('/support', async (request,reply) => {
     let { email, message, subject, reason } = request.body
-    if(request.session.get('email')) {
-      email = request.session.get('email');
+    if(request.serverSession?.user?.email) {
+      email = request.serverSession.user.email;
     }
     // basic sanity check
     if(!email || email.indexOf('@') < 1) {

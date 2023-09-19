@@ -14,7 +14,7 @@ export default async function (fastify, opts, done) {
 	async function filterInput(request, tag) {
 		tag.name = request.body.name || '';
 		tag.label = request.body.label || '';
-		if(request.body.email !== request.session.get('email')) {
+		if(request.body.email !== request.serverSession.user.email) {
 			let recipient = await USERS.findOrCreate(request.body.email, 'recipient');
 			tag.recipient_id = recipient._id;
 		} else {
@@ -29,7 +29,7 @@ export default async function (fastify, opts, done) {
 		if (request.query.create) {
 			let tag = {
 				// Default tag owner to current session
-				email: request.session.get('email')
+				email: request.serverSession.user.email
 			}, instructions = await INSTRUCTIONS.findForUser(request.currentUserId()),
 			defs = instructions.filter(i => i.isDefault)
 			if(defs > 0) {
@@ -70,7 +70,7 @@ export default async function (fastify, opts, done) {
 			recipient = await USERS.findById(tag.recipient_id);
 			tag.email = recipient.email
 		} else {
-			tag.email = request.session.get('email');
+			tag.email = request.serverSession.user.email;
 		}
 		if (request.query.edit) {
 			reply.view('tag/edit', { tag, instructions, title: 'Edit tag' });

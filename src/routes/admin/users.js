@@ -22,7 +22,7 @@ export default async function(fastify, opts, done) {
 	async function resendToken(user_id, url) {
 		let user = await USERS.findById(user_id);
 		if(user) {
-			const token = await AUTH.create(user.email);
+			const token = await AUTH.createAuth(user.email);
 			let link = `${url}?token=${token}`;
 			// Send email
 			MSG.create({
@@ -45,6 +45,15 @@ export default async function(fastify, opts, done) {
 		}
 	}
 
+	async function killAllSessions(user_id) {
+		let user = await USERS.findById(user_id);
+		if(user.sessions && user.sessions.length > 0) {
+			return Promise.all(user.sessions.map(session => {
+				return AUTH.deleteSession(session._id, user.email);
+			}));
+		}
+	}
+
 	fastify.post('/', {
 		preHandler: AUTH.isAdmin
 	}, async (request,reply) => {
@@ -52,8 +61,11 @@ export default async function(fastify, opts, done) {
 			await resendToken(request.body.user_id, `${request.protocol}://${request.hostname}/auth`);
 		} else if(request.body.action == 'block') {
 			await changeUserStatus(request.body.user_id, 'blocked');
+			await killAllSessions(request.body.user_id);
 		}	else if(request.body.action == 'activate') {
 			await changeUserStatus(request.body.user_id, 'active');
+		} else if(request.body.action == 'kill') {
+			await killAllSessions(request.body.user_id);
 		}
 		reply.redirect(request.url);
 		return reply;

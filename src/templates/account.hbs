@@ -24,5 +24,47 @@
 		{{#each timezones}}
 		<option value="{{this.tzCode}}" >{{this.name}}</option>
 		{{/each}}
-</datalist>
+	</datalist>
 </form>
+{{#if NewAuth}}
+<h2>
+	{{ __ 'New session with QR Code' }}
+</h2>
+	<a href="{{NewAuth.URL}}">
+	<img src="{{NewAuth.QR}}" />
+	</a>
+{{else}}
+		<form class="inline" action="/account/session" method="post">
+		<button type="submit">{{ __ 'New session with QR Code' }}</button>
+		</form>
+{{/if}}
+<h2>{{ __ 'Active Sessions' }}</h2>
+<table>
+	<thead>
+	<tr>
+		<th>{{ __ 'Last use' }}</th>
+		<th>{{ __ 'Last IP' }}</th>
+		<th>{{ __ 'Last Browser' }}</th>
+		<th>{{ __ 'Valid Until' }}</th>
+		<th>{{ __ 'Action' }}</th>
+	</tr>
+	</thead>
+	<tbody>
+		</tr>
+		{{#each user.sessions}}
+		<tr>
+			<td>{{#if this.lastAccess}}{{ dateFormat this.lastAccess 'l LTS' }}{{/if}}</td>
+			<td>{{ this.lastIp}} </td>
+			<td>{{ this.lastUserAgent }}</td>
+			<td>{{ dateFormat this.validUntil 'l LTS' }}</td>
+			<td>{{#if (ne @root.session.sessionId this._id)}}
+				<form action="/account/session/{{this._id}}/kill" method="post" >
+				<input type="image" src="/public/icons/trash-2.svg" title="{{ __ 'Kill' }}" />
+				</form>
+			{{else}}
+			<a href="/logout"><img src="/public/icons/log-out.svg" title="{{ __ 'Logout' }}" /></a>
+			{{/if}}</td>
+		</tr>
+		{{/each}}
+	</tbody>
+</table>

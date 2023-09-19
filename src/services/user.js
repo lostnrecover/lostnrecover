@@ -34,21 +34,47 @@ export async function UserService(mongodb, parentLogger, config) {
 					from: "authtokens",
 					localField: "email",
 					foreignField: "email",
+          pipeline: [
+            {
+              $match: { $expr: { $and: [
+								{$eq: ['$type', 'auth']},
+								{$gte: [ '$validUntil', new Date() ]}
+					 		]}}
+						}
+          ],
 					as: "tokens"
+				}
+			},
+      {
+				$lookup: {
+					from: "authtokens",
+					localField: "email",
+					foreignField: "email",
+          pipeline: [
+            {
+              $match: { $expr: { $and: [
+								{$eq: ['$type', 'session']},
+								{$gte: [ '$validUntil', new Date() ]}
+					 		]}}
+						}
+          ],
+					as: "sessions"
 				}
 			}
 		]).toArray();
 	}
 
 	async function findOrFail(email) {
-		let user = await USERS.findOne({ email }); //, { projection: PUBLIC_PROJECTION});
+		// let user = await USERS.findOne({ email }); //, { projection: PUBLIC_PROJECTION});
+		let user = await findByEmail(email);
 		if(!user) {
 			throw EXCEPTIONS.NOT_AUTHORISED;
 		}
 		return user;
 	}
 	async function findOrCreate(email, reason) {
-		let user = await USERS.findOne({ email }) //, { projection: PUBLIC_PROJECTION});
+		// let user = await USERS.findOne({ email }) //, { projection: PUBLIC_PROJECTION});
+		let user = await findByEmail(email);
 		if(!user) {
 			user = await create({ email, createdFrom: reason });
 		}
@@ -57,6 +83,11 @@ export async function UserService(mongodb, parentLogger, config) {
 
 	async function findById(id) {
 		let user = await search({ _id: id }); //, { projection: PUBLIC_PROJECTION});
+		return user[0] ?? false;
+	}
+
+	async function findByEmail(email) {
+		let user = await search({email}); //, { projection: PUBLIC_PROJECTION});
 		return user[0] ?? false;
 	}
 

@@ -15,7 +15,7 @@ export default async function (fastify, opts, done) {
 		preHandler: AUTH.authentified,
 		handler: async (request, reply) => {
 			let payload = { ...request.body, ...request.query }, //Get and POST
-			data=[], list = [];
+			data=[], list = [], currentPdf;
 			// preview.cellWidth = preview.pageWidth / preview.perRow;
 			// preview.cellHeight = preview.pageHeight/ preview.rows;
 			let tags = await TAGS.findForUser(request.currentUserId(), { status: 'active' });
@@ -32,11 +32,15 @@ export default async function (fastify, opts, done) {
 				}
 				data.push(q)
 			})
-			if(!request.session.currentPdf) {
-				request.session.currentPdf = nanoid();
+			// FIX user server session
+			if(!request.session?.get('currentPdf')) {
+				currentPdf = nanoid();
+				request.session.set('currentPdf', currentPdf);
+			} else {
+				currentPdf = request.session.get('currentPdf');
 			}
 			if(payload.qty) {
-				PDF.generate(request.session.currentPdf, data, payload.template, payload.skip);
+				PDF.generate(currentPdf, data, payload.template, payload.skip);
 			}
 			reply.view('pdf/edit', {
 				title: 'Label generator',
@@ -44,7 +48,7 @@ export default async function (fastify, opts, done) {
 				tags,
 				skip: payload.skip ?? 0,
 				templates: PDF.templates,
-				currentPdf: PDF.exists(request.session.currentPdf) ? request.session.currentPdf : false
+				currentPdf: PDF.exists(currentPdf) ? currentPdf: false
 			});
 			return reply
 		}

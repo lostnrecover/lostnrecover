@@ -1,7 +1,6 @@
-import {UserService} from '../services/user.js'
+import { UserService } from '../services/user.js'
 import { AuthTokenService } from '../services/authtoken.js'
 import { MessageService } from '../services/messages.js';
-import { EXCEPTIONS } from '../services/exceptions.js';
 // import fastifySecureSession from '@fastify/secure-session';
 
 function invalidEmail(email) {
@@ -20,7 +19,7 @@ export default async function(fastify, opts, done) {
 	const logger = fastify.log.child({ controller: 'AccountAPI' }),
 		USERS = await UserService(fastify.mongo.db, logger, fastify.config),
 		MSG = await MessageService(fastify.mongo.db, logger, fastify.config),
-		{ create, verify} = await AuthTokenService(fastify.mongo.db, logger, fastify.config);
+		{ createAuth, createSession, deleteCurrentSession, authentified } = await AuthTokenService(fastify.mongo.db, logger, fastify.config);
 
 	fastify.get('/login', async (request, reply) => {
 		reply.view('magicLink/form', { title: 'Login', url: request.query.redirect })
@@ -44,7 +43,7 @@ export default async function(fastify, opts, done) {
 				reply.redirect(`/login?${redirect}`);
 				return reply;
 			}
-			const token = await create(user.email);
+			const token = await createAuth(user.email);
 			let link = `${request.protocol}://${request.hostname}/auth?token=${token}${redirect}`;
 			// Send email
 			MSG.create({
@@ -86,10 +85,7 @@ export default async function(fastify, opts, done) {
 					if(!user) {
 						throw('Invalid Token');
 					} 
-					// init session
-					request.session.set('email', user.email);
-					request.session.set('user_id', user._id );
-					request.session.set('isAdmin', !!user.isAdmin);
+					await createSession(user, request);
 					if(request.query.redirect) {
 						response.redirect(request.query.redirect);
 					} else {
@@ -112,15 +108,18 @@ export default async function(fastify, opts, done) {
 			}
 			return response
 	})
-	fastify.get('/logout', (req, res) => {
+	fastify.get('/logout',  {
+		preHandler: authentified
+	}, async (request, reply) => {
 		// kill session
-		req.session.delete()
+		deleteCurrentSession(request);
 		//return ok
-		if(req.query.redirect) {
-			res.redirect(req.query.redirect);
+		if(request.query.redirect) {
+			reply.redirect(request.query.redirect);
 		} else {
-			res.redirect(`/`)
+			reply.redirect(`/`)
 		}
+		return reply;
 	});
 	done();
 }

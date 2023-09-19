@@ -13,6 +13,7 @@ import fastifyForm from '@fastify/formbody';
 // Templating
 import Handlebars from 'handlebars';
 import { loadHelpers, loadPartials, templateGlobalContext } from './templating.js';
+import { AuthTokenService } from '../services/authtoken.js';
 
 export function loadFastifyPlugins(fastify, config) {
 
@@ -31,15 +32,22 @@ export function loadFastifyPlugins(fastify, config) {
 		// adapt this to point to the directory where secret-key is located
 		key: config.cookies.secret, //fs.readFileSync(path.join(__dirname, '../.session-secret-key'))
 		cookie: {
-			path: '/'
+			path: '/',
 			// options for setCookie, see https://github.com/fastify/fastify-cookie
+			maxAge: 3600 * 24 * 180
 		}
-	})
+	});
 
 	fastify.register(fastifyFlash);
-
+	fastify.decorate('services', {});
+	fastify.addHook('onReady', async () => {
+		fastify.services.TOKEN = await AuthTokenService(fastify.mongo.db, fastify.log.child({ module: 'services_init' }), config);
+	});
+		
+	fastify.decorateRequest('serverSession', null);
 	// TODO outsource to a locale dedicated file
 	fastify.addHook("preHandler", async function (request, reply) {
+		let session = await fastify.services.TOKEN.getSession(request), data = request.serverSession?.data;
 		if(!config.DOMAIN || config.DOMAIN == '') {
 			config.DOMAIN = `${request.hostname}`
 			request.log.info(`Switched domain: ${config.DOMAIN}`)
@@ -49,9 +57,11 @@ export function loadFastifyPlugins(fastify, config) {
 		}
 		reply.locals = templateGlobalContext(config, request.session.get('locale') || 'en');
 		reply.locals.session = {
-			email: request.session.get('email') || false,
-			user_id: request.session.get('user_id') || false,
-			isAdmin: request.session.get('isAdmin') || false
+			data,
+			sessionId: session?._id || false,
+			email: session?.user?.email || false,
+			user_id: session?.user?._id || false,
+			isAdmin: session?.user?.isAdmin || false
 		}
 		// Only get flash for "main" request
 		if(request.routerPath != "/public/*") {
@@ -61,13 +71,13 @@ export function loadFastifyPlugins(fastify, config) {
 	});
 	fastify.decorateRequest('isCurrentUser', function(user_refs) {
 		let refs = Array.isArray(user_refs) ? user_refs : [ user_refs ];
-		if(!this.session.get('email') || !this.session.get('user_id')) {
+		if(!this.serverSession?.user?.email || !this.serverSession?.user?._id) {
 			return false;
 		}
-		return refs.includes(this.session.get('email')) || refs.includes(this.session.get('user_id'));
+		return refs.includes(this.serverSession.user.email) || refs.includes(this.serverSession.user._id);
 	});
 	fastify.decorateRequest('currentUserId', function() {
-		return this.session.get('user_id');
+		return this.serverSession?.user?._id;
 	});
 	const TPL_DIR = config.template_dir
 	fastify.register(fastifyView, {

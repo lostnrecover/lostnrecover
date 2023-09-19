@@ -22,7 +22,7 @@ export default async function (fastify, opts, done) {
 		}
 		if(tag.status == STATUS.NEW && !tag.owner_id) {
 			let data = { tag, title: 'Take tag ownership' };
-			if(!request.session || !request.session.get('id')) {
+			if(!request.serverSession || !request.serverSession.user?._id) {
 				// throwWithData(EXCEPTIONS.NOT_AUTHORISED, { warning: 'You must be registered to take ownership.' })
 				data.warning = 'You must be registered to take ownership.';
 			}
@@ -65,7 +65,7 @@ export default async function (fastify, opts, done) {
 		// TODO Review if action should be authenticated ?
 		let tag = await TAGS.get(request.params.tagId),
 			disc, redirect,
-			email = request.session.get('email') || request.body.email,
+			email = request.serverSession.user.email || request.body.email,
 			finder = await USERS.findOrCreate(email, 'finder');
 		if (!tag) {
 			throw EXCEPTIONS.TAG_NOT_FOUND;
@@ -77,12 +77,12 @@ export default async function (fastify, opts, done) {
 		// create a discovery (and eventually notify owner)
 		disc = await DISCOVERY.create(tag, finder._id, tag.recipient_id || tag.owner_id, request.body.share)
 		redirect = path.join(request.url, `/${disc._id}`);
-		if (!request.session || !request.session.get('email')) {
+		if (!request.serverSession || !request.serverSession?.user?.email) {
 			// User not logged in:
 			// 1. findOrCreate userr account
 			let user = await USERS.findOrCreate(email, 'discovery');
 			// 2. generate a token
-			const token = await AUTH.create(user.email);
+			const token = await AUTH.createAuth(user.email);
 			// 3. magiclink should redirect to -> path.join(request.url, `/${disc._id}`)
 			let link = `${request.protocol}://${request.hostname}/auth?token=${token}&redirect=${redirect}`;
 			// 4. send him a magiclink
