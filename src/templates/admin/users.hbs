@@ -34,13 +34,20 @@
       <td>{{ tokens.length }}</td>
       <td>{{ sessions.length }}</td>
       <td>
+        {{!-- <button type="submit" name="action" value="token">{{ __ 'New Token'}}</button> --}}
         <form method="post" id="form-{{ _id }}">
           <input type="hidden" name="user_id" value="{{_id}}" />
-          {{!-- <button type="submit" name="action" value="token">{{ __ 'New Token'}}</button> --}}
-          <input type="image" name="action" value="token" title="{{ __ 'Send New Token'}}" src="/public/icons/key.svg" />
-          {{!-- <button type="submit" name="action" value="kill">{{ __ 'Kill Sessions'}}</button> --}}
-          {{#if (ne sessions.length 0)}}<input type="image" name="action" value="kill" title="{{ __ 'Kill Sessions'}}" src="/public/icons/trash-2.svg" />{{/if}}
+          <input type="hidden" name="action" value="token" />
+          <input type="image" title="{{ __ 'Send New Token'}}" src="/public/icons/key.svg" />
         </form>
+        {{#if (ne sessions.length 0)}}
+        {{!-- <button type="submit" name="action" value="kill">{{ __ 'Kill Sessions'}}</button> --}}
+        <form method="post" id="form-{{ _id }}">
+        <input type="hidden" name="user_id" value="{{_id}}" />
+        <input type="hidden" name="action" value="kill" />
+        <input type="image" name="action" value="kill" title="{{ __ 'Kill Sessions'}}" src="/public/icons/trash-2.svg" />
+        </form>
+        {{/if}}
       </td>
     </tr>
     {{/with}}
