@@ -1,12 +1,34 @@
 import { nanoid } from 'nanoid';
 import { initCollection } from '../utils/db.js';
 import { EXCEPTIONS } from './exceptions.js';
-import { UserService } from './user.js';
 
-export async function InstructionsService(mongodb, parentLogger, config) {
+export const SCHEMA = {
+	body: {
+		type: 'object',
+		required: ["name"],
+		properties: {
+			name: {
+				type: 'string'
+			},
+			body: {
+				type: "string"
+			},
+			owner_id: {
+				type: "string"
+			},
+			isDefault: {
+				type: "boolean"
+			},
+			tags: {
+				type: 'array'
+			}
+		}
+	}
+}
+
+export async function InstructionsService(mongodb, parentLogger, config, USERS) {
 	const COLLECTION = 'instructions',
-	logger = parentLogger.child({ service: 'Instruction' }),
-	USERS = await UserService(mongodb, logger, config);
+	logger = parentLogger.child({ service: 'Instruction' });
 
 	let INSTRUCTIONS = await initCollection(mongodb, COLLECTION);
 
@@ -132,30 +154,7 @@ export async function InstructionsService(mongodb, parentLogger, config) {
 		return res.toArray();
 	}
 
-	const SCHEMA = {
-		body: {
-			type: 'object',
-			required: ["name"],
-			properties: {
-				name: {
-					type: 'string'
-				},
-				body: {
-					type: "string"
-				},
-				owner_id: {
-					type: "string"
-				},
-				isDefault: {
-					type: "boolean"
-				},
-				tags: {
-					type: 'array'
-				}
-			}
-		}
-	}
 	return {
-		SCHEMA, count, get, getForUpdate, findForUser, remove, create, update
+		count, get, getForUpdate, findForUser, remove, create, update
 	}
 }

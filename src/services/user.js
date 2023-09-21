@@ -1,6 +1,5 @@
 import { nanoid } from "nanoid";
 import { initCollection } from "../utils/db.js";
-import { AuthTokenService } from "./authtoken.js";
 import { EXCEPTIONS } from "./exceptions.js";
 
 // Manage a user account collection for future anonymization:
@@ -9,12 +8,26 @@ import { EXCEPTIONS } from "./exceptions.js";
 // tobe done only if all tags are archived first
 // NB: only fully works if contact email is removed from tag when its archived
 
-export async function UserService(mongodb, parentLogger, config) {
+export const SCHEMA = {
+	body: {
+		type: 'object',
+		required: ["email"],
+		properties: {
+			email: {
+				type: 'string'
+			},
+			status: {
+				type: "string",
+				enum: ["new", "active", "finder"]
+			}
+		}
+	}
+}
+
+export async function UserService(mongodb, parentLogger, config, AUTH) {
 	const logger = parentLogger.child({ service: 'User' }),
 		COLLECTION = 'users',
-		PUBLIC_PROJECTION = { _id: 1, email:1, status: 1, tz: 1, locale: 1, displayName: 1},
-		// USERS = mongodb.collection(COLLECTION),
-		{verify} = await AuthTokenService(mongodb, logger, config);
+		PUBLIC_PROJECTION = { _id: 1, email:1, status: 1, tz: 1, locale: 1, displayName: 1};
 	let USERS = await initCollection(mongodb, COLLECTION);
 	//.then(col => USERS = col);
 
@@ -111,7 +124,7 @@ export async function UserService(mongodb, parentLogger, config) {
 	}
 
 	async function login(token) {
-		let email = await verify(token);
+		let email = await AUTH.verify(token);
 		if(!email) {
 			throw('Invalid Token')
 		}
@@ -158,23 +171,7 @@ export async function UserService(mongodb, parentLogger, config) {
 		return res.toArray();
 	}
 
-	const SCHEMA = {
-		body: {
-			type: 'object',
-			required: ["email"],
-			properties: {
-				email: {
-					type: 'string'
-				},
-				status: {
-					type: "string",
-					enum: ["new", "active", "finder"]
-				}
-			}
-		}
-	}
-
 	return {
-		SCHEMA, findOrCreate, findOrFail, findById, create, login, list, update, count
+		findOrCreate, findOrFail, findById, create, login, list, update, count
 	}
 }

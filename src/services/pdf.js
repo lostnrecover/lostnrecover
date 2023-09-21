@@ -1,7 +1,5 @@
 import PDFDocument from 'pdfkit';
 import { createWriteStream, existsSync } from 'fs';
-import { TagService } from './tags.js';
-import { QRService } from './qr.js';
 import { join } from 'path';
 import { nanoid } from 'nanoid';
 import { initCollection } from '../utils/db.js';
@@ -51,11 +49,9 @@ function toPoint(inMM) {
 	return Number(inMM) * pdfpoint
 }
 
-export async function PdfService(mongodb, parentLogger, config) {
+export async function PdfService(mongodb, parentLogger, config, TAGS, QR) {
 	const logger = parentLogger.child({service: 'PDF'}),
-		COLLECTION = 'prints',
-		TAGS = await TagService(mongodb, logger, config),
-		QR = await QRService(mongodb, logger, config);
+		COLLECTION = 'prints';
 	let PRINTS = await initCollection(mongodb, COLLECTION);
 
 	loadTemplates();

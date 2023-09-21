@@ -1,21 +1,16 @@
-import { STATUS, TagService } from '../services/tags.js'
-import { AuthTokenService } from '../services/authtoken.js';
-import { UserService } from '../services/user.js';
-import { InstructionsService } from '../services/instructions.js';
 import { EXCEPTIONS } from '../services/exceptions.js';
+import { SCHEMA } from '../services/tags.js';
 
 export default async function (fastify, opts, done) {
-	const logger = fastify.log.child({ controller: 'TagsEdit' }),
-		TAGS = await TagService(fastify.mongo.db, logger, fastify.config),
-		AUTH = await AuthTokenService(fastify.mongo.db, logger, fastify.config),
-		INSTRUCTIONS = await InstructionsService(fastify.mongo.db, logger, fastify.config),
-		USERS = await UserService(fastify.mongo.db, logger, fastify.config);
+	const 
+		logger = fastify.log.child({ controller: 'TagsEdit' }),
+		services = fastify.services;
 
 	async function filterInput(request, tag) {
 		tag.name = request.body.name || '';
 		tag.label = request.body.label || '';
 		if(request.body.email !== request.serverSession.user.email) {
-			let recipient = await USERS.findOrCreate(request.body.email, 'recipient');
+			let recipient = await services.USERS.findOrCreate(request.body.email, 'recipient');
 			tag.recipient_id = recipient._id;
 		} else {
 			tag.recipient_id = request.currentUserId();
@@ -24,38 +19,41 @@ export default async function (fastify, opts, done) {
 		return tag;
 	}
 	fastify.get('/', {
-		preHandler: AUTH.authentified
+		preHandler: fastify.authentified
 	}, async (request, reply) => {
 		if (request.query.create) {
 			let tag = {
 				// Default tag owner to current session
 				email: request.serverSession.user.email
-			}, instructions = await INSTRUCTIONS.findForUser(request.currentUserId()),
+			}, instructions = await services.INSTRUCTIONS.findForUser(request.currentUserId()),
 			defs = instructions.filter(i => i.isDefault)
 			if(defs > 0) {
 				tag.instructions_id = defs[0]._id;
 			}
 			reply.view('tag/new', { tag, instructions, title: 'Create a Tag' })
 		} else {
-			let tags = await TAGS.findForUser(request.currentUserId());
+			let tags = await services.TAGS.findForUser(request.currentUserId());
 			reply.view('tag/list', { tags, title: 'Tags' });
 		}
 		return reply
 	});
-	fastify.post('/',{ schema: TAGS.SCHEMA, preHandler: AUTH.authentified }, async (request, reply) => {
+	fastify.post('/',{ 
+		schema: SCHEMA,
+		preHandler: fastify.authentified 
+	}, async (request, reply) => {
 		let newTag = await filterInput(request, {
-			status: STATUS.ACTIVE, 
+			status: services.STATUS.ACTIVE, 
 			owner_id: request.currentUserId(), 
 			creator_id: request.currentUserId() 
 		});
 		//{status: STATUS.ACTIVE, ...request.body, owner_id: request.currentUserId()};
-		let tag = await TAGS.create(newTag);
+		let tag = await create(newTag);
 		reply.redirect(`/tags/${tag._id}?edit=1`)
 	})
 	fastify.get('/:tagId', {
-		preHandler: AUTH.authentified
+		preHandler: fastify.authentified
 	}, async (request, reply) => {
-		let tag = await TAGS.get(request.params.tagId), recipient = null, instructions = await INSTRUCTIONS.findForUser(request.currentUserId());
+		let tag = await services.TAGS.get(request.params.tagId), recipient = null, instructions = await services.INSTRUCTIONS.findForUser(request.currentUserId());
 		if (!tag) {
 			throw(EXCEPTIONS.TAG_NOT_FOUND);
 		}
@@ -67,7 +65,7 @@ export default async function (fastify, opts, done) {
 		}
 		// Show recipient email
 		if(tag.recipient_id) {
-			recipient = await USERS.findById(tag.recipient_id);
+			recipient = await services.USERS.findById(tag.recipient_id);
 			tag.email = recipient.email
 		} else {
 			tag.email = request.serverSession.user.email;
@@ -80,21 +78,21 @@ export default async function (fastify, opts, done) {
 		return reply;
 	});
 	fastify.post('/:tagId', { 
-		schema: TAGS.SCHEMA, 
-		preHandler: AUTH.authentified 
+		schema: SCHEMA, 
+		preHandler: fastify.authentified 
 	}, async (request, reply) => {
-		let tag = await TAGS.getForUpdate(request.params.tagId, request.currentUserId());
+		let tag = await services.TAGS.getForUpdate(request.params.tagId, request.currentUserId());
 		if (!tag) {
 			throw(EXCEPTIONS.TAG_NOT_FOUND)
 		}
 		tag = await filterInput(request, tag);
-		await TAGS.update(tag._id, tag);
+		await services.TAGS.update(tag._id, tag);
 		reply.redirect(request.url);
 	});
 	fastify.get('/:tagId/preview', {
-		preHandler: AUTH.authentified
+		preHandler: fastify.authentified
 	}, async (request, reply) => {
-		let tag = await TAGS.get(request.params.tagId), recipient = null, discovery = {
+		let tag = await services.TAGS.get(request.params.tagId), recipient = null, discovery = {
 			status: 'active',
 			tag,
 			instructions: tag.instructions,
@@ -113,10 +111,10 @@ export default async function (fastify, opts, done) {
 	});
 
 	async function patchStatus(request, reply, action) {
-		let tag = await TAGS.getForUpdate(request.params.tagId, request.currentUserId()),
+		let tag = await services.TAGS.getForUpdate(request.params.tagId, request.currentUserId()),
 		actions = {
-			'lost': { status: STATUS.LOST },
-			'active': { status: STATUS.ACTIVE, owner_id: request.currentUserId() }
+			'lost': { status: services.STATUS.LOST },
+			'active': { status: services.STATUS.ACTIVE, owner_id: request.currentUserId() }
 		};
 		if(!tag) {
 			throw(EXCEPTIONS.TAG_NOT_FOUND)
@@ -124,7 +122,7 @@ export default async function (fastify, opts, done) {
 		if(!Object.keys(actions).includes(action)) {
 			throw(EXCEPTIONS.NOT_FOUND);
 		}
-		TAGS.update(tag._id, actions[action]);
+		update(tag._id, actions[action]);
 		if(request.body.redirect) {
 			reply.redirect(request.body.redirect);
 		} else {
@@ -133,12 +131,12 @@ export default async function (fastify, opts, done) {
 		return reply;
 	}
 	fastify.post('/:tagId/lost', {
-		preHandler: AUTH.authentified
+		preHandler: fastify.authentified
 	}, async (request, reply) => {
 		return await patchStatus(request, reply, 'lost');
 	});
 	fastify.post('/:tagId/active', {
-		preHandler: AUTH.authentified
+		preHandler: fastify.authentified
 	}, async (request, reply) => {
 		return await patchStatus(request, reply, 'active');
 	});

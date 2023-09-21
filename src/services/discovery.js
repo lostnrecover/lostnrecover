@@ -1,10 +1,7 @@
 import { nanoid } from "nanoid";
 import { EXCEPTIONS } from './exceptions.js'
-import { MessageService } from "./messages.js";
-import { TagService } from "./tags.js";
-import { UserService } from "./user.js";
-import { STATUS as TAG_STATUS } from "./tags.js";
 import { initCollection } from "../utils/db.js";
+import { STATUS as TAGS_STATUS } from './tags.js';
 
 export const STATUS = {
 	PENDING: 'pending',
@@ -17,13 +14,10 @@ export const STATUS = {
 
 export const FINAL_STATUS= [ STATUS.RECOVERED, STATUS.REJECTED ]
 
-export async function DiscoveryService(mongodb, parentLogger, config) {
+export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS, USERS) {
 	const COLLECTION = 'discovery';
 	// const DISCOVERY = mongodb.collection(COLLECTION);
 	const logger = parentLogger.child({ service: 'Discovery'});
-	const MSG = await MessageService(mongodb, logger, config);
-	const TAGS = await TagService(mongodb, logger, config);
-	const USERS = await UserService(mongodb, logger, config);
 	let DISCOVERY = await initCollection(mongodb, COLLECTION);
 	//.then(col => DISCOVERY = col);
 	// TODO job to process discovery expiration new, closed
@@ -212,7 +206,7 @@ export async function DiscoveryService(mongodb, parentLogger, config) {
 		}
 		sendInstructions(d);
 		sendOwnerNotification(d);
-		TAGS.update(d.tagId, { status: TAG_STATUS.LOST })
+		TAGS.update(d.tagId, { status: TAGS_STATUS.LOST })
 		return setStatus(id, STATUS.ACTIVE);
 	}
 
@@ -221,7 +215,7 @@ export async function DiscoveryService(mongodb, parentLogger, config) {
 		if(d.status != STATUS.NEW && d.status != STATUS.PENDING) {
 			return false;
 		}
-		TAGS.update(d.tagId, { status: TAG_STATUS.ACTIVE })
+		TAGS.update(d.tagId, { status: TAGS_STATUS.ACTIVE })
 		return setStatus(id, STATUS.REJECTED);
 	}
 

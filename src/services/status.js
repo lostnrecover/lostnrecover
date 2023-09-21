@@ -1,19 +1,14 @@
 
-import { dbInit } from "agenda/dist/agenda/db-init.js";
 import { nanoid } from "nanoid";
 import { initCollection } from "../utils/db.js";
-import { EXCEPTIONS } from './exceptions.js'
-import { TagService } from "./tags.js";
-import { UserService } from "./user.js";
 
-export async function StatusService(mongodb, parentLogger, config) {
+
+export async function StatusService(mongodb, parentLogger, config, USERS, TAGS) {
 	const COLLECTION_NAME = 'status',
 		// COLLECTION = await mongodb.createCollection(COLLECTION_NAME),
 		// Check if TTL index exists
 		TTLIndexName = 'expiration TTL',
-		logger = parentLogger.child({ service: 'Status'}),
-		USERS = await UserService(mongodb, logger, config),
-		TAGS = await TagService(mongodb, logger, config);
+		logger = parentLogger.child({ service: 'Status'});
 	let COLLECTION = await initCollection(mongodb, COLLECTION_NAME, [
 		{ options: { name: TTLIndexName, expireAfterSeconds: 0 }, spec: { "expireAt": 1 } }
 	]);

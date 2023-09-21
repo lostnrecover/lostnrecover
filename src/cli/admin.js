@@ -1,6 +1,6 @@
 
 import { initCli } from "./cli-base.js";
-import { UserService } from "../services/user.js";
+import { serviceLoader } from "../utils/services.js";
 
 let cli = await initCli();
 let args = process.argv.slice(2), 
@@ -15,13 +15,13 @@ if(!email) {
 try {
 	// Make the appropriate DB calls
 	// await  listDatabases(client);
-	let USERS = await UserService(cli.db, cli.logger, cli.config);
-	let u = await USERS.findOrFail(email);
+	let services = await serviceLoader(cli.db, cli.logger, cli.config);
+	let u = await services.USERS.findOrFail(email);
 	if(u.isAdmin == state) {
 		cli.logger.warn('User already %s', state ? 'admin' : 'not admin')
 	} else {
-		await USERS.update(u._id, {isAdmin: state});
-		u = await USERS.findOrFail(email)
+		await services.USERS.update(u._id, {isAdmin: state});
+		u = await services.USERS.findOrFail(email)
 	}
 	cli.logger.info(u);
 } catch (e) {

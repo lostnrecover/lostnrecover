@@ -1,6 +1,5 @@
 import { test } from 'tap'
 import { initApp } from '../../src/app.js'
-import { MessageService } from '../../src/services/messages.js';
 import { sendMail } from '../helpers/mail.js';
 
 test('Discovery flow: ', async t => {
@@ -12,7 +11,7 @@ test('Discovery flow: ', async t => {
     // reset mesagess
     await app.mongo.db.collection('messages').deleteMany({});
     // get message service
-    msg = await MessageService(app.mongo.db, app.log, app.config);
+    msg = app.services.MSG;
   });
   t.teardown(async () => {
     app.close();

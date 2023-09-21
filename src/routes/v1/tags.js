@@ -1,22 +1,21 @@
-import {TagService} from '../../services/tags.js'
-import { AuthTokenService } from '../../services/authtoken.js';
+import { SCHEMA } from '../../services/tags.js';
 
 export default function(fastify, opts, done) {
-	const logger = fastify.log.child({ controller: 'TagApi' }),
-	 	TAGS = TagService(fastify.mongo.db,  logger, fastify.config),
-		AUTH = AuthTokenService(fastify.mongo.db, logger, fastify.config);
+	const 
+		logger = fastify.log.child({ controller: 'TagApi' }),
+		services = fastify.services;
 
 	// FIXME proper API
 	fastify.post('/', {
-		schema: TAGS.SCHEMA,
-		preHandler: AUTH.authentified
+		schema: SCHEMA,
+		preHandler: fastify.authentified
 	}, async (req, res) => {
 		let tag = req.body;
 		// Extract user and add it to the tag
 		if (true) {
 			tag.owner = 'admin';
 		}
-		let result = await TAGS.create(tag)
+		let result = await services.TAGS.create(tag)
 		if(result) {
 			// fastify.log.info('New Tag', result._id)
 			res.redirect(`/api/1/tags/${tag.id}`).send(t);
@@ -25,25 +24,25 @@ export default function(fastify, opts, done) {
 		}
 	});
 	fastify.get('/', {
-		preHandler: AUTH.authentified
+		preHandler: fastify.authentified
 	}, async (request, res) => {
-		let tags = TAGS.findForUser(request.serverSession.user.email)
+		let tags = services.TAGS.findForUser(request.serverSession.user.email)
 	});
 	fastify.delete('/inconsistent', {
-		preHandler: AUTH.authentified
+		preHandler: fastify.authentified
 	},async (req, res) => {
 		let filter = { status: null };
-		return TAGS.remove(filter);
+		return services.TAGS.remove(filter);
 	})
 	fastify.get('/:id', {
-		preHandler: AUTH.authentified
+		preHandler: fastify.authentified
 	},(req,res) => {
-		return TAGS.get(req.params.id)
+		return services.TAGS.get(req.params.id)
 	});
 	fastify.post('/:id/notify', {
-		preHandler: AUTH.authentified
+		preHandler: fastify.authentified
 	},(req,res) => {
-		return TAGS.notify(req.params.id)
+		return services.TAGS.notify(req.params.id)
 	});
 	done();
 }

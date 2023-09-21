@@ -1,22 +1,15 @@
 import path from 'path'
 import { EXCEPTIONS } from '../services/exceptions.js';
-import { TagService, STATUS } from '../services/tags.js';
-import { DiscoveryService } from '../services/discovery.js';
-import { AuthTokenService } from '../services/authtoken.js';
-import { UserService } from '../services/user.js';
-import { MessageService } from '../services/messages.js';
+import { STATUS } from '../services/tags.js';
 
 // TODO: review authentication
 export default async function (fastify, opts, done) {
-	const logger = fastify.log.child({ controller: 'Tags' }),
-		TAGS = await TagService(fastify.mongo.db, logger, fastify.config),
-		DISCOVERY = await DiscoveryService(fastify.mongo.db, logger, fastify.config),
-		AUTH = await AuthTokenService(fastify.mongo.db, logger, fastify.config),
-		USERS = await UserService(fastify.mongo.db, logger, fastify.config),
-		MSG = await MessageService(fastify.mongo.db, logger, fastify.config);
+	const 
+		logger = fastify.log.child({ controller: 'Tags' }),
+		services = fastify.services;
 
 	fastify.get('/:tagId', async (request, reply) => {
-		let tag = await TAGS.get(request.params.tagId);
+		let tag = await services.TAGS.get(request.params.tagId);
 		if (!tag) {
 			throw EXCEPTIONS.TAG_NOT_FOUND;
 		}
@@ -42,9 +35,9 @@ export default async function (fastify, opts, done) {
 	});
 
 	fastify.post('/:tagId/active', {
-		preHandler: AUTH.authentified
+		preHandler: fastify.authentified
 	}, async (request, reply) => {
-		let tag = await TAGS.get(request.params.tagId);
+		let tag = await services.TAGS.get(request.params.tagId);
 		if (!tag) {
 			throw EXCEPTIONS.TAG_NOT_FOUND;
 		}
@@ -52,7 +45,7 @@ export default async function (fastify, opts, done) {
 			// Set current user as owner
 			tag.owner_id = request.currentUserId();
 			tag.status = STATUS.ACTIVE;
-			await TAGS.update(tag._id, tag)
+			await services.TAGS.update(tag._id, tag)
 			// redirect ot tag page for edit
 			reply.redirect(`/tags/${tag._id}`)
 		} else {
@@ -63,10 +56,10 @@ export default async function (fastify, opts, done) {
 
 	fastify.post('/:tagId/notify', async (request, reply) => {
 		// TODO Review if action should be authenticated ?
-		let tag = await TAGS.get(request.params.tagId),
+		let tag = await services.TAGS.get(request.params.tagId),
 			disc, redirect,
-			email = request.serverSession.user.email || request.body.email,
-			finder = await USERS.findOrCreate(email, 'finder');
+			email = request.serverSession?.user?.email || request.body.email,
+			finder = await services.USERS.findOrCreate(email, 'finder');
 		if (!tag) {
 			throw EXCEPTIONS.TAG_NOT_FOUND;
 		}
@@ -75,18 +68,18 @@ export default async function (fastify, opts, done) {
 			throw(EXCEPTIONS.CANNOT_NOTIFY_OWNER)
 		}
 		// create a discovery (and eventually notify owner)
-		disc = await DISCOVERY.create(tag, finder._id, tag.recipient_id || tag.owner_id, request.body.share)
+		disc = await services.DISC.create(tag, finder._id, tag.recipient_id || tag.owner_id, request.body.share)
 		redirect = path.join(request.url, `/${disc._id}`);
 		if (!request.serverSession || !request.serverSession?.user?.email) {
 			// User not logged in:
 			// 1. findOrCreate userr account
-			let user = await USERS.findOrCreate(email, 'discovery');
+			let user = await services.USERS.findOrCreate(email, 'discovery');
 			// 2. generate a token
-			const token = await AUTH.createAuth(user.email);
+			const token = await services.AUTH.createAuth(user.email);
 			// 3. magiclink should redirect to -> path.join(request.url, `/${disc._id}`)
 			let link = `${request.protocol}://${request.hostname}/auth?token=${token}&redirect=${redirect}`;
 			// 4. send him a magiclink
-			MSG.create({
+			services.MSG.create({
 				to: email,
 				subject: 'Please verify your email',
 				template: 'mail/email_verify',
@@ -102,7 +95,7 @@ export default async function (fastify, opts, done) {
 	});
 
 	fastify.get('/:tagId/notify/:notificationId', {
-		preHandler: AUTH.authentified
+		preHandler: fastify.authentified
 	}, async (request, reply) => {
 		let discovery,isFinder,isTagOwner,view,
 			viewmapfinder = {
@@ -121,7 +114,7 @@ export default async function (fastify, opts, done) {
 				'recovered': 'closed',
 				'rejected': 'closed'
 			}
-		discovery = await DISCOVERY.get(request.params.notificationId);
+		discovery = await services.DISC.get(request.params.notificationId);
 		if (!discovery) {
 			throw EXCEPTIONS.TAG_NOT_FOUND;
 		}
@@ -156,20 +149,20 @@ export default async function (fastify, opts, done) {
 	});
 
 	fastify.post('/:tagId/notify/:notificationId', {
-		preHandler: AUTH.authentified
+		preHandler: fastify.authentified
 	}, async (request, reply) => {
-		let tag = await TAGS.get(request.params.tagId),
-			discovery = await DISCOVERY.get(request.params.notificationId),
+		let tag = await services.TAGS.get(request.params.tagId),
+			discovery = await services.DISC.get(request.params.notificationId),
 			isFinder = request.isCurrentUser(discovery.finder_id),
 			isTagOwner = request.isCurrentUser(tag.owner_id);
 		if(isFinder && request.body.action == 'return') {
-			await DISCOVERY.flagReturned(discovery._id);
+			await services.DISC.flagReturned(discovery._id);
 		} else if(isTagOwner && request.body.action == 'close') {
-			await DISCOVERY.close(discovery._id);
+			await services.DISC.close(discovery._id);
 		} else if(isTagOwner && request.body.action == 'approve') {
-			await DISCOVERY.activate(discovery._id);
+			await services.DISC.activate(discovery._id);
 		} else if(isTagOwner && request.body.action == 'reject' ) {
-			await DISCOVERY.reject(discovery._id);
+			await services.DISC.reject(discovery._id);
 		} else {
 			throw EXCEPTIONS.BAD_REQUEST;
 		}

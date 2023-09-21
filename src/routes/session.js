@@ -1,7 +1,3 @@
-import { UserService } from '../services/user.js'
-import { AuthTokenService } from '../services/authtoken.js'
-import { MessageService } from '../services/messages.js';
-// import fastifySecureSession from '@fastify/secure-session';
 
 function invalidEmail(email) {
 	const INVALID = true, OK = false;
@@ -16,10 +12,9 @@ function invalidEmail(email) {
 
 // src/routes/accounts.js
 export default async function(fastify, opts, done) {
-	const logger = fastify.log.child({ controller: 'AccountAPI' }),
-		USERS = await UserService(fastify.mongo.db, logger, fastify.config),
-		MSG = await MessageService(fastify.mongo.db, logger, fastify.config),
-		{ createAuth, createSession, deleteCurrentSession, authentified } = await AuthTokenService(fastify.mongo.db, logger, fastify.config);
+	const 
+		logger = fastify.log.child({ controller: 'AccountAPI' }),
+		services = fastify.services;
 
 	fastify.get('/login', async (request, reply) => {
 		reply.view('magicLink/form', { title: 'Login', url: request.query.redirect })
@@ -37,16 +32,16 @@ export default async function(fastify, opts, done) {
 			return reply;
 		} else {
 			// Check user email or create user if not exists
-			let user = await USERS.findOrCreate(email, 'signin'), tokenLogger = logger.child({user})
+			let user = await services.USERS.findOrCreate(email, 'signin'), tokenLogger = logger.child({user})
 			if(user.status == 'blocked') {
 				request.flash('error', `Account ${email} is locked, please contact support: ${fastify.config.support_email}`);
 				reply.redirect(`/login?${redirect}`);
 				return reply;
 			}
-			const token = await createAuth(user.email);
+			const token = await services.AUTH.createAuth(user.email);
 			let link = `${request.protocol}://${request.hostname}/auth?token=${token}${redirect}`;
 			// Send email
-			MSG.create({
+			services.MSG.create({
 				to: email,
 				subject: 'Please verify your email',
 				template: 'mail/email_verify',
@@ -81,11 +76,11 @@ export default async function(fastify, opts, done) {
 			if(request.query.token) {
 				// check provided token
 				try {
-					let user = await USERS.login(request.query.token);
+					let user = await services.USERS.login(request.query.token);
 					if(!user) {
 						throw('Invalid Token');
 					} 
-					await createSession(user, request);
+					await services.AUTH.createSession(user, request);
 					if(request.query.redirect) {
 						response.redirect(request.query.redirect);
 					} else {
@@ -109,10 +104,10 @@ export default async function(fastify, opts, done) {
 			return response
 	})
 	fastify.get('/logout',  {
-		preHandler: authentified
+		preHandler: fastify.authentified
 	}, async (request, reply) => {
 		// kill session
-		deleteCurrentSession(request);
+		services.AUTH.deleteCurrentSession(request);
 		//return ok
 		if(request.query.redirect) {
 			reply.redirect(request.query.redirect);

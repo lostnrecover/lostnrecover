@@ -1,34 +1,29 @@
-import { TagService } from "../../services/tags.js";
-import { AuthTokenService } from '../../services/authtoken.js';
-import { PdfService } from "../../services/pdf.js";
 import { nanoid } from "nanoid";
 import { EXCEPTIONS } from "../../services/exceptions.js";
 
 export default async function (fastify, opts, done) {
 	const logger = fastify.log.child({ controller: 'Pdf' }),
-		TAGS = await TagService(fastify.mongo.db,  logger, fastify.config),
-		AUTH = await AuthTokenService(fastify.mongo.db, logger, fastify.config),
-		PDF = await PdfService(fastify.mongo.db, logger, fastify.config);
+				services = fastify.services;
 
 	fastify.get('/batch', {
-		preHandler: AUTH.isAdmin
+		preHandler: fastify.isAdmin
 	}, async (request, reply) => {
 		// TODO List batchs	
-		let batches = await PDF.getBatches();
+		let batches = await services.PDF.getBatches();
 			// show form
 			reply.view('pdf/batch-list', {
 				title: 'Batch prints',
 				batches,
-				templates: PDF.templates
+				templates: services.PDF.templates
 			})
 			return reply;
 	})
 	fastify.post('/batch', {
-		preHandler: AUTH.isAdmin
+		preHandler: fastify.isAdmin
 	}, async (request, reply) => {
 		let payload = {batchId: nanoid(), ...request.query, ...request.body}, 
 		tagtpl = { status: 'new', batchId: payload.batchId, creator_id: request.currentUserId() };
-		await PDF.batchPrint(payload.batchId, tagtpl, payload.qty ?? 1, payload.selectedTemplate, payload.skip ?? 0);
+		await services.PDF.batchPrint(payload.batchId, tagtpl, payload.qty ?? 1, payload.selectedTemplate, payload.skip ?? 0);
 		reply.redirect(`${opts.prefix}/batch/${payload.batchId}`);
 		return reply;
 	});
@@ -36,10 +31,10 @@ export default async function (fastify, opts, done) {
 	fastify.route({
 		method: [ 'GET', 'POST'],
 		url: '/batch/:batchId',
-		preHandler: AUTH.isAdmin,
+		preHandler: fastify.isAdmin,
 		handler: async (request, reply) => {
 			// Fetch current batch in db
-			let batch = await PDF.getBatch(request.params.batchId);
+			let batch = await services.PDF.getBatch(request.params.batchId);
 			if(!batch) {
 				throw EXCEPTIONS.NOT_FOUND;
 			}
@@ -55,7 +50,7 @@ export default async function (fastify, opts, done) {
 				if(batch.tagTemplate) {
 					batch.tagTemplate.label = request.body.label ?? "";
 				}
-				batch = await PDF.updateBatch(batch);
+				batch = await services.PDF.updateBatch(batch);
 				// (batch._id, tagtpl, batch.qty, batch.pageFormat, batch.skip) 
 				reply.redirect(request.url);
 				return reply;
@@ -64,8 +59,8 @@ export default async function (fastify, opts, done) {
 			reply.view('pdf/batch', {
 				title: 'Batch print labels',
 				batch,
-				templates: PDF.templates,
-				currentPdf: PDF.exists(batch._id) ? batch._id : false
+				templates: services.PDF.templates,
+				currentPdf: services.PDF.exists(batch._id) ? batch._id : false
 			})
 			return reply;
 		}
@@ -74,7 +69,7 @@ export default async function (fastify, opts, done) {
 	fastify.route({
 		method: ['GET', 'POST'],
 		url: '/batch/advanced',
-		preHandler: AUTH.isAdmin,
+		preHandler: fastify.isAdmin,
 		handler: async (request, reply) => {
 			let vars = {...request.query, ...request.body};
 			if(request.method.toLowerCase() == 'post' 
@@ -89,10 +84,7 @@ export default async function (fastify, opts, done) {
 				} else {
 					tagTpl.status = 'new';
 				}
-				batch = await PDF.batchPrint(null, tagTpl, 1, vars.tpl, vars.skip, vars.withlabel == 1)
-				// tags = await TAGS.bulkCreate(tpl, parseInt(vars.qty));
-				// // generate pdf
-				// PDF.generate(tags[0].batchId, tags.map(t => { return {...t, qty: 1, printlabel: vars.withlabel ?? false} } ))
+				batch = await services.PDF.batchPrint(null, tagTpl, 1, vars.tpl, vars.skip, vars.withlabel == 1)
 				reply.redirect(`${batch._id}`);
 				return reply;
 			}
@@ -102,7 +94,7 @@ export default async function (fastify, opts, done) {
 				selectedTemplate: vars.tpl ?? null,
 				skip: vars.skip ?? 0, 
 				forowner: (vars.forowner == 1) ? 1 : 0,
-				templates: PDF.templates,
+				templates: services.PDF.templates,
 				withlabel: vars.withlabel ?? false,
 				label: vars.label ?? "",
 				print_id: vars.print_id ?? ""

@@ -19,6 +19,7 @@ import * as PdfContoller from './routes/pdf.js';
 import * as CodeController from './routes/code.js';
 import * as InstructionsController from './routes/instructions.js';
 import { getLogger } from './utils/logging.js';
+import { initServices } from './utils/services.js';
 
 
 export async function initApp(opts) {
@@ -35,6 +36,7 @@ export async function initApp(opts) {
 	fastify.log.info('Load plugins...')
 	// Init server config and extensions
 	loadFastifyPlugins(fastify, config);
+	initServices(fastify);
 	fastify.setErrorHandler(errorHandler)
 
 	fastify.log.info('Register routes...')

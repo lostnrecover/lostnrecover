@@ -1,13 +1,10 @@
 import { EXCEPTIONS } from "../services/exceptions.js";
-import { InstructionsService } from "../services/instructions.js";
-import { AuthTokenService } from '../services/authtoken.js';
-import { UserService } from "../services/user.js";
+import { SCHEMA } from '../services/instructions.js';
 
 export default async function (fastify, opts, done) {
-	const logger = fastify.log.child({ controller: 'Instructions' }),
-	AUTH = await AuthTokenService(fastify.mongo.db, logger, fastify.config),
-	INSTRUCTIONS = await InstructionsService(fastify.mongo.db, logger, fastify.config),
-	USERS = await UserService(fastify.mongo.db, logger, fastify.config);
+	const 
+		logger = fastify.log.child({ controller: 'Instructions' }),
+		services = fastify.services;
 
 	async function filterInput(request, instructions) {
 		instructions.name = request.body.name || '';
@@ -17,7 +14,7 @@ export default async function (fastify, opts, done) {
 	}
 
 	fastify.get('/', {
-		preHandler: AUTH.authentified
+		preHandler: fastify.authentified
 	}, async (request, reply) => {
 		if (request.query.create) {
 			let instructions = {
@@ -26,20 +23,20 @@ export default async function (fastify, opts, done) {
 			}
 			reply.view('instructions/new', { instructions, title: 'New instructions' })
 		} else {
-			let instructions = await INSTRUCTIONS.findForUser(request.currentUserId());
+			let instructions = await services.INSTRUCTIONS.findForUser(request.currentUserId());
 			reply.view('instructions/list', { instructions, title: 'Instructions' });
 		}
 		return reply;
 	});
 
 	fastify.post('/',{ 
-		schema: INSTRUCTIONS.SCHEMA, 
-		preHandler: AUTH.authentified 
+		schema: SCHEMA, 
+		preHandler: fastify.authentified 
 	}, async (request, reply) => {
 		let newInstr = await filterInput(request, { owner_id: request.currentUserId() });
-		let inst = await INSTRUCTIONS.create(newInstr);
+		let inst = await services.INSTRUCTIONS.create(newInstr);
 		if(newInstr.isDefault) {
-			USERS.update(request.currentUserId(), { defaultInstructions: inst._id }).catch(e => {
+			services.USERS.update(request.currentUserId(), { defaultInstructions: inst._id }).catch(e => {
 				logger.error({error:e, instructions: inst}, "Failed to save default instructions");
 			})
 		}
@@ -47,9 +44,9 @@ export default async function (fastify, opts, done) {
 		return reply;
 	})
 	fastify.get('/:instructionsId', {
-		preHandler: AUTH.authentified
+		preHandler: fastify.authentified
 	}, async (request, reply) => {
-		let instructions = await INSTRUCTIONS.getForUpdate(request.params.instructionsId, request.currentUserId());
+		let instructions = await services.INSTRUCTIONS.getForUpdate(request.params.instructionsId, request.currentUserId());
 		if (!instructions) {
 			throw(EXCEPTIONS.NOT_FOUND);
 		}
@@ -57,17 +54,17 @@ export default async function (fastify, opts, done) {
 		return reply;
 	});
 	fastify.post('/:instructionsId', { 
-		schema: INSTRUCTIONS.SCHEMA, 
-		preHandler: AUTH.authentified 
+		schema: SCHEMA, 
+		preHandler: fastify.authentified 
 	}, async (request, reply) => {
-		let instructions = await INSTRUCTIONS.getForUpdate(request.params.instructionsId, request.currentUserId());
+		let instructions = await services.INSTRUCTIONS.getForUpdate(request.params.instructionsId, request.currentUserId());
 		if (!instructions) {
 			throw(EXCEPTIONS.NOT_FOUND)
 		}
 		instructions = await filterInput(request, instructions);
-		await INSTRUCTIONS.update(instructions._id, instructions);
+		await services.INSTRUCTIONS.update(instructions._id, instructions);
 		if(request.body.isDefault) {
-			USERS.update(request.currentUserId(), { defaultInstructions: instructions._id }).catch(e => {
+			services.USERS.update(request.currentUserId(), { defaultInstructions: instructions._id }).catch(e => {
 				logger.error({error:e, instructions}, "Failed to save default instructions");
 			})
 		}
@@ -76,16 +73,16 @@ export default async function (fastify, opts, done) {
 	});
 
 	fastify.post('/:instructionsId/delete', {
-		preHandler: AUTH.authentified
+		preHandler: fastify.authentified
 	}, async (request, reply) => {
-		let instructions = await INSTRUCTIONS.getForUpdate(request.params.instructionsId, request.currentUserId());
+		let instructions = await services.INSTRUCTIONS.getForUpdate(request.params.instructionsId, request.currentUserId());
 		if(!instructions) {
 			throw(EXCEPTIONS.NOT_FOUND);
 		}
 		if(instructions.tags.length > 0 || instructions.isDefault) {
 			throw(EXCEPTIONS.BAD_REQUEST);
 		}
-		INSTRUCTIONS.remove({ _id: instructions._id});
+		services.INSTRUCTIONS.remove({ _id: instructions._id});
 		request.flash('success', `${instructions.name} instructions removed (${instructions._id})`)
 		reply.redirect(`${opts.prefix}`);
 		return reply;

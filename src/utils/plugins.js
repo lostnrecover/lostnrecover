@@ -39,15 +39,11 @@ export function loadFastifyPlugins(fastify, config) {
 	});
 
 	fastify.register(fastifyFlash);
-	fastify.decorate('services', {});
-	fastify.addHook('onReady', async () => {
-		fastify.services.TOKEN = await AuthTokenService(fastify.mongo.db, fastify.log.child({ module: 'services_init' }), config);
-	});
 		
 	fastify.decorateRequest('serverSession', null);
 	// TODO outsource to a locale dedicated file
 	fastify.addHook("preHandler", async function (request, reply) {
-		let session = await fastify.services.TOKEN.getSession(request), data = request.serverSession?.data;
+		let session = await fastify.services?.AUTH?.getSession(request), data = request.serverSession?.data;
 		if(!config.DOMAIN || config.DOMAIN == '') {
 			config.DOMAIN = `${request.hostname}`
 			request.log.info(`Switched domain: ${config.DOMAIN}`)

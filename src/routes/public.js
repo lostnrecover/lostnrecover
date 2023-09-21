@@ -1,14 +1,13 @@
 
-import { MessageService } from '../services/messages.js';
-
 export default async function(fastify, opts, done) {
-	const logger = fastify.log.child({ controller: 'Client' }),
-  MSG = await MessageService(fastify.mongo.db, logger, fastify.config),
-  reasons = [
-    { value: 'Bug', name: 'Bug Report' },
-    { value: 'Questions', name: 'Questions' },
-    { value: 'Personal Data', name: 'Personal Data' }
-  ];
+	const 
+    logger = fastify.log.child({ controller: 'Client' }),
+    services = fastify.services,
+    reasons = [
+      { value: 'Bug', name: 'Bug Report' },
+      { value: 'Questions', name: 'Questions' },
+      { value: 'Personal Data', name: 'Personal Data' }
+    ];
 
   fastify.get('/', async (request,reply) => {
     if(request.query.tagId) {
@@ -50,7 +49,7 @@ export default async function(fastify, opts, done) {
       return getSupportForm(request, reply, { email, message, subject, reason });
     }
     // Actually send the message: put it in the queue
-    let id = await MSG.create({
+    let id = await services.MSG.create({
       to: fastify.config.support_email,
       from: email,
       subject: `${reason} - ${subject}`,

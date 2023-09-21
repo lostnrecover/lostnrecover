@@ -1,7 +1,5 @@
 import { nanoid } from 'nanoid';
-import { UserService } from './user.js';
 import { FINAL_STATUS as DISCOVERY_STATUS_FILTER} from './discovery.js';
-import { InstructionsService } from './instructions.js';
 import { initCollection } from '../utils/db.js';
 import { EXCEPTIONS } from './exceptions.js';
 
@@ -11,14 +9,30 @@ export const STATUS = {
 	ARCHIVED: 'archived',
 	LOST: 'lost'
 }
+export const SCHEMA = {
+	body: {
+		type: 'object',
+		required: ["name"],
+		properties: {
+			name: {
+				type: 'string'
+			},
+			status: {
+				type: "string",
+				enum: ["new", "active", "lost", "found", "archived"]
+			},
+			email: {
+				type: "string"
+			}
+		}
+	}
+}
 
-export async function TagService(mongodb, parentLogger, config) {
+export async function TagService(mongodb, parentLogger, config, USERS, INSTRUCTIONS) {
 	const COLLECTION = 'tags',
 	TMPDIR = config.cache_dir,
 	// TAGS = mongodb.collection(COLLECTION),
-	logger = parentLogger.child({ service: 'Tag' }),
-	USERS = await UserService(mongodb, logger, config),
-	INSTRUCTIONS = await InstructionsService(mongodb, logger, config);
+	logger = parentLogger.child({ service: 'Tag' });
 
 	let TAGS = await initCollection(mongodb, COLLECTION);
 	//.then(col => TAGS = col);
@@ -218,27 +232,7 @@ export async function TagService(mongodb, parentLogger, config) {
 		return res.toArray();
 	}
 
-	const SCHEMA = {
-		body: {
-			type: 'object',
-			required: ["name"],
-			properties: {
-				name: {
-					type: 'string'
-				},
-				status: {
-					type: "string",
-					enum: ["new", "active", "lost", "found", "archived"]
-				},
-				email: {
-					type: "string"
-				}
-			}
-		}
-	}
-
-
 	return {
-		SCHEMA, count, get, getForUpdate, findAll, findForUser, search, remove, create, bulkCreate, bulkSet, update, release
+		count, get, getForUpdate, findAll, findForUser, search, remove, create, bulkCreate, bulkSet, update, release
 	}
 }

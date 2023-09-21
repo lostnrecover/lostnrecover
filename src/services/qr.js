@@ -23,6 +23,11 @@ export async function QRService(mongodb, parentLogger, config) {
 		}
 		return cacheFileName;
 	}
+
+	async function getQRCodeForLogin(token) {
+		return await QRCode.toDataURL(`https://${config.DOMAIN}/auth?token=${token}`);
+	}
+
 	async function generateCode(filename, tagId, options) {
 		let domain = config.SHORT_DOMAIN ?? config.DOMAIN,
 			text = `https://${domain}/t/${tagId}`, physicalPath = path.join(filename);
@@ -57,5 +62,5 @@ export async function QRService(mongodb, parentLogger, config) {
 		});
 	}
 
-	return { getQRCodeFile }
+	return { getQRCodeFile, getQRCodeForLogin }
 }
