@@ -57,7 +57,8 @@ export function loadFastifyPlugins(fastify, config) {
 			sessionId: session?._id || false,
 			email: session?.user?.email || false,
 			user_id: session?.user?._id || false,
-			isAdmin: session?.user?.isAdmin || false
+			// isAdmin: session?.user?.isAdmin || false
+			isAdmin: fastify.isAdmin(request, reply)
 		}
 		// Only get flash for "main" request
 		if(request.routerPath != "/public/*") {
