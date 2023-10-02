@@ -3,7 +3,11 @@
 <p>{{ __ 'You found a new tag, would you like to make it yours?' }}</p>
 {{#if session.user_id }}
 <form method="post" action="/t/{{tag._id}}/active">
-	<button type="submit" value="add" name="action">{{ __ 'Add'}}</button>
+	<button type="submit" value="add" name="action">{{ __ 'Add this tag'}}</button>
+	<p>
+		<label for="name">{{ __ 'With Name' }}</label>
+		<input name="name" id="name" type="text" value="{{tag.name}}" />
+	</p>
 </form>
 {{else}}
 {{#> loginForm }}{{/loginForm}}

@@ -45,6 +45,9 @@ export default async function (fastify, opts, done) {
 			// Set current user as owner
 			tag.owner_id = request.currentUserId();
 			tag.status = STATUS.ACTIVE;
+			if(request.body.name) {
+				tag.name = request.body.name;
+			}
 			await services.TAGS.update(tag._id, tag)
 			// redirect ot tag page for edit
 			reply.redirect(`/tags/${tag._id}`)
