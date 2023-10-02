@@ -1,3 +1,5 @@
+{{#>layout title=(__ 'Tag')}}
+
 <h1>{{ __ 'Hourrah' }}</h1>
 
 <p>{{__ 'You found tag %s with id: ' tag.name }} <strong><code>{{tag._id}}</code></strong></p>
@@ -21,3 +23,5 @@
   <p><button type="submit">{{ __ 'Send' }}</button> </p>
 </form>
 <p>{{ __ 'You will be sent an email to confirm your address and before the tag owner is notifed of your discovery...' }}</p>
+
+{{/layout}}

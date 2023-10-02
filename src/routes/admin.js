@@ -10,8 +10,7 @@ export default async function(fastify, opts, done) {
 		preHandler: fastify.isAdmin
 	}, async (req,reply) => {
     reply.view('admin/index', {
-      users: await services.USERS.list(),
-			title: 'Admninistration'
+      users: await services.USERS.list()
     })
     return reply;
   });
@@ -31,8 +30,7 @@ export default async function(fastify, opts, done) {
 		preHandler: fastify.isAdmin
 	}, async (request, reply) => {
     reply.view('admin/messages', {
-      messages: await services.MSG.list(),
-			title: 'Messages administration'
+      messages: await services.MSG.list()
     });
     return reply
   });

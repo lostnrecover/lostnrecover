@@ -13,18 +13,18 @@ export default async function(fastify, opts, done) {
     if(request.query.tagId) {
       reply.redirect(`/t/${request.query.tagId}`)
     } else {
-      reply.view('home', { title: 'Home' })
+      reply.view('home')
     }
     return reply
   });
   fastify.get('/about', (request,reply) => {
-    reply.view('about', { title: 'About' })
+    reply.view('about')
   });
   fastify.get('/about/privacy', (request,reply) => {
-    reply.view('privacy', { title: 'Privacy and Personnal data' })
+    reply.view('privacy')
   });
   async function getSupportForm(request, reply, data) {
-    reply.view('contact_form', {...data, title: 'Support and Contact', reasons});
+    reply.view('contact_form', {...data, reasons});
     return reply
   }
   fastify.get('/support', async (request,reply) => {

@@ -30,10 +30,10 @@ export default async function (fastify, opts, done) {
 			if(defs > 0) {
 				tag.instructions_id = defs[0]._id;
 			}
-			reply.view('tag/new', { tag, instructions, title: 'Create a Tag' })
+			reply.view('tag/new', { tag, instructions })
 		} else {
 			let tags = await services.TAGS.findForUser(request.currentUserId());
-			reply.view('tag/list', { tags, title: 'Tags' });
+			reply.view('tag/list', { tags });
 		}
 		return reply
 	});
@@ -71,9 +71,9 @@ export default async function (fastify, opts, done) {
 			tag.email = request.serverSession.user.email;
 		}
 		if (request.query.edit) {
-			reply.view('tag/edit', { tag, instructions, title: 'Edit tag' });
+			reply.view('tag/edit', { tag, instructions });
 		} else {
-			reply.view('tag/view', { tag, instructions, title: 'View Tag' });
+			reply.view('tag/view', { tag, instructions });
 		}
 		return reply;
 	});
@@ -106,7 +106,7 @@ export default async function (fastify, opts, done) {
 			// reply.view('tag/found', { tag });
 			return reply
 		}
-		reply.view(`tag/discovery/instructions`, {title: 'Preview instructions', discovery, isFinder: true, isTagOwner: false});
+		reply.view(`tag/discovery/instructions`, { discovery, isFinder: true, isTagOwner: false});
 		return reply;
 	});
 

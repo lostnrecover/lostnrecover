@@ -14,7 +14,7 @@ export default async function (fastify, opts, done) {
 			throw EXCEPTIONS.TAG_NOT_FOUND;
 		}
 		if(tag.status == STATUS.NEW && !tag.owner_id) {
-			let data = { tag, title: 'Take tag ownership' };
+			let data = { tag };
 			if(!request.serverSession || !request.serverSession.user?._id) {
 				// throwWithData(EXCEPTIONS.NOT_AUTHORISED, { warning: 'You must be registered to take ownership.' })
 				data.warning = 'You must be registered to take ownership.';
@@ -29,7 +29,7 @@ export default async function (fastify, opts, done) {
 			// owner should see the edit/admin page
 			reply.redirect(`/tags/${tag._id}`)
 		} else {
-			reply.view('tag/found', { tag, title: 'Tag' });
+			reply.view('tag/found', { tag });
 		}
 		return reply;
 	});
@@ -144,7 +144,7 @@ export default async function (fastify, opts, done) {
 		//    if finder: display info that owner has been notified
 		// if active: display instructions, propose to declare return (finder) or reception (owner)
 		// if closed: display status
-		reply.view(`tag/discovery/${view}`, {title: 'Discovery', /*tag,*/ discovery, isFinder, isTagOwner});
+		reply.view(`tag/discovery/${view}`, { discovery, isFinder, isTagOwner});
 		return reply;
 	});
 

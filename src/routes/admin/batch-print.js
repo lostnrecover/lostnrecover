@@ -12,7 +12,6 @@ export default async function (fastify, opts, done) {
 		let batches = await services.PDF.getBatches();
 			// show form
 			reply.view('pdf/batch-list', {
-				title: 'Batch prints',
 				batches,
 				templates: services.PDF.templates
 			})
@@ -57,7 +56,6 @@ export default async function (fastify, opts, done) {
 			}
 			// show form
 			reply.view('pdf/batch', {
-				title: 'Batch print labels',
 				batch,
 				templates: services.PDF.templates,
 				currentPdf: services.PDF.exists(batch._id) ? batch._id : false
@@ -89,7 +87,6 @@ export default async function (fastify, opts, done) {
 				return reply;
 			}
 			reply.view('pdf/batch-advanced', {
-				title: 'Batch print labels',
 				qty: vars.qty ?? 1,
 				selectedTemplate: vars.tpl ?? null,
 				skip: vars.skip ?? 0, 

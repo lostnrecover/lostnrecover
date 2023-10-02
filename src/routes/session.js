@@ -17,7 +17,7 @@ export default async function(fastify, opts, done) {
 		services = fastify.services;
 
 	fastify.get('/login', async (request, reply) => {
-		reply.view('magicLink/form', { title: 'Login', url: request.query.redirect })
+		reply.view('magicLink/form', { url: request.query.redirect })
 		return reply
 	})
 	fastify.post('/login', async (request, reply) => {

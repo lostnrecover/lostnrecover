@@ -9,8 +9,7 @@ export default async function(fastify, opts, done) {
 		preHandler: fastify.isAdmin
 	}, async (req,reply) => {
     reply.view('admin/users', {
-      users: await services.USERS.list(),
-			title: 'Admin - Users'
+      users: await services.USERS.list()
     })
     return reply;
   });

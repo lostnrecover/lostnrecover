@@ -1,3 +1,5 @@
+{{#>layout title=(__ 'Preview instructions')}}
+
 {{> discoverySummary }}
 
 {{#if discovery._id}}
@@ -25,3 +27,5 @@
 	<dt>{{ __ 'Date' }}</dt>
 	<dd>{{ dateFormat discovery.createdAt 'DD/MM/YY hh:mm'}}</dd>
 </dl>
+
+{{/layout}}

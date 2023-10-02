@@ -1,3 +1,5 @@
+{{#>layout title=(__ 'Batch print labels')}}
+
 {{> adminMenu }}
 {{#if (eq batch.status 'locked') }}
 <p>
@@ -51,3 +53,5 @@
 </a></p>
 <iframe class="pdfpreview" src="/public/pdf/{{currentPdf}}.pdf"></iframe>
 {{/if}}
+
+{{/layout}}

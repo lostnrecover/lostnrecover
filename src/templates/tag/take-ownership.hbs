@@ -1,3 +1,4 @@
+{{#>layout title=(__ 'Take tag ownership')}}
 <h1>{{ __ 'New Tag' }}</h1>
 <p>{{ __ 'You found a new tag, would you like to make it yours?' }}</p>
 {{#if session.user_id }}
@@ -7,3 +8,4 @@
 {{else}}
 {{#> loginForm }}{{/loginForm}}
 {{/if}}
+{{/layout}}

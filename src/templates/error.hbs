@@ -1,3 +1,4 @@
+{{#>layout title=(__ 'Unexpected Error')}}
 <p>
 An Error Occured: {{ error.code }}
 </p>
@@ -7,3 +8,4 @@ An Error Occured: {{ error.code }}
 {{#if (eq env 'dev')}}
 <pre>{{debug error}}</pre>
 {{/if}}
+{{/layout}}

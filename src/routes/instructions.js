@@ -21,10 +21,10 @@ export default async function (fastify, opts, done) {
 				name: "",
 				body: ""
 			}
-			reply.view('instructions/new', { instructions, title: 'New instructions' })
+			reply.view('instructions/new', { instructions  })
 		} else {
 			let instructions = await services.INSTRUCTIONS.findForUser(request.currentUserId());
-			reply.view('instructions/list', { instructions, title: 'Instructions' });
+			reply.view('instructions/list', { instructions });
 		}
 		return reply;
 	});
@@ -50,7 +50,7 @@ export default async function (fastify, opts, done) {
 		if (!instructions) {
 			throw(EXCEPTIONS.NOT_FOUND);
 		}
-		reply.view('instructions/edit', { instructions, title: 'Review instructions' });
+		reply.view('instructions/edit', { instructions });
 		return reply;
 	});
 	fastify.post('/:instructionsId', { 

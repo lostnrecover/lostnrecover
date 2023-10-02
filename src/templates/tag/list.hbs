@@ -1,5 +1,15 @@
+{{#>layout title=(__ 'Tags')}}
 
 <p><a href="?create=1"><button>{{ __ 'Create a Tag' }}</button></a></p>
+  {{!-- <form class="inline" action="/">
+<p>
+  <label for="tagId">{{ __ 'Add a tag'}}</label>
+  <input type="text" id="tagId" name="tagId" />
+  <button type="submit">{{ __ 'Add' }}</button>
+  <a href="?create=1"><button>{{ __ 'Create a Tag' }}</button></a>
+</p>
+  </form> --}}
+
 <!-- TODO Bulk create tags and generate labels (with label prefix?)-->
 {{#if tags}}
 <table class="listing">
@@ -63,4 +73,4 @@
 <p>{{ __ 'You have no tag yet!'}}</p>
 {{/if}}
 <p><a href="?create=1"><button>{{ __ 'Create a Tag' }}</button></a></p>
-
+{{/layout}}

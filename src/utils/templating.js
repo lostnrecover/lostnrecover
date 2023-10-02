@@ -110,6 +110,7 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 
 export async function loadPartials(logger, Handlebars, templateDir) {
 	// Handlebars.registerPartial('tagForm', fs.readFileSync(path.join(templateDir, '/tag/_tagForm.hbs')).toString());
+	Handlebars.registerPartial('layout', fs.readFileSync(path.join(templateDir, '/_layout.hbs')).toString())
 	let partials = await glob(`${templateDir}/**/__*.hbs`)
 	
 		// if(error){

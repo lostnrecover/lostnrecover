@@ -18,7 +18,6 @@ export default async function(fastify, opts, done) {
 				NewAuth.QR = await services.QR.getQRCodeForLogin(user.tokens[0]._id);
 			}
 			reply.view('account',  {
-				title: 'Account preferences',
 				user,
 				NewAuth,
 				timezones: tz.default.sort((a,b) => {

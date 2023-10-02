@@ -1,4 +1,4 @@
-
+{{#>layout tite=(__ 'Instructions')}}
 	{{#each data}}
 	{{#if @first}}
 <form method="get">
@@ -60,4 +60,4 @@
 <p><a href="/public/pdf/{{currentPdf}}.pdf">Download</a></p>
 <iframe class="pdfpreview" src="/public/pdf/{{currentPdf}}.pdf"></iframe>
 {{/if}}
-
+{{/layout}}

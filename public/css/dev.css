@@ -1,0 +1,48 @@
+.debug {
+  margin-bottom: 1.2rem 0;
+}
+
+.debug input[type='checkbox'] {
+  display: none;
+}
+
+.lbl-toggle {
+  display: block;
+  padding: 1rem;
+  cursor: pointer;
+}
+
+.lbl-toggle::before {
+  content: ' ';
+  display: inline-block;
+
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 5px solid currentColor;
+  vertical-align: middle;
+  margin-right: .7rem;
+  transform: translateY(-2px);
+
+  transition: transform .2s ease-out;
+}
+
+.toggle:checked + .lbl-toggle::before {
+  transform: rotate(90deg) translateX(-3px);
+}
+
+.debug pre {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .25s ease-in-out;
+  padding: 0;
+}
+
+.toggle:checked + .lbl-toggle + pre {
+  max-height: none;
+}
+
+.toggle:checked + .lbl-toggle {
+
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}

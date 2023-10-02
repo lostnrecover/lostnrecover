@@ -29,7 +29,7 @@ export async function errorHandler(error, request, reply) {
 	} else if (e.view) {
 		reply.view(e.view, { url: request.url, ...e.data });
 	} else {
-		reply.view('error', { title: 'Unexpected Error', error: e, ...e.data })
+		reply.view('error', { error: e, ...e.data })
 	}
 	// TODO JSON API compliant errors 
 	// if json

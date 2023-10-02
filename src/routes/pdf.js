@@ -39,7 +39,6 @@ export default async function (fastify, opts, done) {
 				services.PDF.generate(currentPdf, data, payload.template, payload.skip);
 			}
 			reply.view('pdf/edit', {
-				title: 'Label generator',
 				data,
 				tags,
 				skip: payload.skip ?? 0,

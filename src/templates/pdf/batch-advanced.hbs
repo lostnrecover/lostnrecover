@@ -1,3 +1,5 @@
+{{#>layout title=(__ 'Batch print labels')}}
+
 <p>Generate a PDF file to download and print</p>
 <form method="post">
 	<input type="hidden" value="print_id" name="print_id" />
@@ -48,3 +50,4 @@
 <iframe class="pdfpreview" src="/public/pdf/{{currentPdf}}.pdf"></iframe>
 {{/if}}
 
+{{/layout}}

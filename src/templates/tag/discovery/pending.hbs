@@ -1,3 +1,4 @@
+{{#>layout title=(__ 'Discovery')}}
 <p>{{ __ "This tag has been reported found by someone, but you didn't reported its loss" }}</p>
 <form method="post">
 	<button type="submit" value="approve" name="action">{{ __ 'Report loss and approve request'}}</button>
@@ -5,3 +6,4 @@
 </form>
 
 {{> discoverySummary }}
+{{/layout}}

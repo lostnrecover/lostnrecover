@@ -81,7 +81,7 @@ export function loadFastifyPlugins(fastify, config) {
 			handlebars: Handlebars
 		},
 		root: TPL_DIR,
-		layout: '_layout.hbs'
+		// layout: '_layout.hbs'
 	});
 	loadHelpers(fastify.log.child({ module: 'helpers' }), Handlebars, TPL_DIR);
 	loadPartials(fastify.log.child({ module: 'partials' }), Handlebars, TPL_DIR);
