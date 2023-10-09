@@ -1,5 +1,5 @@
 {
-  "lnf.concept": "Concept: Lost n Recover: Créer une étiquette avec un QR code pour vos objets du quotidien. Quand l'un d'eux est perdu et que quelqu'un scanne le code, i l peut fournir son adresse email et recevoir vos indtructions pour retourner l'objet.",
+  "@lnf.concept": "Concept: Lost n Recover: Créer une étiquette avec un QR code pour vos objets du quotidien. Quand l'un d'eux est perdu et que quelqu'un scanne le code, i l peut fournir son adresse email et recevoir vos indtructions pour retourner l'objet.",
   "Wait what?": "Oupsie ?",
   "Hourrah": "Yeah!",
   "Tag": "Etiquette",
@@ -59,6 +59,12 @@
   "Edit tag": "Modifier l'étiquette",
   "lost": "perdu",
   "returned": "Retourné",
+  "recovered": "récupéré",
+  "new": "nouveau",
+	"pending": "en attente",
+	"rejected": "refusé",
+	"archived": "archivé",
+  "locked": "bloqué",
   "Default": "Par défaut",
   "Edit Instructions": "Modifier les instructions",
   "Name": "Nom",
@@ -170,5 +176,15 @@
   "Check config": "Contrôle config",
   "Review Instructions": "Revoir les instructions",
   "New instructions": "Nouvelles instructions",
-  "Discovery": "Découverte"
+  "Discovery": "Découverte",
+  "Discoveries": "Découvertes",
+  "Create new tags before printing them": "Créer une étiquette avant de pouvoir en imprimer",
+  "You have no tag yet!": "Vous n'avez pas encore d'étiquette !",
+  "Enter an email address to get instructions from the owner": "Saisisez votre adresse email pour obtenir des instructions du propriétaire",
+  "Page count": "Nombre de pages",
+  "Generate PDF and preview": "Générer le PDF et prévisualiser",
+  "Generate PDF and save": "Générer le PDF et sauvegarder",
+  "You have no instructions yet!": "Vous n'avez pas encore d'instructions !",
+  "Set as default instructions for future tags": "Choisissez ces instructions automatiquement pour les futures étiquettes",
+  "You have not discovered any tag, yet.": "Vous n'avez pas découvert d'étiquette pour l'instant"
 }

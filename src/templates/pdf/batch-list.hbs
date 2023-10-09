@@ -14,15 +14,15 @@
 		{{#each batches as | batch | }}
 		<tr>
 			<td>{{ batch.type }}</td>
-			<td>{{> status status=batch.status}}</td>
+			<td>{{>status status=batch.status}}</td>
 			<td>{{ batch.pageCount }}</td>
 			<td>{{#with (lookup @root/templates [pageFormat])~}}{{name}}{{/with}}</td>
 			<td>
-				<a href="/public/pdf/{{ batch._id }}.pdf"><img src="/public/icons/download.svg" title="{{ __ 'Download PDF' }}" /></a>
+				<a href="/public/pdf/{{ batch._id }}.pdf"><img src="/public/icons/download.svg" title="{{ __loc @root.locale 'Download PDF' }}" /></a>
 				{{#if (eq batch.status 'locked')}}
-				<a href="/admin/print/batch/{{ batch._id }}"><img src="/public/icons/grid.svg" title="{{ __ 'View' }}" /></a>
+				<a href="/admin/print/batch/{{ batch._id }}"><img src="/public/icons/grid.svg" title="{{ __loc @root.locale 'View' }}" /></a>
 				{{else}}
-				<a href="/admin/print/batch/{{ batch._id }}"><img src="/public/icons/edit.svg" title="{{ __ 'Edit' }}" /></a>
+				<a href="/admin/print/batch/{{ batch._id }}"><img src="/public/icons/edit.svg" title="{{ __loc @root.locale 'Edit' }}" /></a>
 				{{/if}}
 				</td>
 		</tr>

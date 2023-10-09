@@ -33,7 +33,7 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 	}
 
 	function localizedText(requestedLocale, key, data) {
-		let tr = `${key}`, needle = "", locale = requestedLocale ?? 'en';
+		let tr = `${key}`, needle = "", locale = (requestedLocale ?? (data.root?.locale ?? 'en'));
 		if(key) {
 			needle = `${key}`.replace(/(\r\n|\n|\r)/gm, "").trim();
 		} else {
@@ -49,13 +49,13 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 		}
 		return format(tr, ...data);
 	}
-	Handlebars.registerHelper("__", function(key) {
+	Handlebars.registerHelper("__", function __(key) {
 		return localizedText(this.locale, key, extractAdditionnalData(arguments, 1));
 	});
-	Handlebars.registerHelper("__loc", function(locale, key) {
+	Handlebars.registerHelper("__loc", function __loc(locale, key) {
 		return localizedText(locale, key, extractAdditionnalData(arguments, 2));
 	});
-	Handlebars.registerHelper('debug', function(obj) {
+	Handlebars.registerHelper('debug', function debugHelper(obj) {
 		return JSON.stringify(obj, null, "  ");
 	})
 	Handlebars.registerHelper('dateFormat', function dateFormat(date, format, options) {
@@ -64,13 +64,13 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 		// TODO: use timezone from user profile
 		return (true) ? moment(date).tz('Europe/Paris').locale(locale).format(format) : moment(date).locale(locale).format(format);
 	});
-	Handlebars.registerHelper('iconLink', function(href, icon, text) {
+	Handlebars.registerHelper('iconLink', function iconLink(href, icon, text) {
 		return `<a href="${href}"><button><img src="public/icons/${icon}.svg" alt="${text}" /></button></a>`
 	});
-	Handlebars.registerHelper('iconButton', function( icon, text) {
+	Handlebars.registerHelper('iconButton', function iconButton(icon, text) {
 		return `<button type="submit"><img src="public/icons/${icon}.svg" alt="${text}" /></button>`
 	});
-	Handlebars.registerHelper('localizedFile', function(filename, options) {
+	Handlebars.registerHelper('localizedFile', function localizedfile(filename, options) {
 		let locale = this.locale || options.data.root.locale || 'en';
 		let files = [ `locales/${filename}.${locale}.hbs`, `locales/${filename}.hbs`, `${filename}.${locale}.hbs`, `${filename}.hbs`];
 		for (const idx in files) {
@@ -88,22 +88,22 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 			}
 		}
 	});
-	Handlebars.registerHelper('selected', function(selected, option) {
+	Handlebars.registerHelper('selected', function selectedHelper(selected, option) {
 		return (selected == option) ? 'selected="selected"' : '';
 	});
-	Handlebars.registerHelper('reverse', function(arr) {
+	Handlebars.registerHelper('reverse', function reverseArrayHelper(arr) {
 		return Array.isArray(arr) ? arr.reverse() : arr;
 	});
-	Handlebars.registerHelper('eq', function(arg1, arg2) {
+	Handlebars.registerHelper('eq', function eqHelper(arg1, arg2) {
 		return arg1 == arg2;
 	});
-	Handlebars.registerHelper('ne', function(arg1, arg2) {
+	Handlebars.registerHelper('ne', function neHelper(arg1, arg2) {
 		return arg1 != arg2;
 	});
-	Handlebars.registerHelper('or', function(arg1, arg2) {
+	Handlebars.registerHelper('or', function orHelper(arg1, arg2) {
 		return arg1 || arg2;
 	});
-	Handlebars.registerHelper('and', function(arg1, arg2) {
+	Handlebars.registerHelper('and', function andHelper(arg1, arg2) {
 		return arg1 && arg2;
 	});
 }

@@ -32,7 +32,10 @@ import Handlebars from "handlebars";
 				strings.push(...extractBlock(file, subblock.value));
 			})
 		}
-		block.program.body.forEach(subblock => {
+		block.program?.body?.forEach(subblock => {
+			strings.push(...extractBlock(file, subblock));
+		});
+		block.inverse?.body?.forEach(subblock => {
 			strings.push(...extractBlock(file, subblock));
 		});
 	} else {
@@ -77,7 +80,7 @@ async function print(template) {
 let args = process.argv.slice(2), 
 	file = args[0];
 	
-// test = '/home/coder/project/lostnfound/src/templates/test.hbs';
+// file = 'src/templates/test.hbs';
 
 if(!file) {
 	search('src/templates');

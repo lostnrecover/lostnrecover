@@ -6,7 +6,7 @@
 		</label>
 		{{#each reasons }}{{#with this}}
 			<br/><input type="radio" value="{{ value }}" id="reason-{{value}}" name="reason" {{#if (eq @root.reason value)}}checked{{/if}}/>
-			<label for="reason-{{value}}">{{ __ name }}</label>
+			<label for="reason-{{value}}">{{ __loc @root.locale name }}</label>
 		{{/with}}{{/each}}
 	</p>
 	<p>

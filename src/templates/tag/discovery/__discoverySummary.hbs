@@ -7,7 +7,7 @@
 	{{#each (reverse discovery.states) }}
 	 {{#if @first}}<ul>{{/if}}
 		<li>
-		{{ __ this.status }} : {{ dateFormat this.updatedAt 'DD/MM/YY hh:mm'}}
+		{{ __loc @root.locale this.status }} : {{ dateFormat this.updatedAt 'DD/MM/YY hh:mm'}}
 		</li>
 	{{#if @last}}</ul>{{/if}}
 	{{/each}}

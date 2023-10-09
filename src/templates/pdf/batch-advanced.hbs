@@ -11,7 +11,7 @@
 			{{#each templates}}
 			<option value="{{@key}}" 
 				{{#if (eq @key @root.tpl)}} selected="selected"{{/if}}>
-				{{this.name}} ({{ this.tagCount }} {{ __ 'Tags per page'}})
+				{{this.name}} ({{ this.tagCount }} {{ __loc @root.locale 'Tags per page'}})
 			</option>
 			{{/each}}
 		</select>

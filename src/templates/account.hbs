@@ -60,10 +60,10 @@
 			<td>{{ dateFormat this.validUntil 'l LTS' }}</td>
 			<td>{{#if (ne @root.session.sessionId this._id)}}
 				<form action="/account/session/{{this._id}}/kill" method="post" >
-				<input type="image" src="/public/icons/trash-2.svg" title="{{ __ 'Kill' }}" />
+				<input type="image" src="/public/icons/trash-2.svg" title="{{ __loc @root.locale 'Kill' }}" />
 				</form>
 			{{else}}
-			<a href="/logout"><img src="/public/icons/log-out.svg" title="{{ __ 'Logout' }}" /></a>
+			<a href="/logout"><img src="/public/icons/log-out.svg" title="{{ __loc @root.locale 'Logout' }}" /></a>
 			{{/if}}</td>
 		</tr>
 		{{/each}}

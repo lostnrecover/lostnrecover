@@ -18,7 +18,7 @@
     {{#with this}}
     <tr>
       <td class="compact_id">{{ _id }}</span></td>
-      <td>{{ email }}{{#if isAdmin}}<span title="{{ __ 'Administrator' }}">*</span>{{/if}}</td>
+      <td>{{ email }}{{#if isAdmin}}<span title="{{ __loc @root.locale 'Administrator' }}">*</span>{{/if}}</td>
       <td>
         {{#if (or (eq status 'active') (eq status 'new'))}}
           <button form="form-{{ _id }}" type="submit" name="action" value="block" class="{{status}}">{{status}}</button>

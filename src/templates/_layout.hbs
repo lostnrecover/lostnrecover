@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>{{#if title}}{{ __ title }} - {{/if}}{{ config.appName }}</title>
+	<title>{{#if title}}{{ title }} - {{/if}}{{ config.appName }}</title>
 	<link rel="stylesheet" href="https://unpkg.com/marx-css/css/marx.min.css" />
 	<link rel="stylesheet" href="/public/css/app.css" />
 	{{#if (eq env 'dev')}}<link rel="stylesheet" href="/public/css/dev.css" />{{/if}}
