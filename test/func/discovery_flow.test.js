@@ -43,10 +43,6 @@ test('Discovery flow: ', async t => {
     t.equal(response.statusCode, 302, 'with redirect')
     t.match(redirect, 'finder@example.com', 'include email')
     t.match(redirect, '/t/lost_tag_1/notify', 'to notify id')
-    // response = await app.inject({
-    //   method: 'GET',
-    //   url: redirect
-    // });
   });
 
 
@@ -64,7 +60,6 @@ test('Discovery flow: ', async t => {
     authlink = mail.match(/^http.*(\/auth\?token=.*)$/m);
     t.not(authlink, null, 'Find token pattern');
     authlink = authlink[1];
-    // console.log(authlink);
     t.match(authlink,'/auth?token=', 'Find auth link');
   });
 
@@ -80,7 +75,7 @@ test('Discovery flow: ', async t => {
     t.match(response.headers['location'], '/t/lost_tag_1/notify', 'redirect to tag notification')
     t.ok(response.cookies.length > 0, 'has a session cookie');
     finder_session_cookie = response.cookies.find(e => e.name == 'lnr').value;
-    discurl = response.headers['location']
+    discurl = response.headers['location'];
     response = await app.inject({
       method: 'GET',
       url: discurl,
@@ -111,6 +106,18 @@ test('Discovery flow: ', async t => {
     t.match(mail, 'instructions for finder');
   });
 
+  t.test('finder can find its discovery in list', async (t) => {
+    let response = await app.inject({
+      method: 'GET',
+      url: '/discoveries',
+      cookies: { 'lnr': finder_session_cookie }
+    }), rowscount = 0;
+    t.equal(response.statusCode, 200, 'discoveries list ok');
+    t.match(response.body, `<td><a href="${discurl}">lost_tag_1</a></td>`, 'Link to discovery');
+    rowscount = ( response.body.match(/<tr>/g) || []).length - 1; // remove table header row
+    t.equal(1, rowscount, 'Only 1 discovery for finder')
+    t.match(response.body, '<td><span class="status  active">')
+  })
 
   t.test('finder returns item', async (t) => {
     let response = await app.inject({

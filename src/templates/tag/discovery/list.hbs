@@ -1,0 +1,33 @@
+{{#>layout title=(__ 'My Discoveries')}}
+{{#each discoveries }}
+{{#if @first}}
+{{#with @root}}{{!-- Switch to root context (to get correct locale) --}}
+<table class="listing">
+	<thead>
+	<tr>
+		<th>{{ __ 'Tag' }}</th>
+		<th>{{ __ 'Discovery Date' }}</th>
+		<th>{{ __ 'Last update' }}</th>
+		<th>{{ __ 'Last Status' }}</th>
+	</tr>
+	</thead>
+	<tbody>
+	{{/with}}
+{{/if}}
+<tr>
+	<td><a href="/t/{{ this.tag._id}}/notify/{{this._id}}">{{this.tag._id}}</a></td>
+	<td>{{dateFormat this.createdAt 'l LTS'}}</td>
+	<td>{{#each this.states}}{{#if @last}}{{dateFormat this.updatedAt 'l LTS'}}{{/if}}{{/each}}</td>
+	<td>{{>status status=this.status}}</td>
+	<td>
+		{{!-- <pre>{{debug this}}</pre> --}}
+	</td>
+</tr>
+{{#if @last}}
+	</tbody>
+</table>
+{{/if}}
+{{else}}
+<p>{{__ 'You have not discovered any tag, yet.'}}</p>
+{{/each}}
+{{/layout}}

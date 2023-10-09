@@ -1,5 +1,6 @@
 import { EXCEPTIONS } from '../services/exceptions.js';
-import { SCHEMA } from '../services/tags.js';
+import { SCHEMA, STATUS } from '../services/tags.js';
+import { STATUS as DISC_STATUS } from '../services/discovery.js';
 
 export default async function (fastify, opts, done) {
 	const 
@@ -42,7 +43,7 @@ export default async function (fastify, opts, done) {
 		preHandler: fastify.authentified 
 	}, async (request, reply) => {
 		let newTag = await filterInput(request, {
-			status: services.STATUS.ACTIVE, 
+			status: STATUS.ACTIVE, 
 			owner_id: request.currentUserId(), 
 			creator_id: request.currentUserId() 
 		});
@@ -93,7 +94,7 @@ export default async function (fastify, opts, done) {
 		preHandler: fastify.authentified
 	}, async (request, reply) => {
 		let tag = await services.TAGS.get(request.params.tagId), recipient = null, discovery = {
-			status: 'active',
+			status: DISC_STATUS.ACTIVE,
 			tag,
 			instructions: tag.instructions,
 		};
@@ -113,8 +114,8 @@ export default async function (fastify, opts, done) {
 	async function patchStatus(request, reply, action) {
 		let tag = await services.TAGS.getForUpdate(request.params.tagId, request.currentUserId()),
 		actions = {
-			'lost': { status: services.STATUS.LOST },
-			'active': { status: services.STATUS.ACTIVE, owner_id: request.currentUserId() }
+			'lost': { status: STATUS.LOST },
+			'active': { status: STATUS.ACTIVE, owner_id: request.currentUserId() }
 		};
 		if(!tag) {
 			throw(EXCEPTIONS.TAG_NOT_FOUND)
@@ -122,7 +123,7 @@ export default async function (fastify, opts, done) {
 		if(!Object.keys(actions).includes(action)) {
 			throw(EXCEPTIONS.NOT_FOUND);
 		}
-		update(tag._id, actions[action]);
+		services.TAGS.update(tag._id, actions[action]);
 		if(request.body.redirect) {
 			reply.redirect(request.body.redirect);
 		} else {
@@ -133,12 +134,12 @@ export default async function (fastify, opts, done) {
 	fastify.post('/:tagId/lost', {
 		preHandler: fastify.authentified
 	}, async (request, reply) => {
-		return await patchStatus(request, reply, 'lost');
+		return await patchStatus(request, reply, STATUS.LOST);
 	});
 	fastify.post('/:tagId/active', {
 		preHandler: fastify.authentified
 	}, async (request, reply) => {
-		return await patchStatus(request, reply, 'active');
+		return await patchStatus(request, reply, STATUS.ACTIVE);
 	});
 	done()
 }

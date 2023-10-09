@@ -235,5 +235,11 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 		return setStatus(id, STATUS.RECOVERED);
 	}
 
-  return { create, get, update, setPending, activate, flagReturned, close, reject }
+	async function listForFinder(user_id) {
+		return await search({
+			finder_id: user_id
+		});
+	}
+
+  return { create, get, update, setPending, activate, flagReturned, close, reject, listForFinder }
 }

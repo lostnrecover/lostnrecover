@@ -18,6 +18,7 @@ import * as AdminUsers from './routes/admin/users.js'
 import * as PdfContoller from './routes/pdf.js';
 import * as CodeController from './routes/code.js';
 import * as InstructionsController from './routes/instructions.js';
+import * as DiscoveriesController from './routes/discoveries.js';
 import { getLogger } from './utils/logging.js';
 import { initServices } from './utils/services.js';
 
@@ -51,14 +52,17 @@ export async function initApp(opts) {
 	fastify.register(CodeController, { prefix: '/code' })
 	fastify.register(PdfContoller, { prefix: '/pdf' });
 	fastify.register(User, { prefix: '/account' });
-	fastify.register(InstructionsController, { prefix: '/instructions'})
+	fastify.register(InstructionsController, { prefix: '/instructions'});
+	fastify.register(DiscoveriesController, { prefix: '/discoveries'});
 	
 	// fastify.register(TagsAPI, { prefix: '/api/1/tags'});
 
+	/* c8 ignore start */
 	fastify.decorate('initJobs', async () => {
 		// on demande job init
 		return initJobs(fastify, config);
 	})
+	/* c8 ignore end */
 
 	return fastify;
 }
