@@ -1,3 +1,4 @@
+// import { EXCEPTIONS } from "../services/exceptions.js";
 
 function invalidEmail(email) {
 	const INVALID = true, OK = false;
@@ -89,16 +90,15 @@ export default async function(fastify, opts, done) {
 				} catch(e) {
 					if(e=='Invalid Token') {
 						request.flash('warning', `Invalid token`);
-						data.title = 'Magiclink instructions';
-						response.code(401);
-						response.view('magicLink/instructions', data);
+						// response.code(401);
+						// response.view('magicLink/instructions', data);
+						throw(EXCEPTIONS.BAD_TOKEN);
 					} else {
 						throw(e);
 					}
 				}
 			} else {
 				// Propose to help
-				data.title = 'Magiclink instructions'
 				response.view('magicLink/instructions', data);
 			}
 			return response

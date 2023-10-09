@@ -148,8 +148,9 @@ export async function AuthTokenService(mongodb, parentLogger, config) {
 	async function isAdmin(request, reply) {
 		let isAdmin = request.serverSession?.user?.isAdmin;
 		if(process.env.ENV != 'dev' && !isAdmin) {
-			throw(EXCEPTIONS.NOT_AUTHORISED);
+			return false;
 		}
+		return isAdmin;
 	}
 	return { createAuth, verify, authentified, isAdmin, createSession, updateSession, deleteSession, getSession, deleteCurrentSession }
 }

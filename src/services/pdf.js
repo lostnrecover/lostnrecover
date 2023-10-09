@@ -54,7 +54,7 @@ export async function PdfService(mongodb, parentLogger, config, TAGS, QR) {
 		COLLECTION = 'prints';
 	let PRINTS = await initCollection(mongodb, COLLECTION);
 
-	loadTemplates();
+	await loadTemplates();
 
 	function initDoc(pdfname, size) {
 		let doc = new PDFDocument({
