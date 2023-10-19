@@ -3,14 +3,21 @@
     {
     "_id": "token-owner",
     "email": "owner@example.com",
-    "type": "session",
+    "type": "auth",
     "validUntil": "9999-12-31T23:59:59.999Z",
     "expireAt": "9999-12-31T23:59:59.999Z"
   },
   {
     "_id": "token-finder",
     "email": "finder@example.com",
-    "type": "session",
+    "type": "auth",
+    "validUntil": "9999-12-31T23:59:59.999Z",
+    "expireAt": "9999-12-31T23:59:59.999Z"
+  },
+  {
+    "_id": "admin_user_session",
+    "email": "admin@example.com",
+    "type": "auth",
     "validUntil": "9999-12-31T23:59:59.999Z",
     "expireAt": "9999-12-31T23:59:59.999Z"
   }

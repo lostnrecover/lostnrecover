@@ -1,5 +1,5 @@
 import * as MongoDB from '@fastify/mongodb';
-import * as fastifySession from '@fastify/secure-session'
+import * as fastifySession from '@fastify/secure-session';
 import fastifyCookie from '@fastify/cookie';
 import * as fastifyView from '@fastify/view';
 import * as fastifyStatic from '@fastify/static';
@@ -13,7 +13,6 @@ import fastifyForm from '@fastify/formbody';
 // Templating
 import Handlebars from 'handlebars';
 import { loadHelpers, loadPartials, templateGlobalContext } from './templating.js';
-import { AuthTokenService } from '../services/authtoken.js';
 
 export function loadFastifyPlugins(fastify, config) {
 
@@ -42,14 +41,14 @@ export function loadFastifyPlugins(fastify, config) {
 		
 	fastify.decorateRequest('serverSession', null);
 	// TODO outsource to a locale dedicated file
-	fastify.addHook("preHandler", async function (request, reply) {
+	fastify.addHook('preHandler', async function (request, reply) {
 		let session = await fastify.services?.AUTH?.getSession(request), data = request.serverSession?.data;
 		if(!config.DOMAIN || config.DOMAIN == '') {
-			config.DOMAIN = `${request.hostname}`
-			request.log.info(`Switched domain: ${config.DOMAIN}`)
+			config.DOMAIN = `${request.hostname}`;
+			request.log.info(`Switched domain: ${config.DOMAIN}`);
 		}
 		if (Object.keys(config.locales).indexOf(request.query.locale) > -1) {
-			request.session.set('locale', request.query.locale)
+			request.session.set('locale', request.query.locale);
 		}
 		reply.locals = templateGlobalContext(config, request.session.get('locale') || 'en');
 		reply.locals.session = {
@@ -58,10 +57,10 @@ export function loadFastifyPlugins(fastify, config) {
 			email: session?.user?.email || false,
 			user_id: session?.user?._id || false,
 			// isAdmin: session?.user?.isAdmin || false
-			isAdmin: fastify.isAdmin(request, reply)
-		}
+			isAdmin: (await fastify.services.AUTH.isAdmin(request, reply)) ?? false
+		};
 		// Only get flash for "main" request
-		if(request.routerPath != "/public/*") {
+		if(request.routerPath != '/public/*') {
 			reply.locals.flash = reply.flash();
 		}
 		// done();
@@ -76,7 +75,7 @@ export function loadFastifyPlugins(fastify, config) {
 	fastify.decorateRequest('currentUserId', function() {
 		return this.serverSession?.user?._id;
 	});
-	const TPL_DIR = config.template_dir
+	const TPL_DIR = config.template_dir;
 	fastify.register(fastifyView, {
 		engine: {
 			handlebars: Handlebars
