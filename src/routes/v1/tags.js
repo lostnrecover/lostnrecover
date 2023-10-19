@@ -12,37 +12,38 @@ export default function(fastify, opts, done) {
 	}, async (req, res) => {
 		let tag = req.body;
 		// Extract user and add it to the tag
-		if (true) {
-			tag.owner = 'admin';
-		}
-		let result = await services.TAGS.create(tag)
+		// if (true) {
+		tag.owner = 'admin';
+		// }
+		let result = await services.TAGS.create(tag);
 		if(result) {
 			// fastify.log.info('New Tag', result._id)
-			res.redirect(`/api/1/tags/${tag.id}`).send(t);
+			res.redirect(`/api/1/tags/${tag.id}`);
 		} else {
-			res.code(500).send({ error: 'save not acknowleded' })
+			res.code(500).send({ error: 'save not acknowleded' });
 		}
 	});
 	fastify.get('/', {
 		preHandler: fastify.authentified
-	}, async (request, res) => {
-		let tags = services.TAGS.findForUser(request.serverSession.user.email)
+	}, async (request) => {
+		return services.TAGS.findForUser(request.serverSession.user.email);
 	});
 	fastify.delete('/inconsistent', {
 		preHandler: fastify.authentified
-	},async (req, res) => {
+	},async () => {
 		let filter = { status: null };
 		return services.TAGS.remove(filter);
-	})
+	});
 	fastify.get('/:id', {
 		preHandler: fastify.authentified
-	},(req,res) => {
-		return services.TAGS.get(req.params.id)
+	},(req) => {
+		return services.TAGS.get(req.params.id);
 	});
 	fastify.post('/:id/notify', {
 		preHandler: fastify.authentified
-	},(req,res) => {
-		return services.TAGS.notify(req.params.id)
+	},(req) => {
+		return services.TAGS.notify(req.params.id);
 	});
+	logger.debug('TagsAPIRoute loaded');
 	done();
 }

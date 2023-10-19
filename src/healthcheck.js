@@ -17,15 +17,15 @@ async function run() {
 	try {
 		let status, services = await serviceLoader(db, logger, config);
 		// Connect the client to the server (optional starting in v4.7)
-    // Establish and verify connection
-    console.log("Connected successfully to server");
-		status = await services.STATUS.check("Monitoring script")
-		console.log(status)
-		exit = 0
-  } catch {
-    // Ensures that the client will close when you finish/error
+		// Establish and verify connection
+		console.log('Connected successfully to server');
+		status = await services.STATUS.check('Monitoring script');
+		console.log(status);
+		exit = 0;
+	} catch {
+		// Ensures that the client will close when you finish/error
 		exit = 1;
-  }
+	}
 }
 run().catch(console.dir).finally(async () => {
 	// await client.close();

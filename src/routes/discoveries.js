@@ -12,6 +12,7 @@ export default async function (fastify, opts, done) {
 		let discoveries = await services.DISC.listForFinder(request.currentUserId());
 		reply.view('tag/discovery/list', { discoveries });
 		return reply;
-	})
+	});
+	logger.debug('DiscoveriesRoute loaded');
 	done();
 }

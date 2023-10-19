@@ -1,6 +1,6 @@
 
-import { initCli } from "./cli-base.js";
-import { serviceLoader } from "../utils/services.js";
+import { initCli } from './cli-base.js';
+import { serviceLoader } from '../utils/services.js';
 
 let cli = await initCli();
 let args = process.argv.slice(2), 
@@ -9,7 +9,7 @@ let args = process.argv.slice(2),
 
 cli.logger.info(args);
 if(!email) {
-	cli.logger.error("Missing argument user email address")
+	cli.logger.error('Missing argument user email address');
 	process.exit(99);
 }
 try {
@@ -18,14 +18,14 @@ try {
 	let services = await serviceLoader(cli.db, cli.logger, cli.config);
 	let u = await services.USERS.findOrFail(email);
 	if(u.isAdmin == state) {
-		cli.logger.warn('User already %s', state ? 'admin' : 'not admin')
+		cli.logger.warn('User already %s', state ? 'admin' : 'not admin');
 	} else {
 		await services.USERS.update(u._id, {isAdmin: state});
-		u = await services.USERS.findOrFail(email)
+		u = await services.USERS.findOrFail(email);
 	}
 	cli.logger.info(u);
 } catch (e) {
-	logger.error(e);
+	cli.logger.error(e);
 } finally {
 	await cli.close();
 }

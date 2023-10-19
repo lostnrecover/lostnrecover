@@ -13,7 +13,7 @@ export default async function(fastify, opts, done) {
 				user.tz = 'Europe/Paris';
 			}
 			if(user.tokens[0]) {
-				NewAuth = {}
+				NewAuth = {};
 				NewAuth.URL = `https://${fastify.config.DOMAIN}/auth?token=${user.tokens[0]._id}`;
 				NewAuth.QR = await services.QR.getQRCodeForLogin(user.tokens[0]._id);
 			}
@@ -21,10 +21,10 @@ export default async function(fastify, opts, done) {
 				user,
 				NewAuth,
 				timezones: tz.default.sort((a,b) => {
-					return a.label > b.label
+					return a.label > b.label;
 				})
 			});
-			return reply
+			return reply;
 		}
 	);
 
@@ -41,15 +41,18 @@ export default async function(fastify, opts, done) {
 			user = 	await services.USERS.update(user._id, user);
 			reply.redirect(request.url);
 			return reply;
-	});
+		});
 
 	fastify.post('/session', { preHandler: fastify.authenticated },
 		async (request, reply) => {
 			// create a auth token
-			let session = await services.AUTH.getSession(request), token = await services.AUTH.createAuth(request.serverSession.user.email),
-			// gen QR code
-				url =  `${request.protocol}://${request.hostname}/auth?token=${token}`;
-
+			let session, token;
+			session = await services.AUTH.getSession(request);
+			if( session == null) {
+				throw(EXCEPTIONS.BAD_TOKEN);
+			}
+			token = await services.AUTH.createAuth(session.user.email);
+			logger.debug(`New sesion created successfully (${token})`);
 			// redirect to listing
 			reply.redirect('/account/');
 			return reply;
@@ -59,8 +62,8 @@ export default async function(fastify, opts, done) {
 	fastify.post('/session/:id/kill', { preHandler: fastify.authenticated },
 		async (request, reply) => {
 			let user = await services.USERS.findOrFail(request.serverSession.user.email), 
-					sessionIdToDelete = request.params.id,
-					session = await services.AUTH.getSession(request);
+				sessionIdToDelete = request.params.id,
+				session = await services.AUTH.getSession(request);
 			if(!user) {
 				throw(EXCEPTIONS.ACTION_NOT_AUTHORISED);
 			}
@@ -73,5 +76,6 @@ export default async function(fastify, opts, done) {
 			return reply;
 		}
 	);
+	logger.debug('UserRoute loaded');
 	done();
 }

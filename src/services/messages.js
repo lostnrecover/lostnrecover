@@ -1,14 +1,15 @@
-import { nanoid } from "nanoid";
-import { initCollection } from "../utils/db.js";
-import { getMailer } from "../utils/mail.js";
+import { nanoid } from 'nanoid';
+import { initCollection } from '../utils/db.js';
+import { getMailer } from '../utils/mail.js';
+import { EXCEPTIONS } from './exceptions.js';
 
-const BATCHSEND = 'Messages.batchSend'
+const BATCHSEND = 'Messages.batchSend';
 
 export async function MessageService(mongodb, parentLogger, config) {
-	const COLLECTION = 'messages'
+	const COLLECTION = 'messages';
 	// FIXME to configuration
 	const retentionDays = 14;
-	const logger = parentLogger.child({ service: 'Message' })
+	const logger = parentLogger.child({ service: 'Message' });
 	// const MSG = mongodb.collection(COLLECTION);
 	let MSG = await initCollection(mongodb, COLLECTION),
 		mailer = await getMailer(config, logger);
@@ -17,15 +18,18 @@ export async function MessageService(mongodb, parentLogger, config) {
 		// init agenda job
 		workerJob.define(
 			BATCHSEND,
-			{ priority: "high", concurrency: 10 },
-			async (job) => {
-				let count = batchSend().then((count) => {
+			{ priority: 'high', concurrency: 1},
+			async () => { // (job)
+				let count = await batchSend(); 
+				// logger.debug(job);
+				if(count > 0) {
 					logger.info(`${BATCHSEND} executed: Sent ${count} messages`);
-				});
+				}
 			}
 		);
-		workerJob.every("1 minute", BATCHSEND);
-		logger.info(`${BATCHSEND} Jobs registered...`)
+		workerJob.enable({ name: BATCHSEND });
+		workerJob.every('1 minute', BATCHSEND);
+		logger.info(`${BATCHSEND} Jobs registered...`);
 	}
 
 	async function get(id) {
@@ -45,9 +49,9 @@ export async function MessageService(mongodb, parentLogger, config) {
 		};
 		const result = await MSG.insertOne(msg);
 		if (!result.acknowledged) {
-			throw ('Impossible to save message')
+			throw ('Impossible to save message');
 		}
-		return await get(result.insertedId)
+		return await get(result.insertedId);
 	}
 
 	async function update(id, fields) {
@@ -59,8 +63,10 @@ export async function MessageService(mongodb, parentLogger, config) {
 				...fields,
 				updatedAt: new Date()
 			}
-		})
-		// FIXME: Check result and eventually throw exception
+		});
+		if(result.modifiedCount != 1) {
+			throw EXCEPTIONS.UPDATE_FAILED;
+		}
 		return await get(id);
 	}
 
@@ -114,12 +120,12 @@ export async function MessageService(mongodb, parentLogger, config) {
 			messageId: "<4fd9d2e1-ef01-efd5-04d6-a63ee1743dd4@dev.lostnrecover.me>",
 		}
 		*/
-		logger.debug({...res, msg: 'SendMail result', msgID})
+		logger.debug({...res, msg: 'SendMail result', msgID});
 		if (!res) {
 			update(msgID, { status: 'error', response: res.repsonse });
 			return false;
 		}
-		expireAt.setDate(now.getDate() + retentionDays)
+		expireAt.setDate(now.getDate() + retentionDays);
 		await update(msgID, { status: 'sent', sentAt: new Date(), expireAt: expireAt, response: { id: res.messageId, response: res.response } });
 		return await get(msgID);
 	}
@@ -127,9 +133,9 @@ export async function MessageService(mongodb, parentLogger, config) {
 	async function batchSend() {
 		const cursor = MSG.find({ status: 'new' });
 		let idx = 0;
-		await cursor.stream().on("data", msg => {
+		await cursor.stream().on('data', msg => {
 			send(msg._id);
-			idx++
+			idx++;
 		});
 		return idx;
 	}
@@ -138,5 +144,5 @@ export async function MessageService(mongodb, parentLogger, config) {
 		return await MSG.find(filter).sort({ createdAt: -1 }).toArray();
 	}
 
-	return { create, get, pause, resume, send, batchSend, list, registerJob }
+	return { create, get, pause, resume, send, batchSend, list, registerJob };
 }

@@ -9,7 +9,7 @@ export function getLogger(config) {
 				return { level: label.toUpperCase() };
 			},
 			bindings: (bindings) => {
-				return { pid: bindings.pid, hostname: config.DOMAIN || bindings.hostname, app: config.appName }
+				return { pid: bindings.pid, hostname: config.DOMAIN || bindings.hostname, app: config.appName };
 			}
 		},
 		// base: {pid: process.pid, hostname: os.hostname,  app: config.appName},

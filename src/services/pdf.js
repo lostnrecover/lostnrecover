@@ -9,24 +9,24 @@ import Ajv from 'ajv';
 
 const ajv = new Ajv();
 const pdfpoint = 2.834666667;
-let DEFAULT_TPL = "avL7120";
+let DEFAULT_TPL = 'avL7120';
 const templates = {
-	"avery-L7120": {
-		"id": "avery-L7120",
-		"name": "Avery A4 35mmx35mm L7120",
-		"marginTop": 18.5,
-		"marginLeft": 12,
-		"hspace": 2.5,
-		"vspace": 2.5,
-		"rows": 7,
-		"perRow": 5,
-		"cellWidth": 35,
-		"cellHeight": 35,
-		"size": "A4"
+	'avery-L7120': {
+		'id': 'avery-L7120',
+		'name': 'Avery A4 35mmx35mm L7120',
+		'marginTop': 18.5,
+		'marginLeft': 12,
+		'hspace': 2.5,
+		'vspace': 2.5,
+		'rows': 7,
+		'perRow': 5,
+		'cellWidth': 35,
+		'cellHeight': 35,
+		'size': 'A4'
 	},
-	"avery-25x25-S": {
-		id: "avery-25x25-S",
-		name: "Avery A4 25mmx25mm 25x25-S",
+	'avery-25x25-S': {
+		id: 'avery-25x25-S',
+		name: 'Avery A4 25mmx25mm 25x25-S',
 		marginTop: 14.5,
 		marginLeft: 11.5,
 		hspace: 2,
@@ -37,16 +37,16 @@ const templates = {
 		cellHeight: 25,
 		size: 'A4'
 	}
-}
+};
 
 function getCol(position, perRow) {
 	return ((position) % perRow);
 }
 function getLine(position, perRow) {
-	return Math.trunc((position) / perRow)
+	return Math.trunc((position) / perRow);
 }
 function toPoint(inMM) {
-	return Number(inMM) * pdfpoint
+	return Number(inMM) * pdfpoint;
 }
 
 export async function PdfService(mongodb, parentLogger, config, TAGS, QR) {
@@ -64,15 +64,15 @@ export async function PdfService(mongodb, parentLogger, config, TAGS, QR) {
 		doc.pipe(createWriteStream(pdfname));
 		doc.info['Title'] = 'Tag stickers';
 		doc.info['Author'] = config.appName;
-		return doc
+		return doc;
 	}
 
 	async function loadTemplates() {
 		try {
 			let s = await readFile(join(config.data_dir, 'templates.schema.json')),
-					validate = ajv.compile(JSON.parse(s.toString())),
-					t = await readFile(join(config.data_dir, 'templates.json')),
-					tpls = JSON.parse(t.toString());
+				validate = ajv.compile(JSON.parse(s.toString())),
+				t = await readFile(join(config.data_dir, 'templates.json')),
+				tpls = JSON.parse(t.toString());
 			const valid = validate(tpls);
 			if(!valid) {
 				throw(ajv.errors);
@@ -82,23 +82,23 @@ export async function PdfService(mongodb, parentLogger, config, TAGS, QR) {
 				templates[e.id] = e;
 			});
 			DEFAULT_TPL = tpls[0].id;
-			logger.info(`Loaded ${Object.keys(templates).length} templates (${DEFAULT_TPL})`)
+			logger.info(`Loaded ${Object.keys(templates).length} templates (${DEFAULT_TPL})`);
 		} catch(e) {
 			logger.error(e);
-			logger.error(`Impossible to load templates from data_dir: ${e}`)
+			logger.error(`Impossible to load templates from data_dir: ${e}`);
 		}		
 	}
 
 	async function elasticTagBatch(batchId, tagCount, tpl) {
 		let tagsInBatch, 
 			filter={ batchId , status: 'new' }, 
-			tagTemplate = { ...tpl, batchId }
+			tagTemplate = { ...tpl, batchId };
 		TAGS.bulkSet(filter, tagTemplate);
 		tagsInBatch = await TAGS.search(filter); // TODO should we filter with creator ?
 		if(tagsInBatch.length < tagCount) {
 			// Add more tags 
 			let nt = await TAGS.bulkCreate(tagTemplate, tagCount-tagsInBatch.length);
-			tagsInBatch.push(...nt)
+			tagsInBatch.push(...nt);
 		} else if(tagsInBatch.length > tagCount) {
 			// remove if too much
 			let removed = tagsInBatch.splice(tagCount);
@@ -107,7 +107,7 @@ export async function PdfService(mongodb, parentLogger, config, TAGS, QR) {
 					{'_id': { $in: removed.map(t => t._id) }},
 					{ batchId: batchId }
 				]
-			 });
+			});
 		}
 		// update all with label and other attrbitues from template ?
 		return tagsInBatch;
@@ -119,7 +119,7 @@ export async function PdfService(mongodb, parentLogger, config, TAGS, QR) {
 			pageTemplate = templates[batch.pageFormat] ?? templates[DEFAULT_TPL], 
 			tagCount = (batch.pageCount * pageTemplate.perRow * pageTemplate.rows) - batch.skip,
 			newTags = await elasticTagBatch(batch._id, tagCount, tagTemplate);
-		newTags = newTags.map((t,i) => { return {...t, qty: 1, printlabel: batch.withlabel} } ) 
+		newTags = newTags.map((t) => { return {...t, qty: 1, printlabel: batch.withlabel}; } ); 
 		generate(batch._id, newTags, pageTemplate.id, batch.skip);
 		if(exists(batch._id)) {
 			batch.file = getCachedFilename(batch._id);
@@ -129,16 +129,17 @@ export async function PdfService(mongodb, parentLogger, config, TAGS, QR) {
 	}
 
 	async function batchPrint(batchId, tagTpl, pageCount, pageFormat, skip, withLabel) {
-		let batch = {
+		let
+			batch = {
 				_id: batchId ?? nanoid(),
 				type: 'new-tags',
-				pageFormat: templates.hasOwnProperty(pageFormat) ? pageFormat : DEFAULT_TPL,
+				pageFormat: pageFormat in templates ? pageFormat : DEFAULT_TPL,
 				pageCount: pageCount, 
 				withlabel: !!withLabel,
 				tagTemplate: {...tagTpl, status: 'new'},
 				skip: skip ?? 0
 			};
-			return await createOrUpdateAdvancedBatch(batch);
+		return await createOrUpdateAdvancedBatch(batch);
 	}
 
 	async function updateBatch(batchInput) {
@@ -150,7 +151,7 @@ export async function PdfService(mongodb, parentLogger, config, TAGS, QR) {
 		if(b.type == 'new-tags') {
 			return await createOrUpdateAdvancedBatch(batch);
 		} else {
-			return await saveBatch(b)
+			return await saveBatch(b);
 		}
 	}
 
@@ -158,10 +159,10 @@ export async function PdfService(mongodb, parentLogger, config, TAGS, QR) {
 		const query = { _id: batch._id }, 
 			update = { $set: batch},
 			options = { upsert: true };
-		if(!batch.hasOwnProperty('status')) {
-			batch.status = 'new'
+		if(!('status' in batch)) {
+			batch.status = 'new';
 		} else {
-			batch.status = (batch.status == 'new') ? 'new' : 'locked'
+			batch.status = (batch.status == 'new') ? 'new' : 'locked';
 		}
 		await PRINTS.updateOne(query, update, options);
 		return await getBatch(batch._id);
@@ -194,23 +195,23 @@ export async function PdfService(mongodb, parentLogger, config, TAGS, QR) {
 
 		list.forEach((e, index) => {
 			let idx = (index + startAt) % labelsPerPage,
-			angle = -90,
-			posX = getCol(idx, tpl.perRow),
-			posY = getLine(idx, tpl.perRow),
-			x = tpl.marginLeft + posX * (tpl.hspace + tpl.cellWidth) ?? 0,
-			y = tpl.marginTop + posY * (tpl.vspace + tpl.cellHeight) ?? 0,
-			padding = 3,
-			xRot = toPoint(x),
-			yRot = toPoint(y+tpl.cellHeight) - 12;
+				angle = -90,
+				posX = getCol(idx, tpl.perRow),
+				posY = getLine(idx, tpl.perRow),
+				x = tpl.marginLeft + posX * (tpl.hspace + tpl.cellWidth) ?? 0,
+				y = tpl.marginTop + posY * (tpl.vspace + tpl.cellHeight) ?? 0,
+				padding = 3,
+				xRot = toPoint(x),
+				yRot = toPoint(y+tpl.cellHeight) - 12;
 			if(idx == 0 && index > 0) {
 				doc.addPage();// {margin: 0});
 			}
-			logger.child({ e, startAt, idx, index, posX, posY, x, y, labelsPerPage}).debug('img atttributes')
+			logger.child({ e, startAt, idx, index, posX, posY, x, y, labelsPerPage}).debug('img atttributes');
 			doc.image(e.tagFile, toPoint(x)+padding, toPoint(y)+padding, { width: toPoint(tpl.cellWidth)-2*padding });
 			// .rect(toPoint(x), toPoint(y), toPoint(tpl.cellWidth), toPoint(tpl.cellHeight))
 			// .stroke();
 			doc.fontSize(8).text( config.SHORT_DOMAIN || config.DOMAIN, toPoint(x), toPoint(y)+2, { width: toPoint(tpl.cellWidth), align: 'center' });
-			doc.font('Courier').fontSize(8).text(`ID: ${e._id}`, toPoint(x), toPoint(y+tpl.cellHeight)-8, { width: toPoint(tpl.cellWidth), align: 'center' } )
+			doc.font('Courier').fontSize(8).text(`ID: ${e._id}`, toPoint(x), toPoint(y+tpl.cellHeight)-8, { width: toPoint(tpl.cellWidth), align: 'center' } );
 			if(e.printlabel) {
 				doc.rotate( angle, { origin: [xRot,yRot] });
 				doc.fontSize(9).fillColor('grey').text( `(${e.label})`, xRot, yRot, { width: toPoint(tpl.cellWidth)-24, align: 'center' }).fillColor('black');
@@ -224,7 +225,7 @@ export async function PdfService(mongodb, parentLogger, config, TAGS, QR) {
 				code: template
 			},
 			data: data
-		})), {name: 'data.json' })
+		})), {name: 'data.json' });
 		doc.end();
 	}
 
@@ -234,5 +235,5 @@ export async function PdfService(mongodb, parentLogger, config, TAGS, QR) {
 	function exists(filename) {
 		return existsSync(getCachedFilename(filename));
 	}
-	return { templates, generate, exists, batchPrint, getBatches, getBatch, updateBatch }
+	return { templates, generate, exists, batchPrint, getBatches, getBatch, updateBatch };
 }

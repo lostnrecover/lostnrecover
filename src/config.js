@@ -1,23 +1,23 @@
 
 // current dir for options
-import path from 'path'
+import path from 'path';
 import url from 'url';
 import {ConnectionString} from 'connection-string';
 import { getSecret } from './utils/secrets.js';
-import dotenv from "dotenv";
-import { readFileSync } from "fs";
+import dotenv from 'dotenv';
+import { readFileSync } from 'fs';
 import os from 'os';
 
 dotenv.config();
 
-const pkg = JSON.parse(readFileSync("./package.json")) ?? {};
+const pkg = JSON.parse(readFileSync('./package.json')) ?? {};
 
 const appName = process.env.APP_NAME || pkg.displayName;
 
-const smtpcs = new ConnectionString(process.env.SMTP_URL || "smtp://localhost:587");
-const imapcs = new ConnectionString(process.env.IMAP_URL || "imap://localhost:993?secure=true")
+const smtpcs = new ConnectionString(process.env.SMTP_URL || 'smtp://localhost:587');
+const imapcs = new ConnectionString(process.env.IMAP_URL || 'imap://localhost:993?secure=true');
 const appId = `${os.hostname()}/${pkg.name}-${pkg.version}`;
-const dbcs = new ConnectionString(process.env.DB_URL || `mongodb://mongodb/lostnfound_${process.env.ENV}`)
+const dbcs = new ConnectionString(process.env.DB_URL || `mongodb://mongodb/lostnfound_${process.env.ENV}`);
 dbcs.setDefaults({
 	params: {
 		appname: `${appId}`
@@ -56,7 +56,7 @@ export const config = {
 		host: smtpcs.hostname,
 		port: smtpcs.port,
 		secure: smtpcs.params?.secure ? true : false,
-    auth: {
+		auth: {
 			user: smtpcs.user,
 			pass: smtpcs.password
 		}
@@ -72,4 +72,4 @@ export const config = {
 			pass: imapcs.password
 		}
 	}
-}
+};

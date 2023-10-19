@@ -1,6 +1,6 @@
-import { test } from 'tap'
+import { test } from 'tap';
 import { getSecret } from '../../src/utils/secrets.js';
-import { access, constants, rm} from 'fs/promises'
+import { access, constants, rm} from 'fs/promises';
 // import Fixtures from 'node-mongodb-fixtures';
 
 
@@ -10,28 +10,28 @@ test('Secret Management', async (t) => {
 
 	t.beforeEach(async () => {
 		return rm(missingFile, { force: true });
-	})
+	});
 	
 	t.afterEach(async () => {
 		return rm(missingFile, { force: true });
-	})
+	});
 
 	t.test('read secret from file', async t => {
 		let expected = Buffer.from('secret text');
 		// t.ok(expected.compares(await getSecret(actualSecret)), 'Should read secret text in file')
-		t.equal((await getSecret('./test/data/secret.txt')).toString('hex'), expected.toString('hex'), 'Should read secret text in file')
-	})
+		t.equal((await getSecret(actualSecret)).toString('hex'), expected.toString('hex'), 'Should read secret text in file');
+	});
 	
 	t.test('create a new secret if not exists', async t => {
 		let secret = await getSecret(missingFile);
 		// a secret is found
-		t.equal(secret.length, 32, "Secret length = 32");
+		t.equal(secret.length, 32, 'Secret length = 32');
 		// a secret file exists
 		try {
-			let a = await access(missingFile, constants.R_OK)
+			await access(missingFile, constants.R_OK);
 			t.pass('File exists');
 		} catch(e) {
-			t.fail("File should exists after secret requested");
+			t.fail('File should exist after secret requested');
 		}
-	})
-})
+	});
+});

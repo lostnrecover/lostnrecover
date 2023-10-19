@@ -9,7 +9,7 @@ export async function initCli() {
 			target: 'pino-pretty'
 		}
 	});
-	logger.info("Connecting to %s", config.db_url);
+	logger.info('Connecting to %s', config.db_url);
 	let client = new MongoClient(config.db_url);
 	await client.connect();
 	return {
@@ -17,7 +17,7 @@ export async function initCli() {
 		config,
 		db: client.db(),
 		close: async () => {
-			return await client.close()
+			return await client.close();
 		}
-	}
+	};
 }

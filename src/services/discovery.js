@@ -1,6 +1,6 @@
-import { nanoid } from "nanoid";
-import { EXCEPTIONS } from './exceptions.js'
-import { initCollection } from "../utils/db.js";
+import { nanoid } from 'nanoid';
+import { EXCEPTIONS } from './exceptions.js';
+import { initCollection } from '../utils/db.js';
 import { STATUS as TAGS_STATUS } from './tags.js';
 
 export const STATUS = {
@@ -10,9 +10,9 @@ export const STATUS = {
 	RETURNED: 'returned',
 	RECOVERED: 'recovered',
 	REJECTED: 'rejected'
-}
+};
 
-export const FINAL_STATUS= [ STATUS.RECOVERED, STATUS.REJECTED ]
+export const FINAL_STATUS= [ STATUS.RECOVERED, STATUS.REJECTED ];
 
 export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS, USERS) {
 	const COLLECTION = 'discovery';
@@ -21,59 +21,59 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 	let DISCOVERY = await initCollection(mongodb, COLLECTION);
 	//.then(col => DISCOVERY = col);
 	// TODO job to process discovery expiration new, closed
-  // TODO Ensure Init index if any
+	// TODO Ensure Init index if any
 
 	async function search(filter) {
 		return await DISCOVERY.aggregate(
-      [
-        {
-          '$match': filter
-        }, {
-          '$lookup': {
-            'from': 'users', 
-            'localField': 'finder_id', 
-            'foreignField': '_id', 
-            'as': 'finder'
-          }
-        }, {
-          '$unwind': {
-            'path': '$finder', 
-            'preserveNullAndEmptyArrays': true
-          }
-        }, {
-          '$lookup': {
-            'from': 'tags', 
-            'localField': 'tagId', 
-            'foreignField': '_id', 
-            'as': 'tag'
-          }
-        }, {
-          '$unwind': {
-            'path': '$tag', 
-            'preserveNullAndEmptyArrays': true
-          }
-        }, {
-          '$addFields': {
-            'instructions_id': '$tag.instructions_id'
-          }
-        }, {
-          '$lookup': {
-            'from': 'instructions', 
-            'localField': 'instructions_id', 
-            'foreignField': '_id', 
-            'as': 'instructions'
-          }
-        }, {
-          '$unwind': {
-            'path': '$instructions', 
-            'preserveNullAndEmptyArrays': true
-          }
-        }
-      ]
+			[
+				{
+					'$match': filter
+				}, {
+					'$lookup': {
+						'from': 'users', 
+						'localField': 'finder_id', 
+						'foreignField': '_id', 
+						'as': 'finder'
+					}
+				}, {
+					'$unwind': {
+						'path': '$finder', 
+						'preserveNullAndEmptyArrays': true
+					}
+				}, {
+					'$lookup': {
+						'from': 'tags', 
+						'localField': 'tagId', 
+						'foreignField': '_id', 
+						'as': 'tag'
+					}
+				}, {
+					'$unwind': {
+						'path': '$tag', 
+						'preserveNullAndEmptyArrays': true
+					}
+				}, {
+					'$addFields': {
+						'instructions_id': '$tag.instructions_id'
+					}
+				}, {
+					'$lookup': {
+						'from': 'instructions', 
+						'localField': 'instructions_id', 
+						'foreignField': '_id', 
+						'as': 'instructions'
+					}
+				}, {
+					'$unwind': {
+						'path': '$instructions', 
+						'preserveNullAndEmptyArrays': true
+					}
+				}
+			]
 		).toArray();
 	}
 
-  async function get(id) {
+	async function get(id) {
 		if(!id) {
 			throw('Missing id');
 		}
@@ -82,21 +82,21 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 		return d[0];
 	}
 
-  async function create(tag, finder_id, owner_id, shareFinder) {
-    let discovery = {
-      _id: nanoid(),
-      tagId: tag._id,
+	async function create(tag, finder_id, owner_id, shareFinder) {
+		let discovery = {
+			_id: nanoid(),
+			tagId: tag._id,
 			finder_id, owner_id,
 			allowFinderSharing: !!shareFinder,
-      createdAt: new Date(),
-      status: 'new'
-    };
-    if(!tag) {
-      throw EXCEPTIONS.MISSING_TAG;
-    }
+			createdAt: new Date(),
+			status: 'new'
+		};
+		if(!tag) {
+			throw EXCEPTIONS.MISSING_TAG;
+		}
 		const result = await DISCOVERY.insertOne(discovery);
 		if(!result.acknowledged) {
-			throw('Impossible to save discovery')
+			throw('Impossible to save discovery');
 		}
 		discovery = await get(result.insertedId);
 		if(tag.status == 'lost') {
@@ -106,11 +106,11 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 			sendNew(discovery);
 		}
 		return discovery;
-  }
+	}
 
-  async function update(id, discovery) {
+	async function update(id, discovery) {
 		// TODO remove protected fields
-		let result, set = {...discovery}
+		let result, set = {...discovery};
 		delete set._id, set.status, set.createdAt, set.updatedAt;
 		logger.debug('Discovery Update set', set);
 		result = await DISCOVERY.updateOne({
@@ -120,16 +120,18 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 			// 	updatedAt: true
 			// },
 			$set: set
-		})
-    // TODO: Check result and eventually throw exception
+		});
+		if(result.modifiedCount != 1) {
+			throw EXCEPTIONS.UPDATE_FAILED;
+		}
 		return await get(id);
 	}
 
 	async function finderEmail(finder) {
-		return finder.email
+		return finder.email;
 	}
 	async function discoverySender(discovery) {
-		let email = config.tag_email.replace('{ID}', discovery._id)
+		let email = config.tag_email.replace('{ID}', discovery._id);
 		return `${config.appName} <${email}>`;
 	}
 	async function recipientEmail(discovery) {
@@ -166,19 +168,19 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 			subject: `Tag ${discovery.tag.name} was found (${discovery.tag._id})`,
 			template: 'mail/found',
 			context: { tag: discovery.tag ,
-					email: discovery.allowFinderSharing ? await finderEmail(discovery.finder) : null },
+				email: discovery.allowFinderSharing ? await finderEmail(discovery.finder) : null },
 			to: recipient,
 			from: await discoverySender(discovery)
-		})
+		});
 	}
 	// TODO 50% move mail notification to background worker https://www.mongodb.com/basics/change-streams
 
 	// if new: user was not logged in: propose to resubmit the dscovery
-		// if pending: when tag status was not declared lost,
-		//    if owner: approve the lost status of tag
-		//    if finder: display info that owner has been notified
-		// if active: display instructions, propose to declare return (finder) or reception (owner)
-		// if closed: display status
+	// if pending: when tag status was not declared lost,
+	//    if owner: approve the lost status of tag
+	//    if finder: display info that owner has been notified
+	// if active: display instructions, propose to declare return (finder) or reception (owner)
+	// if closed: display status
 	async function setStatus(id, status) {
 		let result = await DISCOVERY.updateOne({
 			_id: id
@@ -189,7 +191,7 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 				updatedAt: new Date()
 			}}
 		});
-		return (result.modifiedCount == 1)
+		return (result.modifiedCount == 1);
 	}
 
 	async function setPending(id) {
@@ -206,7 +208,7 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 		}
 		sendInstructions(d);
 		sendOwnerNotification(d);
-		TAGS.update(d.tagId, { status: TAGS_STATUS.LOST })
+		TAGS.update(d.tagId, { status: TAGS_STATUS.LOST });
 		return setStatus(id, STATUS.ACTIVE);
 	}
 
@@ -215,7 +217,7 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 		if(d.status != STATUS.NEW && d.status != STATUS.PENDING) {
 			return false;
 		}
-		TAGS.update(d.tagId, { status: TAGS_STATUS.ACTIVE })
+		TAGS.update(d.tagId, { status: TAGS_STATUS.ACTIVE });
 		return setStatus(id, STATUS.REJECTED);
 	}
 
@@ -241,5 +243,5 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 		});
 	}
 
-  return { create, get, update, setPending, activate, flagReturned, close, reject, listForFinder }
+	return { create, get, update, setPending, activate, flagReturned, close, reject, listForFinder };
 }

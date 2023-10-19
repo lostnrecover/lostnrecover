@@ -5,30 +5,30 @@ import { EXCEPTIONS } from './exceptions.js';
 export const SCHEMA = {
 	body: {
 		type: 'object',
-		required: ["name"],
+		required: ['name'],
 		properties: {
 			name: {
 				type: 'string'
 			},
 			body: {
-				type: "string"
+				type: 'string'
 			},
 			owner_id: {
-				type: "string"
+				type: 'string'
 			},
 			isDefault: {
-				type: "boolean"
+				type: 'boolean'
 			},
 			tags: {
 				type: 'array'
 			}
 		}
 	}
-}
+};
 
 export async function InstructionsService(mongodb, parentLogger, config, USERS) {
 	const COLLECTION = 'instructions',
-	logger = parentLogger.child({ service: 'Instruction' });
+		logger = parentLogger.child({ service: 'Instruction' });
 
 	let INSTRUCTIONS = await initCollection(mongodb, COLLECTION);
 
@@ -37,26 +37,26 @@ export async function InstructionsService(mongodb, parentLogger, config, USERS) 
 			{ $match: filter},
 			{
 				$lookup: {
-					from: "users",
-					localField: "owner_id",
-					foreignField: "_id",
-					as: "owner"
+					from: 'users',
+					localField: 'owner_id',
+					foreignField: '_id',
+					as: 'owner'
 				}
 			},
-			{ $unwind : {path: "$owner", preserveNullAndEmptyArrays: true} },
+			{ $unwind : {path: '$owner', preserveNullAndEmptyArrays: true} },
 			{
 				$lookup: {
-					from: "tags",
-					localField: "_id",
-					foreignField: "instructions_id",
-					as: "tags"
+					from: 'tags',
+					localField: '_id',
+					foreignField: 'instructions_id',
+					as: 'tags'
 				}
 			}, 
 			{ $addFields: {
-					isDefault: {
-						$eq: [ "$_id", "$owner.defaultInstructions"]
-					}
+				isDefault: {
+					$eq: [ '$_id', '$owner.defaultInstructions']
 				}
+			}
 			}
 		]);
 		let arr = await res.toArray();
@@ -111,11 +111,12 @@ export async function InstructionsService(mongodb, parentLogger, config, USERS) 
 		instructions.createdAt = new Date();
 		const result = await INSTRUCTIONS.insertOne(instructions);
 		if(!result.acknowledged) {
-			throw('Impossible to save instructions')
+			throw('Impossible to save instructions');
 		}
 		saveAsUserDefaultIfFirst(instructions.owner_id, instructions._id);
-		return await get(result.insertedId)
+		return await get(result.insertedId);
 	}
+
 	// TODO Status history like Discovery
 	async function update(id, instrInput) {
 		// remove protected fields
@@ -126,16 +127,19 @@ export async function InstructionsService(mongodb, parentLogger, config, USERS) 
 			...instructions,
 			updatedAt: new Date()
 		}});
+		if(result.modifiedCount != 1) {
+			throw EXCEPTIONS.UPDATE_FAILED;
+		}
 		return get(id);
 	}
 
 	// done: TODO: Switch user reference to user._id instead of email
 	async function findForUser(user_id, filter) {
-		let f = filter ? filter : {}
+		let f = filter ? filter : {};
 		if(!user_id) {
-			return null
+			return null;
 		}
-		return await search({ ...filter, owner_id: user_id });
+		return await search({ ...f, owner_id: user_id });
 	}
 
 	async function remove(filter) {
@@ -147,7 +151,7 @@ export async function InstructionsService(mongodb, parentLogger, config, USERS) 
 		let res = await INSTRUCTIONS.aggregate([{
 			$group:
 				{
-					_id: "$status", // Group key
+					_id: '$status', // Group key
 					count: { $count: {} }
 				}
 		}]);
@@ -156,5 +160,5 @@ export async function InstructionsService(mongodb, parentLogger, config, USERS) 
 
 	return {
 		count, get, getForUpdate, findForUser, remove, create, update
-	}
+	};
 }

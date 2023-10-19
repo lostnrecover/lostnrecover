@@ -10,8 +10,9 @@
     "pretest": "mongodb-fixtures --url 'mongodb://mongodb/lostnfound_test' --path test/fixtures rebuild",
     "test": "ENV=test tap --reporter=base --exclude=test/helpers/* --node-arg='--no-warnings' --node-arg='--experimental-loader' --node-arg='@istanbuljs/esm-loader-hook'",
     "test:watch": "ENV=test tap repl --reporter=base --exclude=test/helpers/* --node-arg='--no-warnings' --node-arg='--experimental-loader' --node-arg='@istanbuljs/esm-loader-hook'",
-    "cli:set-admin": "node src/cli/admin.js set ",
-    "cli:unset-admin": "node src/cli/admin.js unset "
+    "cli:set-admin": "node src/cli/admin.js set",
+    "cli:unset-admin": "node src/cli/admin.js unset",
+		"eslint": "eslint src test --fix"
   },
   "keywords": [
     "tag",
@@ -56,6 +57,7 @@
   },
   "devDependencies": {
     "@istanbuljs/esm-loader-hook": "^0.2.0",
+    "eslint": "^8.51.0",
     "node-mongodb-fixtures": "^3.2.9",
     "nodemon": "^2.0.20",
     "pino-pretty": "^10.0.0",

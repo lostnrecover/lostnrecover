@@ -5,7 +5,7 @@ export async function initCollection(db, collectionName, indexes) {
 	if(colInfo.length > 0) {
 		collection = db.collection(collectionName);
 	} else {
-		collection = await db.createCollection(collectionName)
+		collection = await db.createCollection(collectionName);
 	}
 	// collection exists
 	if(indexes) {
@@ -13,9 +13,9 @@ export async function initCollection(db, collectionName, indexes) {
 			// index.spec, index.options
 			collection.indexExists(index.options.name).then(exists => {
 				if (!exists) {
-					collection.createIndex(index.spec, index.options)
+					collection.createIndex(index.spec, index.options);
 				}
-			})
+			});
 		});
 	}
 	return collection;

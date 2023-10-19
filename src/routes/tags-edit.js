@@ -25,18 +25,18 @@ export default async function (fastify, opts, done) {
 		if (request.query.create) {
 			let tag = {
 				// Default tag owner to current session
-				email: request.serverSession.user.email
-			}, instructions = await services.INSTRUCTIONS.findForUser(request.currentUserId()),
-			defs = instructions.filter(i => i.isDefault)
+					email: request.serverSession.user.email
+				}, instructions = await services.INSTRUCTIONS.findForUser(request.currentUserId()),
+				defs = instructions.filter(i => i.isDefault);
 			if(defs > 0) {
 				tag.instructions_id = defs[0]._id;
 			}
-			reply.view('tag/new', { tag, instructions })
+			reply.view('tag/new', { tag, instructions });
 		} else {
 			let tags = await services.TAGS.findForUser(request.currentUserId());
 			reply.view('tag/list', { tags });
 		}
-		return reply
+		return reply;
 	});
 	fastify.post('/',{ 
 		schema: SCHEMA,
@@ -48,9 +48,9 @@ export default async function (fastify, opts, done) {
 			creator_id: request.currentUserId() 
 		});
 		//{status: STATUS.ACTIVE, ...request.body, owner_id: request.currentUserId()};
-		let tag = await create(newTag);
-		reply.redirect(`/tags/${tag._id}?edit=1`)
-	})
+		let tag = await services.TAGS.create(newTag);
+		reply.redirect(`/tags/${tag._id}?edit=1`);
+	});
 	fastify.get('/:tagId', {
 		preHandler: fastify.authentified
 	}, async (request, reply) => {
@@ -62,12 +62,12 @@ export default async function (fastify, opts, done) {
 			// Not the tag owner : redirect to the view path
 			reply.redirect(`/t/${tag._id}`);
 			// reply.view('tag/found', { tag });
-			return reply
+			return reply;
 		}
 		// Show recipient email
 		if(tag.recipient_id) {
 			recipient = await services.USERS.findById(tag.recipient_id);
-			tag.email = recipient.email
+			tag.email = recipient.email;
 		} else {
 			tag.email = request.serverSession.user.email;
 		}
@@ -84,7 +84,7 @@ export default async function (fastify, opts, done) {
 	}, async (request, reply) => {
 		let tag = await services.TAGS.getForUpdate(request.params.tagId, request.currentUserId());
 		if (!tag) {
-			throw(EXCEPTIONS.TAG_NOT_FOUND)
+			throw(EXCEPTIONS.TAG_NOT_FOUND);
 		}
 		tag = await filterInput(request, tag);
 		await services.TAGS.update(tag._id, tag);
@@ -93,7 +93,7 @@ export default async function (fastify, opts, done) {
 	fastify.get('/:tagId/preview', {
 		preHandler: fastify.authentified
 	}, async (request, reply) => {
-		let tag = await services.TAGS.get(request.params.tagId), recipient = null, discovery = {
+		let tag = await services.TAGS.get(request.params.tagId), discovery = {
 			status: DISC_STATUS.ACTIVE,
 			tag,
 			instructions: tag.instructions,
@@ -105,20 +105,20 @@ export default async function (fastify, opts, done) {
 			// Not the tag owner : redirect to the view path
 			reply.redirect(`/t/${tag._id}`);
 			// reply.view('tag/found', { tag });
-			return reply
+			return reply;
 		}
-		reply.view(`tag/discovery/instructions`, { discovery, isFinder: true, isTagOwner: false});
+		reply.view('tag/discovery/instructions', { discovery, isFinder: true, isTagOwner: false});
 		return reply;
 	});
 
 	async function patchStatus(request, reply, action) {
 		let tag = await services.TAGS.getForUpdate(request.params.tagId, request.currentUserId()),
-		actions = {
-			'lost': { status: STATUS.LOST },
-			'active': { status: STATUS.ACTIVE, owner_id: request.currentUserId() }
-		};
+			actions = {
+				'lost': { status: STATUS.LOST },
+				'active': { status: STATUS.ACTIVE, owner_id: request.currentUserId() }
+			};
 		if(!tag) {
-			throw(EXCEPTIONS.TAG_NOT_FOUND)
+			throw(EXCEPTIONS.TAG_NOT_FOUND);
 		}
 		if(!Object.keys(actions).includes(action)) {
 			throw(EXCEPTIONS.NOT_FOUND);
@@ -141,5 +141,6 @@ export default async function (fastify, opts, done) {
 	}, async (request, reply) => {
 		return await patchStatus(request, reply, STATUS.ACTIVE);
 	});
-	done()
+	logger.debug('TagsEditRoute loaded');
+	done();
 }

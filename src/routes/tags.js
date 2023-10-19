@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'path';
 import { EXCEPTIONS } from '../services/exceptions.js';
 import { STATUS } from '../services/tags.js';
 
@@ -27,7 +27,7 @@ export default async function (fastify, opts, done) {
 		}
 		if(request.isCurrentUser(tag.owner_id)) {
 			// owner should see the edit/admin page
-			reply.redirect(`/tags/${tag._id}`)
+			reply.redirect(`/tags/${tag._id}`);
 		} else {
 			reply.view('tag/found', { tag });
 		}
@@ -48,9 +48,9 @@ export default async function (fastify, opts, done) {
 			if(request.body.name) {
 				tag.name = request.body.name;
 			}
-			await services.TAGS.update(tag._id, tag)
+			await services.TAGS.update(tag._id, tag);
 			// redirect ot tag page for edit
-			reply.redirect(`/tags/${tag._id}`)
+			reply.redirect(`/tags/${tag._id}`);
 		} else {
 			reply.redirect(`/t/${tag._id}`);
 		}
@@ -68,10 +68,10 @@ export default async function (fastify, opts, done) {
 		}
 		if (request.isCurrentUser(tag.owner_id)) {
 			// You can't get notified for your own tag ?
-			throw(EXCEPTIONS.CANNOT_NOTIFY_OWNER)
+			throw(EXCEPTIONS.CANNOT_NOTIFY_OWNER);
 		}
 		// create a discovery (and eventually notify owner)
-		disc = await services.DISC.create(tag, finder._id, tag.recipient_id || tag.owner_id, request.body.share)
+		disc = await services.DISC.create(tag, finder._id, tag.recipient_id || tag.owner_id, request.body.share);
 		redirect = path.join(request.url, `/${disc._id}`);
 		if (!request.serverSession || !request.serverSession?.user?.email) {
 			// User not logged in:
@@ -94,7 +94,7 @@ export default async function (fastify, opts, done) {
 			// user already logged in and not the owner: redirect
 			reply.redirect(redirect);
 		}
-		return reply
+		return reply;
 	});
 
 	fastify.get('/:tagId/notify/:notificationId', {
@@ -116,7 +116,7 @@ export default async function (fastify, opts, done) {
 				'returned': 'instructions',
 				'recovered': 'closed',
 				'rejected': 'closed'
-			}
+			};
 		discovery = await services.DISC.get(request.params.notificationId);
 		if (!discovery) {
 			throw EXCEPTIONS.TAG_NOT_FOUND;
@@ -129,13 +129,13 @@ export default async function (fastify, opts, done) {
 		}
 		if(request.isCurrentUser(discovery.finder_id)) {
 			// finder view
-			view = viewmapfinder[discovery.status]
+			view = viewmapfinder[discovery.status];
 		} else if(
 			// owner or recipient view
 			request.isCurrentUser(discovery.owner_id)
 			|| request.isCurrentUser(discovery.tag.recipient_id)
-			) {
-			view = viewmapowner[discovery.status]
+		) {
+			view = viewmapowner[discovery.status];
 		}
 		if(!view) {
 			throw EXCEPTIONS.NOT_FOUND;
@@ -172,6 +172,6 @@ export default async function (fastify, opts, done) {
 		reply.redirect(`/t/${tag._id}/notify/${discovery._id}`);
 		return reply;
 	});
-
+	logger.debug('TagsRoute loaded');
 	done();
 }

@@ -20,6 +20,7 @@ export async function initTransport(config, logger) {
 		let res = await transport.verify();
 		/* istanbul ignore next */
 		if (!res) {
+			logger.error('Transport verify failed (nodemailer)');
 			throw 'Verify failed';
 		}
 		transport.use('compile', htmlToText(htmlToTextOptions));
@@ -52,7 +53,7 @@ export async function getMailer(config, logger) {
 		if (options.template) {
 			let tpl = Handlebars.compile(`{{ localizedFile '${options.template}' }}`, { noEscape: true }),
 				context = templateGlobalContext(config, options.locale || 'en');
-			mailBody = tpl({ ...context, ...options.context, to: options.to})
+			mailBody = tpl({ ...context, ...options.context, to: options.to});
 		}
 		if(!transport) {
 			throw EXCEPTIONS.MAIL_NOT_READY;
@@ -68,5 +69,5 @@ export async function getMailer(config, logger) {
 		});
 		logger.debug({ function: 'sendmail', res });
 		return res;
-	}
+	};
 }

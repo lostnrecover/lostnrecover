@@ -1,4 +1,4 @@
-import { nanoid } from "nanoid";
+import { nanoid } from 'nanoid';
 
 export default async function (fastify, opts, done) {
 	const 
@@ -11,7 +11,7 @@ export default async function (fastify, opts, done) {
 		preHandler: fastify.authentified,
 		handler: async (request, reply) => {
 			let payload = { ...request.body, ...request.query }, //Get and POST
-			data=[], list = [], currentPdf;
+				data=[], currentPdf;
 			// preview.cellWidth = preview.pageWidth / preview.perRow;
 			// preview.cellHeight = preview.pageHeight/ preview.rows;
 			let tags = await services.TAGS.findForUser(request.currentUserId(), { status: 'active' });
@@ -26,8 +26,8 @@ export default async function (fastify, opts, done) {
 				if (payload.printlabel && payload.printlabel[t._id] && payload.printlabel[t._id] == '1') {
 					q.printlabel = true;
 				}
-				data.push(q)
-			})
+				data.push(q);
+			});
 			// FIX user server session
 			if(!request.session?.get('currentPdf')) {
 				currentPdf = nanoid();
@@ -45,8 +45,9 @@ export default async function (fastify, opts, done) {
 				templates: services.PDF.templates,
 				currentPdf: services.PDF.exists(currentPdf) ? currentPdf: false
 			});
-			return reply
+			return reply;
 		}
 	});
+	logger.debug('PDFRoute loaded');
 	done();
 }

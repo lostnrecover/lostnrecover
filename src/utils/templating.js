@@ -1,15 +1,15 @@
-import { format } from 'util'
+import { format } from 'util';
 import moment from 'moment-timezone';
 // import * as enLocale from '../templates/locales/en.json' assert { type: "json" };
 // import * as frLocale from '../templates/locales/fr.json' assert { type: "json" };
-import fs, { readFileSync } from 'fs'
-import path from 'path'
+import fs, { readFileSync } from 'fs';
+import path from 'path';
 import {glob} from 'glob';
 
 const messages = {
 	'fr': JSON.parse(readFileSync('./src/templates/locales/fr.json')), //frLocale.default,
 	'en': JSON.parse(readFileSync('./src/templates/locales/en.json')) //enLocale.default
-}
+};
 
 export function templateGlobalContext(config, locale) {
 	let context = {
@@ -17,7 +17,7 @@ export function templateGlobalContext(config, locale) {
 		locale,
 		pkg: config.pkg,
 		env: process.env.ENV
-	}
+	};
 	delete context.config.cookies;
 	// delete context.config.mail_transport;
 	return context;
@@ -33,14 +33,14 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 	}
 
 	function localizedText(requestedLocale, key, data) {
-		let tr = `${key}`, needle = "", locale = (requestedLocale ?? (data.root?.locale ?? 'en'));
+		let tr = `${key}`, needle = '', locale = (requestedLocale ?? (data.root?.locale ?? 'en'));
 		if(key) {
-			needle = `${key}`.replace(/(\r\n|\n|\r)/gm, "").trim();
+			needle = `${key}`.replace(/(\r\n|\n|\r)/gm, '').trim();
 		} else {
-			return "";
+			return '';
 		}
-		if (needle == "") {
-			return "";
+		if (needle == '') {
+			return '';
 		}
 		if(messages[locale] && messages[locale][needle]) {
 			tr = messages[locale][needle];
@@ -49,20 +49,20 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 		}
 		return format(tr, ...data);
 	}
-	Handlebars.registerHelper("__", function __(key) {
+	Handlebars.registerHelper('__', function __(key) {
 		return localizedText(this.locale, key, extractAdditionnalData(arguments, 1));
 	});
-	Handlebars.registerHelper("__loc", function __loc(locale, key) {
+	Handlebars.registerHelper('__loc', function __loc(locale, key) {
 		return localizedText(locale, key, extractAdditionnalData(arguments, 2));
 	});
 	Handlebars.registerHelper('debug', function debugHelper(obj) {
-		return JSON.stringify(obj, null, "  ");
-	})
+		return JSON.stringify(obj, null, '  ');
+	});
 	Handlebars.registerHelper('dateFormat', function dateFormat(date, format, options) {
 		let locale = this.locale || options.data.root.locale || 'en';
 		// ?TODO: Detect timezone at login ? or browser to update the session [ Intl.DateTimeFormat().resolvedOptions().timeZone ]
 		// TODO: use timezone from user profile
-		return (true) ? moment(date).tz('Europe/Paris').locale(locale).format(format) : moment(date).locale(locale).format(format);
+		return moment(date).tz('Europe/Paris').locale(locale).format(format);
 	});
 	Handlebars.registerHelper('iconLink', function iconLink(href, icon, text) {
 		return `<a href="${href}"><button><img src="public/icons/${icon}.svg" alt="${text}" /></button></a>`
@@ -76,7 +76,7 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 		for (const idx in files) {
 			if (Object.hasOwnProperty.call(files, idx)) {
 				const file = files[idx], p = path.join(templateDir, file);
-				logger.debug({msg: 'try', path: p, value: messages[locale][p]})
+				logger.debug({msg: 'try', path: p, value: messages[locale][p]});
 				if(messages[locale][p]) {
 					return messages[locale][p](this);
 				}
@@ -110,15 +110,15 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 
 export async function loadPartials(logger, Handlebars, templateDir) {
 	// Handlebars.registerPartial('tagForm', fs.readFileSync(path.join(templateDir, '/tag/_tagForm.hbs')).toString());
-	Handlebars.registerPartial('layout', fs.readFileSync(path.join(templateDir, '/_layout.hbs')).toString())
-	let partials = await glob(`${templateDir}/**/__*.hbs`)
+	Handlebars.registerPartial('layout', fs.readFileSync(path.join(templateDir, '/_layout.hbs')).toString());
+	let partials = await glob(`${templateDir}/**/__*.hbs`);
 	
-		// if(error){
-		// 	return logger.error(error)
-		// }
+	// if(error){
+	// 	return logger.error(error)
+	// }
 	partials.map((partial) => {
-		let pattern = /.*\/__(.*)\.hbs/gi
-		let res = pattern.exec(partial)
+		let pattern = /.*\/__(.*)\.hbs/gi;
+		let res = pattern.exec(partial);
 		Handlebars.registerPartial(res[1], fs.readFileSync(path.join(partial)).toString());
 	});
 	// });
