@@ -190,5 +190,15 @@
   "Generate PDF and save": "Générer le PDF et sauvegarder",
   "You have no instructions yet!": "Vous n'avez pas encore d'instructions !",
   "Set as default instructions for future tags": "Choisissez ces instructions automatiquement pour les futures étiquettes",
-  "You have not discovered any tag, yet.": "Vous n'avez pas découvert d'étiquette pour l'instant"
+  "You have not discovered any tag, yet.": "Vous n'avez pas découvert d'étiquette pour l'instant",
+	"Job": "Job",
+	"Jobs": "Jobs",
+	"Interval": "Intervalle",
+	"Last Run": "Dernière Exécution",
+	"Next Run": "Prochaine Exécution",
+	"Last Failure": "Dernier Échec",
+	"Fails": "Echecs",
+	"Run": "Exécuter",
+	"Disabled": "Désactivé",
+	"Active": "Actif"
 }

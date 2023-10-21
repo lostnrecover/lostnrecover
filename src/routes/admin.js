@@ -60,5 +60,36 @@ export default async function(fastify, opts, done) {
 		return reply;
 	});
 
+	fastify.get('/jobs', {
+		preHandler: fastify.isAdmin
+	}, async (request, reply) => {
+		let jobs = await fastify.workerJob.jobs({}, {lastRunAt: -1}, 0, 0);
+		reply.view('admin/jobs', { 
+			jobs
+		});
+		return reply;
+	});
+	fastify.post('/jobs/:id', {
+		preHandler: fastify.isAdmin
+	}, async (request, reply) => {
+		let jobs = await fastify.workerJob.jobs({}, {lastRunAt: -1}, 0, 0),
+			id = request.params.id,
+			job = jobs.filter(j => j.attrs._id.toString() == id).pop(),
+			action = request.body.action ?? '';
+		if(action == 'activate') {
+			job.enable();
+		}
+		if(action == 'deactivate') {
+			job.disable();
+		}
+		if(action == 'execute') {
+			job.run();
+		}
+		job.save();
+		reply.redirect('/admin/jobs');
+		return reply;
+	});
+
+	logger.debug('AdminRoute loaded');
 	done();
 }

@@ -1,3 +1,4 @@
+import { jobs } from 'agenda/dist/agenda/jobs.js';
 import { nanoid } from 'nanoid';
 import { initCollection } from '../utils/db.js';
 import { getMailer } from '../utils/mail.js';
@@ -19,11 +20,16 @@ export async function MessageService(mongodb, parentLogger, config) {
 		workerJob.define(
 			BATCHSEND,
 			{ priority: 'high', concurrency: 1},
-			async () => { // (job)
-				let count = await batchSend(); 
-				// logger.debug(job);
-				if(count > 0) {
-					logger.info(`${BATCHSEND} executed: Sent ${count} messages`);
+			async (job) => {
+				try {
+					let count = await batchSend(), result=`${BATCHSEND} executed: Sent ${count} messages`; 
+					// logger.debug(job);
+					if(count > 0) {
+						logger.info(result);
+					}
+					return result;
+				} catch(e) {
+					job.fail(e);
 				}
 			}
 		);

@@ -62,14 +62,13 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 		let locale = this.locale || options.data.root.locale || 'en';
 		// ?TODO: Detect timezone at login ? or browser to update the session [ Intl.DateTimeFormat().resolvedOptions().timeZone ]
 		// TODO: use timezone from user profile
-		return moment(date).tz('Europe/Paris').locale(locale).format(format);
+		// return (true) ? moment(date).tz('Europe/Paris').locale(locale).format(format) : moment(date).locale(locale).format(format);
+		if(date) {
+			return moment(date).tz('Europe/Paris').locale(locale).format(format);
+		}
 	});
-	Handlebars.registerHelper('iconLink', function iconLink(href, icon, text) {
-		return `<a href="${href}"><button><img src="public/icons/${icon}.svg" alt="${text}" /></button></a>`
-	});
-	Handlebars.registerHelper('iconButton', function iconButton(icon, text) {
-		return `<button type="submit"><img src="public/icons/${icon}.svg" alt="${text}" /></button>`
-	});
+
+
 	Handlebars.registerHelper('localizedFile', function localizedfile(filename, options) {
 		let locale = this.locale || options.data.root.locale || 'en';
 		let files = [ `locales/${filename}.${locale}.hbs`, `locales/${filename}.hbs`, `${filename}.${locale}.hbs`, `${filename}.hbs`];
@@ -111,6 +110,11 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 export async function loadPartials(logger, Handlebars, templateDir) {
 	// Handlebars.registerPartial('tagForm', fs.readFileSync(path.join(templateDir, '/tag/_tagForm.hbs')).toString());
 	Handlebars.registerPartial('layout', fs.readFileSync(path.join(templateDir, '/_layout.hbs')).toString());
+	Handlebars.registerPartial('icon', '<img src="/public/icons/{{ this }}.svg" alt="Icon {{ this }}" />');
+	Handlebars.registerPartial('iconInput', '<input type="image" src="/public/icons/{{ icon }}.svg" alt="Icon {{ text }}" />');
+	Handlebars.registerPartial('iconLink', '<a href="{{href}}"><button><img src="public/icons/{{icon}}.svg" alt="{{text}}" /></button></a>');
+	Handlebars.registerPartial('iconButton', '<button type="submit" name="action" value="{{action}}"><img src="/public/icons/{{icon}}.svg" alt="{{text}}" /></button>');
+
 	let partials = await glob(`${templateDir}/**/__*.hbs`);
 	
 	// if(error){
