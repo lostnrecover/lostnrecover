@@ -14,6 +14,7 @@ export async function initJobs(fastify) {
 	}
 	fastify.decorate('workerJob', workerJob);
 	fastify.services.MSG.registerJob(workerJob);
+	fastify.services.DISC.registerJob(workerJob);
 	
 	// jobs = await workerJob.jobs({name: 'DummyJob'});
 	// if(jobs.length > 0) {

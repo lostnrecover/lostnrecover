@@ -29,7 +29,8 @@ export default async function(fastify, opts, done) {
 		preHandler: fastify.isAdmin
 	}, async (request, reply) => {
 		reply.view('admin/messages', {
-			messages: await services.MSG.list()
+			messages: await services.MSG.list(),
+			selectableStatuses: ['new', 'sent', 'error']
 		});
 		return reply;
 	});

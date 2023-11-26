@@ -10,6 +10,7 @@
 {{#if isTagOwner}}
 	<button type="submit" value="close" name="action">{{ __ 'I have received this item'}}</button>
 {{/if}}
+	<button type="submit" value="mute" name="action">{{#if isMuted }}{{ __ 'Unmute this'}}{{else}}{{ __ 'Mute this'}}{{/if}}</button>
 </form>
 {{/if}}
 
@@ -17,6 +18,23 @@
 <pre>
 {{ discovery.instructions.body }}
 </pre>
+
+{{#if  (not isMuted)}}
+<a href="mailto:tag-{{discovery._id}}@{{config.DOMAIN}}"><button>{{ __ 'Ask a question by email'}}</button></a>
+{{#if discovery.messages}}
+<ul>
+{{#each (reverse discovery.messages) }}{{#with this}}
+<li>
+		{{ __ 'From:'}} {{ from }} ({{dateFormat sentAt 'l LTS'}})<br />
+		{{ __ 'Subject:'}} {{ subject }}<br />
+	<blockquote>
+<pre>{{ content }}</pre>
+	</blockquote>
+</li>
+{{/with}}{{/each}}
+</ul>
+{{/if}}
+{{/if}}
 
 <h3>{{ __ 'Tag info' }}</h3>
 <dl>

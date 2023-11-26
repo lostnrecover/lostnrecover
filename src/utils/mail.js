@@ -37,7 +37,7 @@ export async function getMailer(config, logger) {
 			await initTransport(config, logger);
 		} catch(error) {
 			/* istanbul ignore next */
-			logger.error(error,'Outgoing Mail verify error');
+			logger.error({ error,msg: 'Outgoing Mail verify error'});
 		}
 	}
 	return async function mailer(options) {

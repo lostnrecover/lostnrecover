@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 import { initCollection } from '../utils/db.js';
-import { EXCEPTIONS } from './exceptions.js';
+import { EXCEPTIONS, throwWithData } from './exceptions.js';
 
 // Manage a user account collection for future anonymization:
 // an email is linked to a user account (nanoid) and the account id should be used for relation
@@ -80,7 +80,7 @@ export async function UserService(mongodb, parentLogger, config, AUTH) {
 		// let user = await USERS.findOne({ email }); //, { projection: PUBLIC_PROJECTION});
 		let user = await findByEmail(email);
 		if(!user) {
-			throw EXCEPTIONS.NOT_AUTHORISED; //TODO bad exception ?
+			throwWithData(EXCEPTIONS.NOT_AUTHORISED, {email}); //TODO bad exception ?
 		}
 		return user;
 	}

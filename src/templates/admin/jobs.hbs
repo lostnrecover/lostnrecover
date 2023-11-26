@@ -34,9 +34,9 @@
 					{{/if}}
 					</form>
 				</td>
-				<td>{{ dateFormat lastRunAt 'd/M HH:mm:ss.SSS'  }}</td>
-				<td>{{ dateFormat nextRunAt 'd/M HH:mm:ss.SSS' }}</td>
-				<td>{{ dateFormat failedAt 'd/M HH:mm:ss.SSS' }}</td>
+				<td>{{ dateFormat lastRunAt 'D/M HH:mm:ss.SSS'  }}</td>
+				<td>{{ dateFormat nextRunAt 'D/M HH:mm:ss.SSS' }}</td>
+				<td>{{ dateFormat failedAt 'D/M HH:mm:ss.SSS' }}</td>
 				<td title="{{ failReason }}">{{ failCount }}</td>
 				<td>
 					<form class="inline" method="post" action="/admin/jobs/{{ _id }}">

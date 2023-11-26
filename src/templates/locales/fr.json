@@ -200,5 +200,11 @@
 	"Fails": "Echecs",
 	"Run": "Exécuter",
 	"Disabled": "Désactivé",
-	"Active": "Actif"
+	"Active": "Actif",
+	"Unmute this": "Réactiver les messages",
+	"Mute this": "Bloquer les messages",
+	"Ask a question by email": "Poser une question par email",
+	"From:": "Expéditeur",
+	"Subject:": "Sujet"
+
 }

@@ -7,10 +7,10 @@ let isRunning = false;
 
 console.log('Run', config.imap);
 // TODO Fix eslint disable
-// eslint-disable-next-line no-useless-escape
-const escapeDot = '\.';
-const escapedDomain = config.DOMAIN.replaceAll('.',escapeDot);
-const regex = new RegExp(`^tag-(.*)@${escapedDomain}$`);
+// noeslint-disable-next-line no-useless-escape
+const escapeDot = '\\.';
+const escapedDomain = [config.SHORT_DOMAIN, config.DOMAIN].map(m => m.replaceAll('.',escapeDot)).join('|');
+const regex = new RegExp(`^tag-(.*)@(${escapedDomain})$`);
 
 const client = new ImapFlow({...config.imap, logger: false});
 const main = async () => {
@@ -20,7 +20,8 @@ const main = async () => {
 	isRunning = true;
 	// Wait until client connects and authorizes
 	await client.connect();
-
+	let list = await client.list();
+	list.forEach(mailbox=>console.log(mailbox.path));
 	// Select and lock a mailbox. Throws if mailbox does not exist
 	let lock = await client.getMailboxLock('INBOX');
 	try {
@@ -48,16 +49,15 @@ const main = async () => {
 				// Register mail with discovery conversation
 				// Archive mail
 				// await client.messageMove(message, 'Archives');
-				let result = await client.messageMove(message.id, 'INBOX/Archives');
-				console.log('Archived %s messages', result.uidMap.size);
+				client.messageFlagsAdd(message.uid, ['\\Seen'], { uid: true });
+				client.messageMove(message.uid, 'INBOX/Archives', { uid: true });
 			} else {
 				// move to "support"
-				let result = await client.messageMove(message.id, 'INBOX/Support');
-				console.log('Moved %s messages', result.uidMap.size);
+				client.messageMove(message.uid, 'INBOX/Support', { uid: true });
 			}
 		}
 	} catch (e) {
-		console.log(e);
+		console.error(e);
 	} finally {
 		// Make sure lock is released, otherwise next `getMailboxLock()` never returns
 		lock.release();

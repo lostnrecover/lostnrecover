@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid';
 import { EXCEPTIONS } from './exceptions.js';
 import { initCollection } from '../utils/db.js';
 import { STATUS as TAGS_STATUS } from './tags.js';
+import { checkImapInbox, extractTagId } from '../utils/imap.js';
 
 export const STATUS = {
 	PENDING: 'pending',
@@ -14,6 +15,10 @@ export const STATUS = {
 
 export const FINAL_STATUS= [ STATUS.RECOVERED, STATUS.REJECTED ];
 
+const BATCHIMAP = 'Messages.readInbox';
+
+let isRunning = false;
+
 export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS, USERS) {
 	const COLLECTION = 'discovery';
 	// const DISCOVERY = mongodb.collection(COLLECTION);
@@ -22,6 +27,35 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 	//.then(col => DISCOVERY = col);
 	// TODO job to process discovery expiration new, closed
 	// TODO Ensure Init index if any
+
+	async function registerJob(workerJob) {
+		let jobLogger = logger.child({'job': BATCHIMAP});
+		// init agenda job
+		workerJob.define(
+			BATCHIMAP,
+			{ priority: 'high', concurrency: 1},
+			async (job) => {
+				if (isRunning) {
+					job.fail('Still running');
+					job.save();
+					return false;
+				}
+				isRunning = true;
+				try {
+					jobLogger.info('READ IMAP INBOX');
+					await checkImapInbox(jobLogger, processEmail);
+				} catch(e) {
+					job.fail(e);
+				} finally {
+					isRunning = false;
+				}
+			}
+		);
+		workerJob.enable({ name: BATCHIMAP });
+		workerJob.every('5 minutes', BATCHIMAP);
+		jobLogger.info(`${BATCHIMAP} Jobs registered...`);
+	}
+
 
 	async function search(filter) {
 		return await DISCOVERY.aggregate(
@@ -80,6 +114,17 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 		// CHECK aggregate Tag and users ?
 		let d = await search({ _id: id });
 		return d[0];
+	}
+
+	async function findForFinder(tag, finder) {
+		let disc = await search({
+			tagId: tag._id,
+			finder_id: finder._id
+		});
+		if(disc.length > 0) {
+			return disc[0];
+		}
+		return false;
 	}
 
 	async function create(tag, finder_id, owner_id, shareFinder) {
@@ -167,7 +212,7 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 		MSG.create({
 			subject: `Tag ${discovery.tag.name} was found (${discovery.tag._id})`,
 			template: 'mail/found',
-			context: { tag: discovery.tag ,
+			context: { discovery: discovery ,
 				email: discovery.allowFinderSharing ? await finderEmail(discovery.finder) : null },
 			to: recipient,
 			from: await discoverySender(discovery)
@@ -243,5 +288,76 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 		});
 	}
 
-	return { create, get, update, setPending, activate, flagReturned, close, reject, listForFinder };
+	async function processEmail(message) {
+		try {
+			let 
+				sender_email = message?.from?.value[0]?.address ?? null,
+				sender = await USERS.findOrFail(sender_email),
+				id = extractTagId(message),
+				discovery = id ? await get(id) : null, 
+				ids = [],
+				recipient,
+				result,
+				internal= {
+					content: message.filteredText || message.text,
+					subject: message.subject,
+					id: message.messageId ,
+					createdAt: new Date(),
+					sentAt: new Date(message.date)
+				};
+			if(!discovery) {
+				return false;
+			}
+			// check no duplicate
+			ids = discovery.messages.map(m => m.id).filter(id => id ? id == message.messageId : false);
+			if(ids.length > 0) {
+				logger.info({msg : 'duplicate message', discId: discovery._id, messId: message.messageId});
+				return false;
+			}
+			// check sender is owner or finder
+			if(discovery.finder_id == sender._id) {
+				internal.from = 'finder';
+				internal.to = 'owner';
+				internal.toSend = !discovery.muttedByOwner;
+				recipient = discovery.finder.email;
+			} else if(discovery.owner_id == sender._id) {
+				internal.to = 'finder';
+				internal.owner = 'owner';
+				internal.toSend != !discovery.muttedByFinder;
+				recipient = discovery.owner.email;
+			} else {
+				// Third party message: dropped
+				throw(new Error(`Unknown Sender: ${sender_email}`));
+			}
+			// check discovery is "pending"
+			if(discovery.status != STATUS.ACTIVE && discovery.status != STATUS.RETURNED) {
+				// dropped : not in status
+				throw(new Error(`Rejected message: ${discovery.status}`));
+			}
+			result = await DISCOVERY.updateOne(
+				{_id: discovery._id},
+				{ $push: 
+					{ 'messages': internal }
+				});
+			if(result.modifiedCount != 1) {
+				logger.error('Unexpected update error on message');
+				return false;
+			}
+			if(internal.toSend) {
+				MSG.create({
+					to: recipient,
+					from: discoverySender(discovery._id),
+					subject: 'About tag recovery ' + discovery.tag._id,
+					template: 'mail/discovery_message',
+					context: { message: internal, discovery },
+				});
+			}
+			return true;
+		} catch(error) {
+			logger.warn({msg: 'not a a valid message', error});
+			return false;
+		}
+	}
+
+	return { registerJob, create, get, update, setPending, activate, flagReturned, close, reject, findForFinder, listForFinder, processEmail };
 }

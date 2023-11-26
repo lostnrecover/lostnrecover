@@ -9,7 +9,7 @@ export default async function (fastify, opts, done) {
 		services = fastify.services;
 
 	fastify.get('/:tagId', async (request, reply) => {
-		let tag = await services.TAGS.get(request.params.tagId);
+		let tag = await services.TAGS.get(request.params.tagId), disc= false;
 		if (!tag) {
 			throw EXCEPTIONS.TAG_NOT_FOUND;
 		}
@@ -29,6 +29,14 @@ export default async function (fastify, opts, done) {
 			// owner should see the edit/admin page
 			reply.redirect(`/tags/${tag._id}`);
 		} else {
+			if(request.currentUserId) {
+				// check for an existing discovery
+				disc = await services.DISC.findForFinder(tag, { _id: request.currentUserId });
+				if(disc) {
+					reply.redirect(path.join(request.url, `/notify/${disc._id}`));
+					return reply;
+				}
+			}
 			reply.view('tag/found', { tag });
 		}
 		return reply;
@@ -70,6 +78,12 @@ export default async function (fastify, opts, done) {
 			// You can't get notified for your own tag ?
 			throw(EXCEPTIONS.CANNOT_NOTIFY_OWNER);
 		}
+		// check for an existing discovery
+		disc = await services.DISC.findForFinder(tag, finder);
+		if(disc) {
+			reply.redirect(path.join(request.url, `/${disc._id}`));
+			return reply;
+		}
 		// create a discovery (and eventually notify owner)
 		disc = await services.DISC.create(tag, finder._id, tag.recipient_id || tag.owner_id, request.body.share);
 		redirect = path.join(request.url, `/${disc._id}`);
@@ -100,7 +114,7 @@ export default async function (fastify, opts, done) {
 	fastify.get('/:tagId/notify/:notificationId', {
 		preHandler: fastify.authentified
 	}, async (request, reply) => {
-		let discovery,isFinder,isTagOwner,view,
+		let discovery, isFinder, isTagOwner, isMuted, view,
 			viewmapfinder = {
 				'new': 'notified',
 				'pending': 'notified',
@@ -123,6 +137,7 @@ export default async function (fastify, opts, done) {
 		}
 		isFinder = request.isCurrentUser(discovery.finder_id);
 		isTagOwner = request.isCurrentUser(discovery.owner_id);
+		isMuted = (isTagOwner && discovery.muttedByOwner) || (isFinder && discovery.muttedByFinder);
 		// Only visible from owner, recipient or finder
 		if (!request.isCurrentUser([discovery.tag.recipient_id, discovery.owner_id, discovery.finder_id])) {
 			throw EXCEPTIONS.NOT_FOUND;
@@ -147,7 +162,7 @@ export default async function (fastify, opts, done) {
 		//    if finder: display info that owner has been notified
 		// if active: display instructions, propose to declare return (finder) or reception (owner)
 		// if closed: display status
-		reply.view(`tag/discovery/${view}`, { discovery, isFinder, isTagOwner});
+		reply.view(`tag/discovery/${view}`, { discovery, isFinder, isTagOwner, isMuted});
 		return reply;
 	});
 
@@ -166,6 +181,12 @@ export default async function (fastify, opts, done) {
 			await services.DISC.activate(discovery._id);
 		} else if(isTagOwner && request.body.action == 'reject' ) {
 			await services.DISC.reject(discovery._id);
+		} else if(isTagOwner && request.body.action == 'mute') {
+			discovery.muttedByOwner = !discovery.muttedByOwner;
+			await services.DISC.update(discovery._id, discovery);
+		} else if(isFinder && request.body.action == 'mute') {
+			discovery.muttedByFinder = !discovery.muttedByFinder;
+			await services.DISC.update(discovery._id, discovery);
 		} else {
 			throw EXCEPTIONS.BAD_REQUEST;
 		}

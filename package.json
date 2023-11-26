@@ -2,7 +2,7 @@
   "name": "lostnrecover",
   "displayName": "Lost & Recover",
   "version": "1.1.0-dev",
-  "description": "Manage tags to get back youir lost items",
+  "description": "Manage tags to get back your lost items",
   "main": "src/server.js",
   "scripts": {
     "start": "ENV=prod node src/server.js",
@@ -12,7 +12,7 @@
     "test:watch": "ENV=test tap repl --reporter=base --exclude=test/helpers/* --node-arg='--no-warnings' --node-arg='--experimental-loader' --node-arg='@istanbuljs/esm-loader-hook'",
     "cli:set-admin": "node src/cli/admin.js set",
     "cli:unset-admin": "node src/cli/admin.js unset",
-		"eslint": "eslint src test --fix"
+    "eslint": "eslint src test --fix"
   },
   "keywords": [
     "tag",
@@ -47,6 +47,7 @@
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.40",
     "nanoid": "^4.0.0",
+    "node-email-reply-parser": "^0.1.4",
     "node-imap": "^0.9.6",
     "nodemailer": "^6.9.1",
     "nodemailer-html-to-text": "^3.2.0",

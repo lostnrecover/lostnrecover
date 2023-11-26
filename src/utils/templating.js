@@ -102,8 +102,14 @@ export function loadHelpers(logger, Handlebars, templateDir) {
 	Handlebars.registerHelper('or', function orHelper(arg1, arg2) {
 		return arg1 || arg2;
 	});
+	Handlebars.registerHelper('in', function inHelper(value, arr) {
+		return Array.isArray(arr) && arr.includes(value);
+	});
 	Handlebars.registerHelper('and', function andHelper(arg1, arg2) {
 		return arg1 && arg2;
+	});
+	Handlebars.registerHelper('not', function notHelper(arg1) {
+		return !arg1;
 	});
 }
 

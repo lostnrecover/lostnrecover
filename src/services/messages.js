@@ -1,4 +1,3 @@
-import { jobs } from 'agenda/dist/agenda/jobs.js';
 import { nanoid } from 'nanoid';
 import { initCollection } from '../utils/db.js';
 import { getMailer } from '../utils/mail.js';
@@ -13,7 +12,8 @@ export async function MessageService(mongodb, parentLogger, config) {
 	const logger = parentLogger.child({ service: 'Message' });
 	// const MSG = mongodb.collection(COLLECTION);
 	let MSG = await initCollection(mongodb, COLLECTION),
-		mailer = await getMailer(config, logger);
+		mailer = null;
+	getMailer(config, logger).then(m => mailer = m);
 
 	function registerJob(workerJob) {
 		// init agenda job
@@ -45,14 +45,34 @@ export async function MessageService(mongodb, parentLogger, config) {
 		return await MSG.findOne({ _id: id });
 	}
 
+	async function receive(message) {
+		let 
+			now = new Date(),
+			expireAt = now.setDate(now.getDate() + retentionDays),
+			msg = {
+				...message,
+				_id: nanoid(),
+				createdAt: new Date(),
+				status: 'received',
+				expireAt
+			};
+		const result = await MSG.insertOne(msg);
+		if (!result.acknowledged) {
+			throw ('Impossible to save message');
+		}
+		return await get(result.insertedId);
+	}
+	
 	async function create(message, schedule) {
-		let dv = new Date(schedule), sch = (dv == 'Invalid Date') ? new Date() : dv, msg = {
-			...message,
-			_id: nanoid(),
-			createdAt: new Date(),
-			schedule: sch,
-			status: 'new' // new, pause, sent, error
-		};
+		let dv = new Date(schedule), 
+			sch = (dv == 'Invalid Date') ? new Date() : dv, 
+			msg = {
+				...message,
+				_id: nanoid(),
+				createdAt: new Date(),
+				schedule: sch,
+				status: 'new' // new, pause, sent, error
+			};
 		const result = await MSG.insertOne(msg);
 		if (!result.acknowledged) {
 			throw ('Impossible to save message');
@@ -150,5 +170,5 @@ export async function MessageService(mongodb, parentLogger, config) {
 		return await MSG.find(filter).sort({ createdAt: -1 }).toArray();
 	}
 
-	return { create, get, pause, resume, send, batchSend, list, registerJob };
+	return { create, receive, get, pause, resume, send, batchSend, list, registerJob };
 }
