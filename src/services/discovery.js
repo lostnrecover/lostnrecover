@@ -175,9 +175,12 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 	async function finderEmail(finder) {
 		return finder.email;
 	}
-	async function discoverySender(discovery) {
+	function discoveryEmail(discovery) {
 		let email = config.tag_email.replace('{ID}', discovery._id);
-		return `${config.appName} <${email}>`;
+		return email;
+	}
+	async function discoverySender(discovery) {
+		return `${config.appName} <${discoveryEmail(discovery)}>`;
 	}
 	async function recipientEmail(discovery) {
 		let id = discovery.tag.recipient_id, r;
@@ -359,5 +362,5 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 		}
 	}
 
-	return { registerJob, create, get, update, setPending, activate, flagReturned, close, reject, findForFinder, listForFinder, processEmail };
+	return { registerJob, create, get, update, setPending, activate, flagReturned, close, reject, findForFinder, listForFinder, processEmail, discoveryEmail};
 }

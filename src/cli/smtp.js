@@ -4,7 +4,9 @@ import { nanoid } from 'nanoid';
 
 let cli = await initCli();
 let args = process.argv.slice(2),
-	email = args[0];
+	email = args[0],
+	from = args[1] ?? null,
+	sender = args[2] ?? null;
 	// state = ((args[0] ?? 'set') == 'set') ? true : false;
 
 // cli.logger.info(args);
@@ -15,12 +17,17 @@ if(!email) {
 try {
 	// Check SMTP connection
 	let mailer = await getMailer(cli.config, cli.logger),
-		testid = nanoid(),
-		res = await mailer({
+		testid = nanoid(), 
+		msg = {
 			text: `Test email ${testid}`,
 			subject: `Test email ${testid}`,
-			to: email
-		});
+			to: email,
+			from: sender ?? cli.config.mail_transport.from
+		}, res;
+	if(from) {
+		msg.replyTo = from;
+	}
+	res = await mailer(msg);
 	// Send test email
 	cli.logger.info(`Test email sent ${testid}`);
 	cli.logger.debug(res);

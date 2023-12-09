@@ -36,7 +36,7 @@ export const config = {
 	DOMAIN,
 	SHORT_DOMAIN,
 	support_email: `support@${DOMAIN}`,
-	tag_email: `tag+{ID}@${SHORT_DOMAIN}`,
+	tag_email: `tag+{ID}@${DOMAIN}`,
 	PORT: process.env.PORT || 3000,
 	HOST: process.env.HOST || '::',
 	db_url: dbcs.toString(),
@@ -59,7 +59,8 @@ export const config = {
 		auth: {
 			user: smtpcs.user,
 			pass: smtpcs.password
-		}
+		},
+		from: smtpcs.params?.from ?? smtpcs.user
 	},
 	imap: {
 		host: imapcs.hostname,

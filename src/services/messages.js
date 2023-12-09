@@ -115,17 +115,23 @@ export async function MessageService(mongodb, parentLogger, config) {
 
 	async function send(msgID) {
 		// CHECK fetch user email for id
-		let msg = await get(msgID), now = new Date(), expireAt = new Date();
+		let msg = await get(msgID), now = new Date(), expireAt = new Date(), email, res;
 		if (!msg || !msg.status || msg.status != 'new' || !msg.to) { // || now < msg.schedule ) {
 			return false;
 		}
-		let res = await mailer({
+		email = {
 			subject: msg.subject,
 			template: msg.template,
 			context: msg.context,
 			to: msg.to,
-			from: msg.from
-		});
+		};
+		if(msg.from) {
+			email.from = msg.from;
+		}
+		if(msg.replyTo) {
+			email.replyTo = msg.replyTo;
+		}
+		res = await mailer(email);
 		/* Res example
 		{
 			accepted: [

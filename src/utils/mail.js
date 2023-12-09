@@ -15,7 +15,8 @@ export async function initTransport(config, logger) {
 			config.mail_transport,
 			// Mail defaults 
 			{ 
-				from: `${config.appName} <${config.support_email}>` 
+				from: `${config.appName} <${config.mail_transport.from}>`,
+				replyTo: config.support_email ?? config.mail_transport.from
 			});
 		let res = await transport.verify();
 		/* istanbul ignore next */
@@ -49,7 +50,7 @@ export async function getMailer(config, logger) {
 				return false;
 			}
 		}
-		let mailBody = options.text, res;
+		let mailBody = options.text, res, msg;
 		if (options.template) {
 			let tpl = Handlebars.compile(`{{ localizedFile '${options.template}' }}`, { noEscape: true }),
 				context = templateGlobalContext(config, options.locale || 'en');
@@ -61,12 +62,21 @@ export async function getMailer(config, logger) {
 		if(!mailBody) {
 			throw EXCEPTIONS.EMPTY_MAIL_BODY;
 		}
-		res = await transport.sendMail({
+		// TODO: check from within domain ?
+		// TODO Default from from SMTP variable to ensure from match smtp account ?
+		msg = {
 			to: options.to,
-			from: options.from || `${config.appName} <${config.support_email}>`, //`"Tag Owner <tag-${tag._id}@lnf.z720.net>`,
+			// from: options.from || `${config.appName} <${config.support_email}>`, //`"Tag Owner <tag-${tag._id}@lnf.z720.net>`,
 			subject: `${config.appName}: ${options.subject || 'Notification'}`, //`Lost n Found: Instructions for ${tag.name} (${tag._id})`,
 			html: mailBody
-		});
+		};
+		if(options.replyTo) {
+			msg.replyTo = options.replyTo;
+		}
+		if(options.from) {
+			msg.from = options.from;
+		}
+		res = await transport.sendMail(msg);
 		logger.debug({ function: 'sendmail', res });
 		return res;
 	};

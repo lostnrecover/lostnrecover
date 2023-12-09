@@ -20,7 +20,7 @@
 </pre>
 
 {{#if  (not isMuted)}}
-<a href="mailto:tag-{{discovery._id}}@{{config.DOMAIN}}"><button>{{ __ 'Ask a question by email'}}</button></a>
+<a href="mailto:{{discoveryEmail}}"><button>{{ __ 'Ask a question by email'}}</button></a>
 {{#if discovery.messages}}
 <ul>
 {{#each (reverse discovery.messages) }}{{#with this}}

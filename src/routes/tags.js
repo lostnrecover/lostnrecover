@@ -160,9 +160,9 @@ export default async function (fastify, opts, done) {
 		// if pending: when tag status was not declared lost,
 		//    if owner: approve the lost status of tag
 		//    if finder: display info that owner has been notified
-		// if active: display instructions, propose to declare return (finder) or reception (owner)
+		// if active: display instrudiscctions, propose to declare return (finder) or reception (owner)
 		// if closed: display status
-		reply.view(`tag/discovery/${view}`, { discovery, isFinder, isTagOwner, isMuted});
+		reply.view(`tag/discovery/${view}`, { discovery, isFinder, isTagOwner, isMuted, discoveryEmail: services.DISC.discoveryEmail(discovery)});
 		return reply;
 	});
 
