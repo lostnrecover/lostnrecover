@@ -19,7 +19,7 @@ export function templateGlobalContext(config, locale) {
 		env: process.env.ENV
 	};
 	delete context.config.cookies;
-	// delete context.config.mail_transport;
+	// delete context.config.smtp;
 	return context;
 }
 

@@ -22,7 +22,7 @@ try {
 			text: `Test email ${testid}`,
 			subject: `Test email ${testid}`,
 			to: email,
-			from: sender ?? cli.config.mail_transport.from
+			from: sender ?? cli.config.smtp.from
 		}, res;
 	if(from) {
 		msg.replyTo = from;

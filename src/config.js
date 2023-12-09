@@ -36,7 +36,7 @@ export const config = {
 	DOMAIN,
 	SHORT_DOMAIN,
 	support_email: `support@${DOMAIN}`,
-	tag_email: `tag+{ID}@${DOMAIN}`,
+	tag_email: `tags+{ID}@${DOMAIN}`,
 	PORT: process.env.PORT || 3000,
 	HOST: process.env.HOST || '::',
 	db_url: dbcs.toString(),
@@ -52,7 +52,7 @@ export const config = {
 	data_dir: path.join(__dirname, '/../data'),
 	template_dir: process.env.TEMPLATE_DIR || path.join(__dirname, './templates'),
 	mail_connection_string: smtpcs,
-	mail_transport: {
+	smtp: {
 		host: smtpcs.hostname,
 		port: smtpcs.port,
 		secure: smtpcs.params?.secure ? true : false,

@@ -12,11 +12,11 @@ export async function initTransport(config, logger) {
 	try {
 		transport = nodemailer.createTransport(
 			// Connection string 
-			config.mail_transport,
+			config.smtp,
 			// Mail defaults 
 			{ 
-				from: `${config.appName} <${config.mail_transport.from}>`,
-				replyTo: config.support_email ?? config.mail_transport.from
+				from: `${config.appName} <${config.smtp.from}>`,
+				replyTo: config.support_email ?? config.smtp.from
 			});
 		let res = await transport.verify();
 		/* istanbul ignore next */

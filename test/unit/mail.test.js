@@ -17,7 +17,7 @@ test('Mail Management', async (t) => {
 	t.test('Mail bad config', async (t) => {
 		try {
 			await initTransport({
-				mail_transport: {
+				smtp: {
 					host: 'smtp.ethereal.mail',
 					port: 587,
 					secure: false,
