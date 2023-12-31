@@ -27,13 +27,14 @@ export function extractTagId(imapMessage) {
 export async function checkImapInbox(parentLogger, messageProcessor) {
 	const logger = parentLogger.child({ module: 'IMAP'}),
 		client = new ImapFlow({...config.imap, logger: false});
+
 	// Wait until client connects and authorizes
 	await client.connect();
 	// Select and lock a mailbox. Throws if mailbox does not exist
 	let lock = await client.getMailboxLock('INBOX');
 	try {
 		// Loop for all messages in INBOX
-		for await (let message of client.fetch({  }, { envelope: true, source: true })) {
+		for await (let message of client.fetch({ seen: false }, { uid: true, envelope: true, source: true })) {
 			let msg = await simpleParser(message.source);
 			msg.filteredText = replyParser(msg.text, true);
 			logger.debug({ to: msg.to, from: msg.from, subject: msg.subject});
@@ -43,11 +44,11 @@ export async function checkImapInbox(parentLogger, messageProcessor) {
 			let result = await messageProcessor(msg);
 			if(result) {
 				// Archive mail
-				client.messageFlagsAdd(message.uid, ['\\Seen'], { uid: true });
-				client.messageMove(message.uid, 'INBOX/Archives', { uid: true });
+				client.messageFlagsAdd({uid: message.uid}, ['\\Seen'], {uid: true});
+				client.messageMove({uid: message.uid}, folder_discovery,{uid: true});
 			} else {
 				// move to "support"
-				client.messageMove(message.uid, 'INBOX/Support', { uid: true });
+				client.messageMove({uid: message.uid}, folder_others,{uid: true});
 			}
 		}
 	} catch (e) {
