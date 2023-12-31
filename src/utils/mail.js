@@ -26,6 +26,7 @@ export async function initTransport(config, logger) {
 		}
 		transport.use('compile', htmlToText(htmlToTextOptions));
 		// });
+		logger.info(`Mail transport init: ${config.smtp.auth.user} / ${config.smtp.host}`);
 	} catch(error) {
 		transport = false;
 		throwWithData(EXCEPTIONS.MAIL_NOT_READY, error);

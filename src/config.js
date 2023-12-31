@@ -51,7 +51,7 @@ export const config = {
 	public_dir: path.join(__dirname, '/../public'),
 	data_dir: path.join(__dirname, '/../data'),
 	template_dir: process.env.TEMPLATE_DIR || path.join(__dirname, './templates'),
-	mail_connection_string: smtpcs,
+	smtp_connection_string: smtpcs,
 	smtp: {
 		host: smtpcs.hostname,
 		port: smtpcs.port,
@@ -72,5 +72,7 @@ export const config = {
 			user: imapcs.user,
 			pass: imapcs.password
 		}
-	}
+	},
+	mail_discovery_dir: 'Processed',
+	mail_others_dir: 'Support'
 };

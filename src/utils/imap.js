@@ -6,7 +6,10 @@ import replyParser from 'node-email-reply-parser';
 
 const escapeDot = '\\.';
 const escapedDomain = [config.SHORT_DOMAIN, config.DOMAIN].map(m => m.replaceAll('.',escapeDot)).join('|');
-const regex = new RegExp(`^tag[-+](.*)@(${escapedDomain})$`);
+// TODO build regexp from config.tag_email
+const regex = new RegExp(`^tags[-+](.*)@(${escapedDomain})$`);
+const folder_others = config.mail_others_dir ?? 'Support';
+const folder_discovery = config.mail_discovery_dir ?? 'Archives';
 
 export function extractTagId(imapMessage) {
 	let tagId = [].concat(imapMessage.to?.value || [], imapMessage.cc?.value || []).reduce((prev, el) => {
