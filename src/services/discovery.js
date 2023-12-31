@@ -42,7 +42,7 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 				}
 				isRunning = true;
 				try {
-					jobLogger.info('READ IMAP INBOX');
+					jobLogger.info(`Mail reception init: ${config.imap.auth.user} / ${config.imap.host}`);
 					await checkImapInbox(jobLogger, processEmail);
 				} catch(e) {
 					job.fail(e);
@@ -72,6 +72,18 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 				}, {
 					'$unwind': {
 						'path': '$finder', 
+						'preserveNullAndEmptyArrays': true
+					}
+				}, {
+					'$lookup': {
+						'from': 'users', 
+						'localField': 'owner_id', 
+						'foreignField': '_id', 
+						'as': 'owner'
+					}
+				}, {
+					'$unwind': {
+						'path': '$owner', 
 						'preserveNullAndEmptyArrays': true
 					}
 				}, {
@@ -180,7 +192,7 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 		return email;
 	}
 	async function discoverySender(discovery) {
-		return `${config.appName} <${discoveryEmail(discovery)}>`;
+		return `Tag ${discovery.tag_id} (${config.appName}) <${discoveryEmail(discovery)}>`;
 	}
 	async function recipientEmail(discovery) {
 		let id = discovery.tag.recipient_id, r;
@@ -312,6 +324,9 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 				return false;
 			}
 			// check no duplicate
+			if(!Array.isArray(discovery.messages)) {
+				discovery.messages = [];
+			}
 			ids = discovery.messages.map(m => m.id).filter(id => id ? id == message.messageId : false);
 			if(ids.length > 0) {
 				logger.info({msg : 'duplicate message', discId: discovery._id, messId: message.messageId});
@@ -325,8 +340,8 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 				recipient = discovery.finder.email;
 			} else if(discovery.owner_id == sender._id) {
 				internal.to = 'finder';
-				internal.owner = 'owner';
-				internal.toSend != !discovery.muttedByFinder;
+				internal.from = 'owner';
+				internal.toSend = !discovery.muttedByFinder;
 				recipient = discovery.owner.email;
 			} else {
 				// Third party message: dropped
@@ -347,13 +362,17 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 				return false;
 			}
 			if(internal.toSend) {
-				MSG.create({
+				let msg = await MSG.create({
 					to: recipient,
 					from: discoverySender(discovery._id),
 					subject: 'About tag recovery ' + discovery.tag._id,
 					template: 'mail/discovery_message',
 					context: { message: internal, discovery },
 				});
+				logger.debug(msg);
+				if(!msg) {
+					logger.error('Impossible to forward message');
+				}
 			}
 			return true;
 		} catch(error) {
