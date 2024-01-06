@@ -191,8 +191,8 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 		let email = config.tag_email.replace('{ID}', discovery._id);
 		return email;
 	}
-	async function discoverySender(discovery) {
-		return `Tag ${discovery.tag_id} (${config.appName}) <${discoveryEmail(discovery)}>`;
+	function discoverySender(discovery) {
+		return `Tag ${discovery.tag._id} (${config.appName}) <${discoveryEmail(discovery)}>`;
 	}
 	async function recipientEmail(discovery) {
 		let id = discovery.tag.recipient_id, r;
@@ -364,7 +364,7 @@ export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS,
 			if(internal.toSend) {
 				let msg = await MSG.create({
 					to: recipient,
-					from: discoverySender(discovery._id),
+					from: discoverySender(discovery),
 					subject: 'About tag recovery ' + discovery.tag._id,
 					template: 'mail/discovery_message',
 					context: { message: internal, discovery },

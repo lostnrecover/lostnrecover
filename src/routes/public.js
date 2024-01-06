@@ -51,7 +51,7 @@ export default async function(fastify, opts, done) {
 		// Actually send the message: put it in the queue
 		let msg = await services.MSG.create({
 			to: fastify.config.support_email,
-			replyTo: email,
+			from: email,
 			subject: `${reason} - ${subject}`,
 			template: 'mail/contact_form',
 			context: { email, message, subject, reason },

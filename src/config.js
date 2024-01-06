@@ -60,7 +60,8 @@ export const config = {
 			user: smtpcs.user,
 			pass: smtpcs.password
 		},
-		from: smtpcs.params?.from ?? smtpcs.user
+		from: smtpcs.params?.from ?? smtpcs.user,
+		impersonation: smtpcs.params?.impersonation || false,
 	},
 	imap: {
 		host: imapcs.hostname,
