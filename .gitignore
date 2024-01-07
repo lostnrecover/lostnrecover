@@ -8,5 +8,6 @@ tmp
 public/pdf
 .nyc_output
 .env
+.env.*
 local.env
 .tap

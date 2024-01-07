@@ -9,6 +9,7 @@ import { readFileSync } from 'fs';
 import os from 'os';
 
 dotenv.config();
+dotenv.config({ path: `.env.${process.env.ENV}` });
 
 const pkg = JSON.parse(readFileSync('./package.json')) ?? {};
 
