@@ -8,6 +8,7 @@ const escapeDot = '\\.';
 const escapedDomain = [config.SHORT_DOMAIN, config.DOMAIN].map(m => m.replaceAll('.',escapeDot)).join('|');
 // TODO build regexp from config.tag_email
 const regex = new RegExp(`^tags[-+](.*)@(${escapedDomain})$`);
+const folder_inbox = config.imap?.inbox ?? 'INBOX';
 const folder_others = config.mail_others_dir ?? 'Support';
 const folder_discovery = config.mail_discovery_dir ?? 'Archives';
 
@@ -31,7 +32,7 @@ export async function checkImapInbox(parentLogger, messageProcessor) {
 	// Wait until client connects and authorizes
 	await client.connect();
 	// Select and lock a mailbox. Throws if mailbox does not exist
-	let lock = await client.getMailboxLock('INBOX');
+	let lock = await client.getMailboxLock(folder_inbox);
 	try {
 		// Loop for all messages in INBOX
 		for await (let message of client.fetch({ seen: false }, { uid: true, envelope: true, source: true })) {
