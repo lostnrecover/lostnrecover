@@ -1,22 +1,26 @@
-
+{{#>layout tite=(__ 'Instructions')}}
 	{{#each data}}
 	{{#if @first}}
 <form method="get">
-	<h2>{{ __ 'Print format' }}</h2>
+	<h2>{{ __loc @root.locale 'Print format' }}</h2>
 	<p>
-		<label for="template">{{ __ 'Template' }}</label>
+		<label for="template">{{ __loc @root.locale 'Template' }}</label>
 		<select name="template" id="template">
 			{{#each @root.templates}}
-			<option value="{{@key}}">{{this.name}}  ({{ this.tagCount }} {{ __ 'Tags per page'}})</option>
+			<option value="{{@key}}">{{this.name}}  ({{ this.tagCount }} {{ __loc @root.locale 'Tags per page'}})</option>
 			{{/each}}
 		</select>
 	</p>
-	<p><label for="skip">{{ __ 'number of labels to skip (when reusing a sheet)' }}</label>
+	<p><label for="skip">{{ __loc @root.locale 'number of labels to skip (when reusing a sheet)' }}</label>
 		<input type="number" value="{{skip}}" name="skip" id="skip"/>
 	</p>
-	<h2>{{ __ 'Number of copies per tag' }}</h2>
+	<h2>{{ __loc @root.locale 'Number of copies per tag' }}</h2>
 	<table class="listing">
-		<tr><th colspan="2">{{ __ 'Tag' }}</th><th>{{ __ 'Quantity' }}</th><th>{{ __ 'Label' }}</th><th>{{ __ 'Print ?' }} </th></tr>
+		<tr>
+			<th colspan="2">{{ __loc @root.locale 'Tag' }}</th>
+			<th>{{ __loc @root.locale 'Quantity' }}</th>
+			<th>{{ __loc @root.locale 'Label' }}</th>
+			<th>{{ __loc @root.locale 'Print?' }} </th></tr>
 	{{/if}}
 	{{#with this}}
 		<tr>
@@ -47,12 +51,12 @@
 	</form>
 	</table>
 	<p>
-	<button type="submit">{{ __ "Generate"}}</button>
+	<button type="submit">{{ __loc @root.locale "Generate"}}</button>
 	</p>
 </form>
 	{{/if}}
 	{{else}}
-	<p><a href="/tags">{{ __ "Create new tags before printing them" }}</a></p>
+	<p><a href="/tags">{{ __loc @root.locale "Create new tags before printing them" }}</a></p>
 	{{/each}}
 
 
@@ -60,4 +64,4 @@
 <p><a href="/public/pdf/{{currentPdf}}.pdf">Download</a></p>
 <iframe class="pdfpreview" src="/public/pdf/{{currentPdf}}.pdf"></iframe>
 {{/if}}
-
+{{/layout}}

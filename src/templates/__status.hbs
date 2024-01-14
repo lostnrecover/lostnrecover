@@ -3,7 +3,7 @@
 	{{#if @partial-block}}
 		{{> @partial-block }}
 	{{else}}
-		{{ __ status }} 
+		{{ __loc @root.locale status }} 
 	{{/if}}
 </span>
 	{{else}}
@@ -11,7 +11,7 @@
 	{{#if @partial-block}}
 		{{> @partial-block }}
 	{{else}}
-		{{ __ 'active' }}
+		{{ __loc @root.locale 'active' }}
 	{{/if}}
 </span>
 	{{/if}}

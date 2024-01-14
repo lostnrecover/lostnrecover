@@ -1,7 +1,6 @@
-import { nanoid } from "nanoid";
-import { initCollection } from "../utils/db.js";
-import { AuthTokenService } from "./authtoken.js";
-import { EXCEPTIONS } from "./exceptions.js";
+import { nanoid } from 'nanoid';
+import { initCollection } from '../utils/db.js';
+import { EXCEPTIONS, throwWithData } from './exceptions.js';
 
 // Manage a user account collection for future anonymization:
 // an email is linked to a user account (nanoid) and the account id should be used for relation
@@ -9,20 +8,33 @@ import { EXCEPTIONS } from "./exceptions.js";
 // tobe done only if all tags are archived first
 // NB: only fully works if contact email is removed from tag when its archived
 
-export async function UserService(mongodb, parentLogger, config) {
+export const SCHEMA = {
+	body: {
+		type: 'object',
+		required: ['email'],
+		properties: {
+			email: {
+				type: 'string'
+			},
+			status: {
+				type: 'string',
+				enum: ['new', 'active', 'finder']
+			}
+		}
+	}
+};
+
+export async function UserService(mongodb, parentLogger, config, AUTH) {
 	const logger = parentLogger.child({ service: 'User' }),
-		COLLECTION = 'users',
-		PUBLIC_PROJECTION = { _id: 1, email:1, status: 1, tz: 1, locale: 1, displayName: 1},
-		// USERS = mongodb.collection(COLLECTION),
-		{verify} = await AuthTokenService(mongodb, logger, config);
+		COLLECTION = 'users';
 	let USERS = await initCollection(mongodb, COLLECTION);
 	//.then(col => USERS = col);
 
-	async function get(filter, projection) {
+	async function get(filter) {
 		if(!filter._id && !filter.email) {
-			throw("Can't get user without email or _id")
+			throw('Can\'t get user without email or _id');
 		}
-		return USERS.findOne(filter); //, { projection: projection || PUBLIC_PROJECTION });
+		return USERS.findOne(filter);
 	}
 
 	async function search(filter) {
@@ -31,24 +43,50 @@ export async function UserService(mongodb, parentLogger, config) {
 			// Lookup tokens
 			{
 				$lookup: {
-					from: "authtokens",
-					localField: "email",
-					foreignField: "email",
-					as: "tokens"
+					from: 'authtokens',
+					localField: 'email',
+					foreignField: 'email',
+					pipeline: [
+						{
+							$match: { $expr: { $and: [
+								{$eq: ['$type', 'auth']},
+								{$gte: [ '$validUntil', new Date() ]}
+							]}}
+						}
+					],
+					as: 'tokens'
+				}
+			},
+			{
+				$lookup: {
+					from: 'authtokens',
+					localField: 'email',
+					foreignField: 'email',
+					pipeline: [
+						{
+							$match: { $expr: { $and: [
+								{$eq: ['$type', 'session']},
+								{$gte: [ '$validUntil', new Date() ]}
+							]}}
+						}
+					],
+					as: 'sessions'
 				}
 			}
 		]).toArray();
 	}
 
 	async function findOrFail(email) {
-		let user = await USERS.findOne({ email }); //, { projection: PUBLIC_PROJECTION});
+		// let user = await USERS.findOne({ email }); //, { projection: PUBLIC_PROJECTION});
+		let user = await findByEmail(email);
 		if(!user) {
-			throw EXCEPTIONS.NOT_AUTHORISED;
+			throwWithData(EXCEPTIONS.NOT_AUTHORISED, {email}); //TODO bad exception ?
 		}
 		return user;
 	}
 	async function findOrCreate(email, reason) {
-		let user = await USERS.findOne({ email }) //, { projection: PUBLIC_PROJECTION});
+		// let user = await USERS.findOne({ email }) //, { projection: PUBLIC_PROJECTION});
+		let user = await findByEmail(email);
 		if(!user) {
 			user = await create({ email, createdFrom: reason });
 		}
@@ -57,6 +95,11 @@ export async function UserService(mongodb, parentLogger, config) {
 
 	async function findById(id) {
 		let user = await search({ _id: id }); //, { projection: PUBLIC_PROJECTION});
+		return user[0] ?? false;
+	}
+
+	async function findByEmail(email) {
+		let user = await search({email}); //, { projection: PUBLIC_PROJECTION});
 		return user[0] ?? false;
 	}
 
@@ -69,9 +112,9 @@ export async function UserService(mongodb, parentLogger, config) {
 		user.createdAt = new Date();
 		const result = await USERS.insertOne(user);
 		if(!result.acknowledged) {
-			throw('Impossible to create user profile')
+			throw('Impossible to create user profile');
 		}
-		return get({ _id: result.insertedId }) //, PUBLIC_PROJECTION)
+		return get({ _id: result.insertedId }); //, PUBLIC_PROJECTION)
 	}
 
 	async function list(filter) {
@@ -80,13 +123,13 @@ export async function UserService(mongodb, parentLogger, config) {
 	}
 
 	async function login(token) {
-		let email = await verify(token);
+		let email = await AUTH.verify(token);
 		if(!email) {
-			throw('Invalid Token')
+			throw('Invalid Token');
 		}
-		let user = await findOrCreate(email, 'signin')
+		let user = await findOrCreate(email, 'signin');
 		if(!user) {
-			throw('Invalid Token')
+			throw('Invalid Token');
 		}
 		if(user.status == 'blocked') {
 			throw('Account locked');
@@ -97,9 +140,9 @@ export async function UserService(mongodb, parentLogger, config) {
 				lastLogin: new Date()
 			}
 		}).catch(error => {
-			logger.error({msg: 'Error while updating user status', error, user})
+			logger.error({msg: 'Error while updating user status', error, user});
 		});
-		return user
+		return user;
 	}
 
 	async function update(id, user) {
@@ -112,6 +155,10 @@ export async function UserService(mongodb, parentLogger, config) {
 			...user,
 			updatedAt: new Date()
 		}});
+		if(result.modifiedCount != 1) {
+			logger.error(`Failed to update user ${id}`);
+			throw(EXCEPTIONS.UPDATE_FAILED);
+		}
 		//FIXME: check update result.
 		return await get({ _id: id });
 	}
@@ -120,30 +167,14 @@ export async function UserService(mongodb, parentLogger, config) {
 		let res = await USERS.aggregate([{
 			$group:
 				{
-					_id: "$status", // Group key
+					_id: '$status', // Group key
 					count: { $count: {} }
 				}
 		}]);
 		return res.toArray();
 	}
 
-	const SCHEMA = {
-		body: {
-			type: 'object',
-			required: ["email"],
-			properties: {
-				email: {
-					type: 'string'
-				},
-				status: {
-					type: "string",
-					enum: ["new", "active", "finder"]
-				}
-			}
-		}
-	}
-
 	return {
-		SCHEMA, findOrCreate, findOrFail, findById, create, login, list, update, count
-	}
+		findOrCreate, findOrFail, findById, create, login, list, update, count
+	};
 }

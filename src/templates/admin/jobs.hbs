@@ -1,0 +1,51 @@
+{{#> layout title=( __ 'Administration')}}
+{{> adminMenu }}
+<table class="listing">
+	<thead>
+		<tr>
+			<th>{{ __ 'Job' }}</th>
+			<th>{{ __ 'Interval' }}</th>
+			<th>{{ __ 'Status' }}</th>
+			<th>{{ __ 'Last Run' }}</th>
+			<th>{{ __ 'Next Run' }}</th>
+			<th>{{ __ 'Last Failure' }}</th>
+			<th>{{ __ 'Fails' }}</th>
+			<th>{{ __ 'Run' }}</th>
+		</tr>
+	</thead>
+	<tbody>
+		{{#each jobs}}{{# with this.attrs}}
+			<tr>
+				<td>{{ name }}
+				</td>
+				<td>
+					{{repeatInterval}}
+				</td>
+				<td>
+					<form class="inline" method="post" action="/admin/jobs/{{ _id }}">
+				 	{{#if disabled }}
+						{{>status status=(__ 'Disabled')}}
+						<input type="hidden" name="action" value="activate" />
+						{{>iconInput icon='play'}}
+					{{else}}
+						{{>status status=(__ 'Active')}}
+						<input type="hidden" name="action" value="deactivate" />
+						{{>iconInput icon='pause'}}
+					{{/if}}
+					</form>
+				</td>
+				<td>{{ dateFormat lastRunAt 'D/M HH:mm:ss.SSS'  }}</td>
+				<td>{{ dateFormat nextRunAt 'D/M HH:mm:ss.SSS' }}</td>
+				<td>{{ dateFormat failedAt 'D/M HH:mm:ss.SSS' }}</td>
+				<td title="{{ failReason }}">{{ failCount }}</td>
+				<td>
+					<form class="inline" method="post" action="/admin/jobs/{{ _id }}">
+						<input type="hidden" name="action" value="execute" />
+						{{>iconInput icon='play'}}
+					</form>
+				</td>
+			</tr>	
+		{{/with}}{{/each}}
+	</tbody>
+</table>
+{{/layout}}

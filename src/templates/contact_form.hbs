@@ -1,10 +1,12 @@
+{{#>layout title=(__ 'Support and Contact')}}
 <form method="post">
 	<p class="inline">
 		<label>
 			{{ __ "Reason" }}
 		</label>
 		{{#each reasons }}{{#with this}}
-			<br/><input type="radio" value="{{ value }}" id="reason-{{value}}" name="reason" {{#if (eq @root.reason value)}}checked{{/if}}/><label for="reason-{{value}}">{{ __ name }}</label>
+			<br/><input type="radio" value="{{ value }}" id="reason-{{value}}" name="reason" {{#if (eq @root.reason value)}}checked{{/if}}/>
+			<label for="reason-{{value}}">{{ __loc @root.locale name }}</label>
 		{{/with}}{{/each}}
 	</p>
 	<p>
@@ -35,3 +37,4 @@
 	{{/if}}
 	<button type="submit">{{ __ 'Send' }}</button>
 </form>
+{{/layout}}

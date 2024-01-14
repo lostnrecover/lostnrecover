@@ -1,10 +1,8 @@
-import { nanoid } from "nanoid";
-import { EXCEPTIONS } from './exceptions.js'
-import { MessageService } from "./messages.js";
-import { TagService } from "./tags.js";
-import { UserService } from "./user.js";
-import { STATUS as TAG_STATUS } from "./tags.js";
-import { initCollection } from "../utils/db.js";
+import { nanoid } from 'nanoid';
+import { EXCEPTIONS } from './exceptions.js';
+import { initCollection } from '../utils/db.js';
+import { STATUS as TAGS_STATUS } from './tags.js';
+import { checkImapInbox, extractTagId } from '../utils/imap.js';
 
 export const STATUS = {
 	PENDING: 'pending',
@@ -13,73 +11,115 @@ export const STATUS = {
 	RETURNED: 'returned',
 	RECOVERED: 'recovered',
 	REJECTED: 'rejected'
-}
+};
 
-export const FINAL_STATUS= [ STATUS.RECOVERED, STATUS.REJECTED ]
+export const FINAL_STATUS= [ STATUS.RECOVERED, STATUS.REJECTED ];
 
-export async function DiscoveryService(mongodb, parentLogger, config) {
+const BATCHIMAP = 'Messages.readInbox';
+
+let isRunning = false;
+
+export async function DiscoveryService(mongodb, parentLogger, config, MSG, TAGS, USERS) {
 	const COLLECTION = 'discovery';
 	// const DISCOVERY = mongodb.collection(COLLECTION);
 	const logger = parentLogger.child({ service: 'Discovery'});
-	const MSG = await MessageService(mongodb, logger, config);
-	const TAGS = await TagService(mongodb, logger, config);
-	const USERS = await UserService(mongodb, logger, config);
 	let DISCOVERY = await initCollection(mongodb, COLLECTION);
 	//.then(col => DISCOVERY = col);
 	// TODO job to process discovery expiration new, closed
-  // TODO Ensure Init index if any
+	// TODO Ensure Init index if any
+
+	async function registerJob(workerJob) {
+		let jobLogger = logger.child({'job': BATCHIMAP});
+		// init agenda job
+		workerJob.define(
+			BATCHIMAP,
+			{ priority: 'high', concurrency: 1},
+			async (job) => {
+				if (isRunning) {
+					job.fail('Still running');
+					job.save();
+					return false;
+				}
+				isRunning = true;
+				try {
+					jobLogger.info(`Mail reception init: ${config.imap.auth.user} / ${config.imap.host}`);
+					await checkImapInbox(jobLogger, processEmail);
+				} catch(e) {
+					job.fail(e);
+				} finally {
+					isRunning = false;
+				}
+			}
+		);
+		workerJob.enable({ name: BATCHIMAP });
+		workerJob.every('5 minutes', BATCHIMAP);
+		jobLogger.info(`${BATCHIMAP} Jobs registered...`);
+	}
+
 
 	async function search(filter) {
 		return await DISCOVERY.aggregate(
-      [
-        {
-          '$match': filter
-        }, {
-          '$lookup': {
-            'from': 'users', 
-            'localField': 'finder_id', 
-            'foreignField': '_id', 
-            'as': 'finder'
-          }
-        }, {
-          '$unwind': {
-            'path': '$finder', 
-            'preserveNullAndEmptyArrays': true
-          }
-        }, {
-          '$lookup': {
-            'from': 'tags', 
-            'localField': 'tagId', 
-            'foreignField': '_id', 
-            'as': 'tag'
-          }
-        }, {
-          '$unwind': {
-            'path': '$tag', 
-            'preserveNullAndEmptyArrays': true
-          }
-        }, {
-          '$addFields': {
-            'instructions_id': '$tag.instructions_id'
-          }
-        }, {
-          '$lookup': {
-            'from': 'instructions', 
-            'localField': 'instructions_id', 
-            'foreignField': '_id', 
-            'as': 'instructions'
-          }
-        }, {
-          '$unwind': {
-            'path': '$instructions', 
-            'preserveNullAndEmptyArrays': true
-          }
-        }
-      ]
+			[
+				{
+					'$match': filter
+				}, {
+					'$lookup': {
+						'from': 'users', 
+						'localField': 'finder_id', 
+						'foreignField': '_id', 
+						'as': 'finder'
+					}
+				}, {
+					'$unwind': {
+						'path': '$finder', 
+						'preserveNullAndEmptyArrays': true
+					}
+				}, {
+					'$lookup': {
+						'from': 'users', 
+						'localField': 'owner_id', 
+						'foreignField': '_id', 
+						'as': 'owner'
+					}
+				}, {
+					'$unwind': {
+						'path': '$owner', 
+						'preserveNullAndEmptyArrays': true
+					}
+				}, {
+					'$lookup': {
+						'from': 'tags', 
+						'localField': 'tagId', 
+						'foreignField': '_id', 
+						'as': 'tag'
+					}
+				}, {
+					'$unwind': {
+						'path': '$tag', 
+						'preserveNullAndEmptyArrays': true
+					}
+				}, {
+					'$addFields': {
+						'instructions_id': '$tag.instructions_id'
+					}
+				}, {
+					'$lookup': {
+						'from': 'instructions', 
+						'localField': 'instructions_id', 
+						'foreignField': '_id', 
+						'as': 'instructions'
+					}
+				}, {
+					'$unwind': {
+						'path': '$instructions', 
+						'preserveNullAndEmptyArrays': true
+					}
+				}
+			]
 		).toArray();
 	}
 
-  async function get(id) {
+	async function get(id) {
 		if(!id) {
 			throw('Missing id');
 		}
@@ -88,21 +128,32 @@ export async function DiscoveryService(mongodb, parentLogger, config) {
 		return d[0];
 	}
 
-  async function create(tag, finder_id, owner_id, shareFinder) {
-    let discovery = {
-      _id: nanoid(),
-      tagId: tag._id,
+	async function findForFinder(tag, finder) {
+		let disc = await search({
+			tagId: tag._id,
+			finder_id: finder._id
+		});
+		if(disc.length > 0) {
+			return disc[0];
+		}
+		return false;
+	}
+
+	async function create(tag, finder_id, owner_id, shareFinder) {
+		let discovery = {
+			_id: nanoid(),
+			tagId: tag._id,
 			finder_id, owner_id,
 			allowFinderSharing: !!shareFinder,
-      createdAt: new Date(),
-      status: 'new'
-    };
-    if(!tag) {
-      throw EXCEPTIONS.MISSING_TAG;
-    }
+			createdAt: new Date(),
+			status: 'new'
+		};
+		if(!tag) {
+			throw EXCEPTIONS.MISSING_TAG;
+		}
 		const result = await DISCOVERY.insertOne(discovery);
 		if(!result.acknowledged) {
-			throw('Impossible to save discovery')
+			throw('Impossible to save discovery');
 		}
 		discovery = await get(result.insertedId);
 		if(tag.status == 'lost') {
@@ -112,11 +163,11 @@ export async function DiscoveryService(mongodb, parentLogger, config) {
 			sendNew(discovery);
 		}
 		return discovery;
-  }
+	}
 
-  async function update(id, discovery) {
+	async function update(id, discovery) {
 		// TODO remove protected fields
-		let result, set = {...discovery}
+		let result, set = {...discovery};
 		delete set._id, set.status, set.createdAt, set.updatedAt;
 		logger.debug('Discovery Update set', set);
 		result = await DISCOVERY.updateOne({
@@ -126,17 +177,22 @@ export async function DiscoveryService(mongodb, parentLogger, config) {
 			// 	updatedAt: true
 			// },
 			$set: set
-		})
-    // TODO: Check result and eventually throw exception
+		});
+		if(result.modifiedCount != 1) {
+			throw EXCEPTIONS.UPDATE_FAILED;
+		}
 		return await get(id);
 	}
 
 	async function finderEmail(finder) {
-		return finder.email
+		return finder.email;
 	}
-	async function discoverySender(discovery) {
-		let email = config.tag_email.replace('{ID}', discovery._id)
-		return `${config.appName} <${email}>`;
+	function discoveryEmail(discovery) {
+		let email = config.tag_email.replace('{ID}', discovery._id);
+		return email;
+	}
+	function discoverySender(discovery) {
+		return `Tag ${discovery.tag._id} (${config.appName}) <${discoveryEmail(discovery)}>`;
 	}
 	async function recipientEmail(discovery) {
 		let id = discovery.tag.recipient_id, r;
@@ -171,20 +227,20 @@ export async function DiscoveryService(mongodb, parentLogger, config) {
 		MSG.create({
 			subject: `Tag ${discovery.tag.name} was found (${discovery.tag._id})`,
 			template: 'mail/found',
-			context: { tag: discovery.tag ,
-					email: discovery.allowFinderSharing ? await finderEmail(discovery.finder) : null },
+			context: { discovery: discovery ,
+				email: discovery.allowFinderSharing ? await finderEmail(discovery.finder) : null },
 			to: recipient,
 			from: await discoverySender(discovery)
-		})
+		});
 	}
 	// TODO 50% move mail notification to background worker https://www.mongodb.com/basics/change-streams
 
 	// if new: user was not logged in: propose to resubmit the dscovery
-		// if pending: when tag status was not declared lost,
-		//    if owner: approve the lost status of tag
-		//    if finder: display info that owner has been notified
-		// if active: display instructions, propose to declare return (finder) or reception (owner)
-		// if closed: display status
+	// if pending: when tag status was not declared lost,
+	//    if owner: approve the lost status of tag
+	//    if finder: display info that owner has been notified
+	// if active: display instructions, propose to declare return (finder) or reception (owner)
+	// if closed: display status
 	async function setStatus(id, status) {
 		let result = await DISCOVERY.updateOne({
 			_id: id
@@ -195,7 +251,7 @@ export async function DiscoveryService(mongodb, parentLogger, config) {
 				updatedAt: new Date()
 			}}
 		});
-		return (result.modifiedCount == 1)
+		return (result.modifiedCount == 1);
 	}
 
 	async function setPending(id) {
@@ -212,7 +268,7 @@ export async function DiscoveryService(mongodb, parentLogger, config) {
 		}
 		sendInstructions(d);
 		sendOwnerNotification(d);
-		TAGS.update(d.tagId, { status: TAG_STATUS.LOST })
+		TAGS.update(d.tagId, { status: TAGS_STATUS.LOST });
 		return setStatus(id, STATUS.ACTIVE);
 	}
 
@@ -221,7 +277,7 @@ export async function DiscoveryService(mongodb, parentLogger, config) {
 		if(d.status != STATUS.NEW && d.status != STATUS.PENDING) {
 			return false;
 		}
-		TAGS.update(d.tagId, { status: TAG_STATUS.ACTIVE })
+		TAGS.update(d.tagId, { status: TAGS_STATUS.ACTIVE });
 		return setStatus(id, STATUS.REJECTED);
 	}
 
@@ -241,5 +297,89 @@ export async function DiscoveryService(mongodb, parentLogger, config) {
 		return setStatus(id, STATUS.RECOVERED);
 	}
 
-  return { create, get, update, setPending, activate, flagReturned, close, reject }
+	async function listForFinder(user_id) {
+		return await search({
+			finder_id: user_id
+		});
+	}
+
+	async function processEmail(message) {
+		try {
+			let 
+				sender_email = message?.from?.value[0]?.address ?? null,
+				sender = await USERS.findOrFail(sender_email),
+				id = extractTagId(message),
+				discovery = id ? await get(id) : null, 
+				ids = [],
+				recipient,
+				result,
+				internal= {
+					content: message.filteredText || message.text,
+					subject: message.subject,
+					id: message.messageId ,
+					createdAt: new Date(),
+					sentAt: new Date(message.date)
+				};
+			if(!discovery) {
+				return false;
+			}
+			// check no duplicate
+			if(!Array.isArray(discovery.messages)) {
+				discovery.messages = [];
+			}
+			ids = discovery.messages.map(m => m.id).filter(id => id ? id == message.messageId : false);
+			if(ids.length > 0) {
+				logger.info({msg : 'duplicate message', discId: discovery._id, messId: message.messageId});
+				return false;
+			}
+			// check sender is owner or finder
+			if(discovery.finder_id == sender._id) {
+				internal.from = 'finder';
+				internal.to = 'owner';
+				internal.toSend = !discovery.muttedByOwner;
+				recipient = discovery.finder.email;
+			} else if(discovery.owner_id == sender._id) {
+				internal.to = 'finder';
+				internal.from = 'owner';
+				internal.toSend = !discovery.muttedByFinder;
+				recipient = discovery.owner.email;
+			} else {
+				// Third party message: dropped
+				throw(new Error(`Unknown Sender: ${sender_email}`));
+			}
+			// check discovery is "pending"
+			if(discovery.status != STATUS.ACTIVE && discovery.status != STATUS.RETURNED) {
+				// dropped : not in status
+				throw(new Error(`Rejected message: ${discovery.status}`));
+			}
+			result = await DISCOVERY.updateOne(
+				{_id: discovery._id},
+				{ $push: 
+					{ 'messages': internal }
+				});
+			if(result.modifiedCount != 1) {
+				logger.error('Unexpected update error on message');
+				return false;
+			}
+			if(internal.toSend) {
+				let msg = await MSG.create({
+					to: recipient,
+					from: discoverySender(discovery),
+					subject: 'About tag recovery ' + discovery.tag._id,
+					template: 'mail/discovery_message',
+					context: { message: internal, discovery },
+				});
+				logger.debug(msg);
+				if(!msg) {
+					logger.error('Impossible to forward message');
+				}
+			}
+			return true;
+		} catch(error) {
+			logger.warn({msg: 'not a a valid message', error});
+			return false;
+		}
+	}
+
+	return { registerJob, create, get, update, setPending, activate, flagReturned, close, reject, findForFinder, listForFinder, processEmail, discoveryEmail};
 }

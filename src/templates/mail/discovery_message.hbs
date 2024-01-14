@@ -1,0 +1,17 @@
+<h2>Message from {{message.from}}</h2>
+
+<p>{{message.from}} replied to your previous message with the following:</p>
+
+<blockquote>
+	<strong>
+	{{message.subject}}
+	</strong><br/>
+	{{message.content}}
+</blockquote>
+
+<hr />
+<p> This email was sent to {{ to }} from {{ config.appName }} as a participant in 
+	tag {{discovery.tag._id}} discovery and conversation. If you do not want to receive
+	any message related to this conversation, you can mute it here : 
+	https://{{ config.DOMAIN }}/t/{{discovery.tag._id}}/notify/{{discovery._id}}
+</p>

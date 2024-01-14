@@ -1,3 +1,5 @@
+{{#>layout title=(__ 'Tag')}}
+
 <h1>{{ __ 'Hourrah' }}</h1>
 
 <p>{{__ 'You found tag %s with id: ' tag.name }} <strong><code>{{tag._id}}</code></strong></p>
@@ -8,7 +10,7 @@
     <label for="email">{{__ 'Email address used to receive instructions from the owner'}}</label>
     <input type="email" id="email" name="email" disabled value="{{session.email}}" />
   </p>
-  <p>{{ __ 'Should we share this email with the tag owner ?' }}
+  <p>{{ __ 'Should we share this email with the tag owner?' }}
     <input type="radio" name="share" id="share_yes" value="true"/><label for="share_yes">{{ __ 'Yes' }}</label>
     <input type="radio" name="share" id="share_no" value="false" checked="checked" /><label for="share_no">{{ __ 'No' }}</label>
   </p>
@@ -21,3 +23,5 @@
   <p><button type="submit">{{ __ 'Send' }}</button> </p>
 </form>
 <p>{{ __ 'You will be sent an email to confirm your address and before the tag owner is notifed of your discovery...' }}</p>
+
+{{/layout}}

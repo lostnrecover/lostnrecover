@@ -1,28 +1,34 @@
 import QRCode from 'qrcode';
-import path from 'path'
+import path from 'path';
 import fs from 'fs';
 
 export async function QRService(mongodb, parentLogger, config) {
 	const TMPDIR = config.cache_dir,
-	// TAGS = mongodb.collection(COLLECTION),
-	logger = parentLogger.child({ service: 'QRCode' });
+		// TAGS = mongodb.collection(COLLECTION),
+		logger = parentLogger.child({ service: 'QRCode' });
 
 	async function getQRCodeFile(tagId, format, refreshCache) {
-		let options = {}, cacheFileName, code, directory;
-		options.type = 'svg'
+		let options = {}, cacheFileName, directory;
+		options.type = 'svg';
 		if (format == 'png') {
-			options.type = 'png'
+			options.type = 'png';
 		}
-		directory = tagId.replace(/(.{3})(.*)/, "$1/$2");
+		directory = tagId.replace(/(.{3})(.*)/, '$1/$2');
 		fs.mkdirSync(path.join(TMPDIR, directory), {recursive: true});
-		cacheFileName = path.join(TMPDIR, directory, `/${tagId}.${options.type}`)
+		cacheFileName = path.join(TMPDIR, directory, `/${tagId}.${options.type}`);
 		if(!fs.existsSync(cacheFileName) || refreshCache) {
 			let t = await generateCode(cacheFileName, tagId, options);
+			logger.debug(`Generated file ${t}`);
 		} else {
 			logger.info(`using cache file ${cacheFileName}`);
 		}
 		return cacheFileName;
 	}
+
+	async function getQRCodeForLogin(token) {
+		return await QRCode.toDataURL(`https://${config.DOMAIN}/auth?token=${token}`);
+	}
+
 	async function generateCode(filename, tagId, options) {
 		let domain = config.SHORT_DOMAIN ?? config.DOMAIN,
 			text = `https://${domain}/t/${tagId}`, physicalPath = path.join(filename);
@@ -30,20 +36,20 @@ export async function QRService(mongodb, parentLogger, config) {
 			if(options.type == 'png') {
 				QRCode.toFile(physicalPath, text, (err) => {
 					if(err) {
-						logger.child({filename, text, options}).error(`Error generating Code: ${err}`)
-						reject(`Error generating Code: ${err}`)
+						logger.child({filename, text, options}).error(`Error generating Code: ${err}`);
+						reject(`Error generating Code: ${err}`);
 					} else {
 						resolve(filename);
 					}
-				})
+				});
 			} else {
 				options.type = 'svg';
 				QRCode.toString(text, options, (err, txt) => {
 					if(err) {
-						logger.child({filename, text, options}).error(`Error generating Code: ${err}`)
-						reject(`Error generating Code: ${err}`)
+						logger.child({filename, text, options}).error(`Error generating Code: ${err}`);
+						reject(`Error generating Code: ${err}`);
 					}
-					logger.child({filename, text, options, txt}).info('Generated')
+					logger.child({filename, text, options, txt}).info('Generated');
 					if(options.type == 'svg') {
 						//Append domain and tagId
 						// let domainTag = `<text x="50%" y="1.75" dominant-baseline="middle" text-anchor="middle" font-family="Helvetica" font-size="3">${domain}</text>`
@@ -52,10 +58,10 @@ export async function QRService(mongodb, parentLogger, config) {
 						fs.writeFileSync(physicalPath, txt);
 					}
 					resolve(filename);
-				})
+				});
 			}
 		});
 	}
 
-	return { getQRCodeFile }
+	return { getQRCodeFile, getQRCodeForLogin };
 }

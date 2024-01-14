@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>{{ __ title }}{{#if title}} - {{/if}}{{ config.appName }}</title>
+	<title>{{#if title}}{{ title }} - {{/if}}{{ config.appName }}</title>
 	<link rel="stylesheet" href="https://unpkg.com/marx-css/css/marx.min.css" />
 	<link rel="stylesheet" href="/public/css/app.css" />
+	{{#if (eq env 'dev')}}<link rel="stylesheet" href="/public/css/dev.css" />{{/if}}
 </head>
 <body>
 	<main>
@@ -13,6 +14,7 @@
 		{{#if session.user_id }}
 		 	<small>{{ session.email }}</small>
 			<a href="/tags"><img src="/public/icons/tag.svg" title="{{ __ 'Tags' }}" /></a>
+			<a href="/discoveries"><img src="/public/icons/archive.svg" title="{{__ 'Discoveries'}}" /></a>
 			<a href="/instructions"><img src="/public/icons/list.svg" title="{{ __ 'Instructions' }}" /></a>
 			<a href="/pdf"><img src="/public/icons/grid.svg" title="{{ __ 'Print Tags' }}" /></a>
 			<a href="/account"><img src="/public/icons/user.svg" title="{{ __ 'Account' }}" /></a>
@@ -38,6 +40,7 @@
 		{{/with}}
 		{{/if}}
 		{{{body}}}
+		{{> @partial-block }}
 		<footer>{{ config.appName}} - v{{ pkg.version }} -
 			{{#each config.locales }}{{#if @first}}{{else}} | {{/if}}
 			<a href="?locale={{@key}}" title="{{ __loc @key 'Switch to %s' this }}">{{@key}}</a>
@@ -46,9 +49,13 @@
 			- <a href="/support?redirect={{ url }}">{{ __ 'Support' }}</a>
 		</footer>
 		{{#if (eq env 'dev')}}
+		<div class="debug">
+		<input id="collapsible" class="toggle" type="checkbox">
+  	<label for="collapsible" class="lbl-toggle">{{__ 'Show Debug info'}}</label>
 		<pre>
 {{ debug @root }}
 		</pre>
+		</div>
 		{{/if}}
 	</main>
 </body>

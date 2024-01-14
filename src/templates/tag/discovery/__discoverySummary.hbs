@@ -1,5 +1,5 @@
+<h2>{{ __ 'Tag %s found'  discovery.tag._id}}</h2>
 {{#if isTagOwner}}
-<h2>{{ __ 'Tag %s found: %s'  discovery.tag._id  discovery.tag.name}}</h2>
 	<p>
 	{{ __ 'Tag Label' }}: {{ discovery.tag.label }}<br />
 	{{ __ 'Status' }}: {{ discovery.status }}
@@ -7,10 +7,8 @@
 	{{#each (reverse discovery.states) }}
 	 {{#if @first}}<ul>{{/if}}
 		<li>
-		{{ __ this.status }} : {{ dateFormat this.updatedAt 'DD/MM/YY hh:mm'}}
+		{{ __loc @root.locale this.status }} : {{ dateFormat this.updatedAt 'DD/MM/YY hh:mm'}}
 		</li>
 	{{#if @last}}</ul>{{/if}}
 	{{/each}}
-{{else}}
-<h2>{{ __ 'Tag %s found' discovery.tag._id }}</h2>
 {{/if}}

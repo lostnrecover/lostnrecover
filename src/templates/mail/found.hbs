@@ -1,10 +1,10 @@
-<h2>Tag {{tag.name}} found</h2>
+<h2>Tag {{discovery.tag.name}} found</h2>
 
 <p>Here are the instructions provided for the discovery:</p>
 
 <hr />
 <pre>
-{{tag.instructions.body}}
+{{discovery.instructions.body}}
 </pre>
 
 {{#if email }}
@@ -14,7 +14,7 @@
 
 <hr />
 <p> This email was sent to {{ to }} because it was attached as contact detail
-  on tag {{ tag._id }} from {{ config.appName }}.
-If you didn't try to subscribe to our service, please ignore this email or contact us {{ config.support_email }} to get your email removed
-We are sorry for this.
+  on tag {{ discovery.tag._id }} from {{ config.appName }}.
+If you didn't try to subscribe to our service, please ignore this email or contact us 
+{{ config.support_email }} to get your email removed. We are sorry for this.
 </p>

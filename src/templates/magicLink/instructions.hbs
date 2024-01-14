@@ -1,3 +1,4 @@
+{{#>layout title=(__ 'Magiclink instructions')}}
 
 <p>
 {{ __ 'To proceed you need to verify your email address and provide a token that was sent to your email address.'}}
@@ -17,9 +18,11 @@
 {{#if email}}
 <form action="/login" method="post" class="inline">
 {{#if redirect}}<input type="hidden" name="redirect" value="{{redirect}}" />{{/if}}
-<p>{{ __ 'No email received ?'}}
+<p>{{ __ 'No email received?'}}
   <input type="hidden" id="email" name="email" value="{{email}}"/>
   <button type="submit">{{ __ 'Resend Magic Link' }}</button>
 </p>
 </form>
 {{/if}}
+
+{{/layout}}

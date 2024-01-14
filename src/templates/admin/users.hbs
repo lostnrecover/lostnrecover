@@ -1,3 +1,4 @@
+{{#>layout title=(__  'Admin - Users')}}
 {{> adminMenu }}
 <table class="listing">
   <thead>
@@ -7,7 +8,8 @@
       <th>{{ __ 'Status' }}</th>
       <th>{{ __ 'Created At' }}</th>
       <th>{{ __ 'Last Login' }}</th>
-      <th>{{ __ 'Active tokens' }}</th>
+      <th>{{ __ 'Active Tokens' }}</th>
+      <th>{{ __ 'Active Sessions' }}</th>
       <th>{{ __ 'Action' }}</th>
     </tr>
   </thead>
@@ -16,7 +18,7 @@
     {{#with this}}
     <tr>
       <td class="compact_id">{{ _id }}</span></td>
-      <td>{{ email }}{{#if isAdmin}}<span title="{{ __ 'Administrator' }}">*</span>{{/if}}</td>
+      <td>{{ email }}{{#if isAdmin}}<span title="{{ __loc @root.locale 'Administrator' }}">*</span>{{/if}}</td>
       <td>
         {{#if (or (eq status 'active') (eq status 'new'))}}
           <button form="form-{{ _id }}" type="submit" name="action" value="block" class="{{status}}">{{status}}</button>
@@ -31,14 +33,26 @@
       <td>{{ dateFormat createdAt 'l LTS' }}</td>
       <td>{{ dateFormat lastLogin 'l LTS' }}</td>
       <td>{{ tokens.length }}</td>
+      <td>{{ sessions.length }}</td>
       <td>
+        {{!-- <button type="submit" name="action" value="token">{{ __ 'New Token'}}</button> --}}
         <form method="post" id="form-{{ _id }}">
           <input type="hidden" name="user_id" value="{{_id}}" />
-          <button type="submit" name="action" value="token">{{ __ 'Token'}}</button>
+          <input type="hidden" name="action" value="token" />
+          <input type="image" title="{{ __ 'Send New Token'}}" src="/public/icons/key.svg" />
         </form>
+        {{#if (ne sessions.length 0)}}
+        {{!-- <button type="submit" name="action" value="kill">{{ __ 'Kill Sessions'}}</button> --}}
+        <form method="post" id="form-{{ _id }}">
+        <input type="hidden" name="user_id" value="{{_id}}" />
+        <input type="hidden" name="action" value="kill" />
+        <input type="image" name="action" value="kill" title="{{ __ 'Kill Sessions'}}" src="/public/icons/trash-2.svg" />
+        </form>
+        {{/if}}
       </td>
     </tr>
     {{/with}}
     {{/each}}
   </tbody>
 </table>
+{{/layout}}

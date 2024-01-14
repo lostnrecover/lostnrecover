@@ -1,3 +1,4 @@
+{{#> layout title=( __ 'Messages administration' )}}
 {{> adminMenu }}
 
 <h2>{{ __ 'Messages list' }}
@@ -20,7 +21,7 @@
     {{#each messages}}
     {{#with this}}
     <tr>
-      <td>{{#if (or (eq status 'new') (eq status 'sent'))}}<input type="checkbox" name="selected" value="{{ _id}}"/>{{/if}}</td> 
+      <td>{{#if (in status @root.selectableStatuses)}}<input type="checkbox" name="selected" value="{{ _id}}"/>{{/if}}</td> 
       <td class="compact_id">{{ _id }}</td>
       <td>{{> status  status=status type='messages'}}</td>
       <td>{{ dateFormat createdAt 'l LTS' }}</td>
@@ -33,3 +34,4 @@
   </tbody>
 </table>
 </form>
+{{/layout}}

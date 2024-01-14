@@ -1,0 +1,25 @@
+{{#>layout title=(__ 'Privacy and Personal Data')}}
+{{#if (eq locale 'en')}}
+<h2>Privacy and Personal Data</h2> 
+
+<p>The intial goal of the project is personal data protection. We will not resell any personal data. We only keep your email address
+	for account verification and identification as well as a mean to notify you when a lost item is found.
+	</p>
+<p>Information taht you put in the isntructions are only shared with the person who discovered a lost item, it's up to you to decide what to share or not.</p>
+
+<p>In case of doubt or for any question, don't hesitate to contact us <a href="mailto:{{email_support}}?subject=Confidentiality and Personal Data">{{email_support}}</a></p>
+
+{{/if}}
+{{#if (eq locale 'fr')}}
+<h2>Confidentialité et données personnelles</h2>
+
+<p>Le but du projet au départ est bien de protéger ses données personnelles. Nous n'exploiterons pas vos données personnelles. 
+	Nous concervons uniquement votre adresse email pour vous identifier et vous notifier lorsqu'un de vos objets est retrouvé.</p>
+
+<p> Les informations que vous pouvez mettre dans les instructions ne seront partagées qu'avec la personne qui a retrouvé un objet perdu, 
+	à vous de faire attention à ce que vous y mettez.</p>
+
+<p>En cas de doute ou pour toute question spécifique, 
+	n'hésitez pas à nous le faire savoir en écrivant à <a href="mailto:{{email_support}}?subject=Confidentialité et données personnelles">{{email_support}}</a></p>
+{{/if}}
+{{/layout}}

@@ -1,61 +1,54 @@
-import { UserService } from "../services/user.js";
-import { MessageService } from "../services/messages.js";
 import { EXCEPTIONS, throwWithData } from '../services/exceptions.js';
-import { AuthTokenService } from '../services/authtoken.js';
-import { StatusService } from "../services/status.js";
-
 
 export default async function(fastify, opts, done) {
-	const logger = fastify.log.child({ controller: 'Admin' }),
-		AUTH = await AuthTokenService(fastify.mongo.db, logger, fastify.config),
-		MSG = await MessageService(fastify.mongo.db, logger, fastify.config),
-		USERS = await UserService(fastify.mongo.db, logger, fastify.config),
-		STATUS = await StatusService(fastify.mongo.db, logger, fastify.config);
+	const 
+		logger = fastify.log.child({ controller: 'Admin' }),
+		services = fastify.services;
 
-  fastify.get('/', {
-		preHandler: AUTH.isAdmin
-	}, async (req,reply) => {
-    reply.view('admin/index', {
-      users: await USERS.list(),
-			title: 'Admninistration'
-    })
-    return reply;
-  });
+	fastify.get('/', {
+		preHandler: fastify.isAdmin
+	}, async (request,reply) => {
+		reply.view('admin/index', {
+			users: await services.USERS.list()
+		});
+		return reply;
+	});
 
-	fastify.get('/status', async (request, reply) => {
-		return await STATUS.check("API");
-	})
+	fastify.get('/status', async () => {
+		return await services.STATUS.check('API');
+	});
 
 	fastify.get('/config', {
-		preHandler: AUTH.isAdmin
+		preHandler: fastify.isAdmin
 	}, async (request, reply) => {
 		reply.view('admin/config');
 		return reply;
-	})
+	});
 
-  fastify.get('/messages', {
-		preHandler: AUTH.isAdmin
+	fastify.get('/messages', {
+		preHandler: fastify.isAdmin
 	}, async (request, reply) => {
-    reply.view('admin/messages', {
-      messages: await MSG.list(),
-			title: 'Messages administration'
-    });
-    return reply
-  });
+		reply.view('admin/messages', {
+			messages: await services.MSG.list(),
+			selectableStatuses: ['new', 'sent', 'error']
+		});
+		return reply;
+	});
+
 	fastify.post('/messages', {
-		preHandler: AUTH.isAdmin
+		preHandler: fastify.isAdmin
 	}, async (request, reply) => {
 		let list = request.body.selected, action = request.body.action;
-		if(typeof list == "string") {
+		if(typeof list == 'string') {
 			list = [ list ];
 		}
 		if(action == 'resend') {
 			for (const i in list) {
 				if (Object.hasOwnProperty.call(list, i)) {
 					const msgid = list[i];
-					let res = await MSG.send(msgid);
+					let res = await services.MSG.send(msgid);
 					if(res) {
-						logger.debug({msgid, res}, "Message resent");
+						logger.debug({msgid, res}, 'Message resent');
 					} else {
 						logger.error({msgid}, 'Resend messages failed');
 					}
@@ -63,9 +56,41 @@ export default async function(fastify, opts, done) {
 			}
 			reply.redirect(request.url);
 		} else {
-			throwWithData(EXCEPTIONS.BAD_REQUEST, {'hint': 'Invalid Action'})
+			throwWithData(EXCEPTIONS.BAD_REQUEST, {'hint': 'Invalid Action'});
 		}
 		return reply;
-	})
-  done()
+	});
+
+	fastify.get('/jobs', {
+		preHandler: fastify.isAdmin
+	}, async (request, reply) => {
+		let jobs = await fastify.workerJob.jobs({}, {lastRunAt: -1}, 0, 0);
+		reply.view('admin/jobs', { 
+			jobs
+		});
+		return reply;
+	});
+	fastify.post('/jobs/:id', {
+		preHandler: fastify.isAdmin
+	}, async (request, reply) => {
+		let jobs = await fastify.workerJob.jobs({}, {lastRunAt: -1}, 0, 0),
+			id = request.params.id,
+			job = jobs.filter(j => j.attrs._id.toString() == id).pop(),
+			action = request.body.action ?? '';
+		if(action == 'activate') {
+			job.enable();
+		}
+		if(action == 'deactivate') {
+			job.disable();
+		}
+		if(action == 'execute') {
+			job.run();
+		}
+		job.save();
+		reply.redirect('/admin/jobs');
+		return reply;
+	});
+
+	logger.debug('AdminRoute loaded');
+	done();
 }

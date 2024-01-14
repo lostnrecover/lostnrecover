@@ -1,8 +1,4 @@
-import {UserService} from '../services/user.js'
-import { AuthTokenService } from '../services/authtoken.js'
-import { MessageService } from '../services/messages.js';
 import { EXCEPTIONS } from '../services/exceptions.js';
-// import fastifySecureSession from '@fastify/secure-session';
 
 function invalidEmail(email) {
 	const INVALID = true, OK = false;
@@ -17,18 +13,17 @@ function invalidEmail(email) {
 
 // src/routes/accounts.js
 export default async function(fastify, opts, done) {
-	const logger = fastify.log.child({ controller: 'AccountAPI' }),
-		USERS = await UserService(fastify.mongo.db, logger, fastify.config),
-		MSG = await MessageService(fastify.mongo.db, logger, fastify.config),
-		{ create, verify} = await AuthTokenService(fastify.mongo.db, logger, fastify.config);
+	const 
+		logger = fastify.log.child({ controller: 'AccountAPI' }),
+		services = fastify.services;
 
 	fastify.get('/login', async (request, reply) => {
-		reply.view('magicLink/form', { title: 'Login', url: request.query.redirect })
-		return reply
-	})
+		reply.view('magicLink/form', { url: request.query.redirect });
+		return reply;
+	});
 	fastify.post('/login', async (request, reply) => {
 		let email = request.body.email,
-			redirect = "";
+			redirect = '';
 		if(request.body.redirect) {
 			redirect = `&redirect=${request.body.redirect}`;
 		}
@@ -38,16 +33,16 @@ export default async function(fastify, opts, done) {
 			return reply;
 		} else {
 			// Check user email or create user if not exists
-			let user = await USERS.findOrCreate(email, 'signin'), tokenLogger = logger.child({user})
+			let user = await services.USERS.findOrCreate(email, 'signin'), tokenLogger = logger.child({user});
 			if(user.status == 'blocked') {
 				request.flash('error', `Account ${email} is locked, please contact support: ${fastify.config.support_email}`);
 				reply.redirect(`/login?${redirect}`);
 				return reply;
 			}
-			const token = await create(user.email);
+			const token = await services.AUTH.createAuth(user.email);
 			let link = `${request.protocol}://${request.hostname}/auth?token=${token}${redirect}`;
 			// Send email
-			MSG.create({
+			services.MSG.create({
 				to: email,
 				subject: 'Please verify your email',
 				template: 'mail/email_verify',
@@ -57,70 +52,70 @@ export default async function(fastify, opts, done) {
 			if(process.env.ENV == 'dev') {
 				request.flash('warning', `Auto logged in as  ${email}`);
 				reply.redirect(link);
-				return reply
+				return reply;
 			}
 		}
 		reply.redirect(`/auth?email=${email}${redirect}`);
 		return reply;
-	})
+	});
 	fastify.get('/auth',{
 		schema: {
 			// request needs to have a querystring with a `name` parameter
-				querystring: { 
-					token: { type: 'string'} 
-					//, redirect: { type: 'string'}, email: { type: 'string'} 
-				}
+			querystring: { 
+				token: { type: 'string'} 
+				//, redirect: { type: 'string'}, email: { type: 'string'} 
 			}
-		}, async (request, response) => {
-			let data = {};
-			if(request.query.email) {
-				data.email = request.query.email
-			}
-			if(request.query.redirect) {
-				data.redirect = request.query.redirect
-			}
-			if(request.query.token) {
-				// check provided token
-				try {
-					let user = await USERS.login(request.query.token);
-					if(!user) {
-						throw('Invalid Token');
-					} 
-					// init session
-					request.session.set('email', user.email);
-					request.session.set('user_id', user._id );
-					request.session.set('isAdmin', !!user.isAdmin);
-					if(request.query.redirect) {
-						response.redirect(request.query.redirect);
-					} else {
-						response.redirect(`/`)
-					}
-				} catch(e) {
-					if(e=='Invalid Token') {
-						request.flash('warning', `Invalid token`);
-						data.title = 'Magiclink instructions';
-						response.code(401);
-						response.view('magicLink/instructions', data);
-					} else {
-						throw(e);
-					}
-				}
-			} else {
-				// Propose to help
-				data.title = 'Magiclink instructions'
-				response.view('magicLink/instructions', data);
-			}
-			return response
-	})
-	fastify.get('/logout', (req, res) => {
-		// kill session
-		req.session.delete()
-		//return ok
-		if(req.query.redirect) {
-			res.redirect(req.query.redirect);
-		} else {
-			res.redirect(`/`)
 		}
+	}, async (request, response) => {
+		let data = {};
+		if(request.query.email) {
+			data.email = request.query.email;
+		}
+		if(request.query.redirect) {
+			data.redirect = request.query.redirect;
+		}
+		if(request.query.token) {
+			// check provided token
+			try {
+				let user = await services.USERS.login(request.query.token);
+				if(!user) {
+					throw('Invalid Token');
+				} 
+				await services.AUTH.createSession(user, request);
+				if(request.query.redirect) {
+					response.redirect(request.query.redirect);
+				} else {
+					response.redirect('/');
+				}
+			} catch(e) {
+				if(e=='Invalid Token') {
+					request.flash('warning', 'Invalid token');
+					// response.code(401);
+					// response.view('magicLink/instructions', data);
+					throw(EXCEPTIONS.BAD_TOKEN);
+				} else {
+					throw(e);
+				}
+			}
+		} else {
+			// Propose to help
+			response.view('magicLink/instructions', data);
+		}
+		return response;
 	});
+	fastify.get('/logout',  {
+		preHandler: fastify.authentified
+	}, async (request, reply) => {
+		// kill session
+		services.AUTH.deleteCurrentSession(request);
+		//return ok
+		if(request.query.redirect) {
+			reply.redirect(request.query.redirect);
+		} else {
+			reply.redirect('/');
+		}
+		return reply;
+	});
+	logger.debug('SessionsRoute loaded');
 	done();
 }
