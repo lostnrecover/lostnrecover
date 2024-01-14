@@ -74,7 +74,8 @@ export const config = {
 		auth: {
 			user: imapcs.user,
 			pass: imapcs.password
-		}
+		},
+		inbox: imapcs.path?.join('/') ?? 'INBOX'
 	},
 	mail_discovery_dir: 'Processed',
 	mail_others_dir: 'Support'
