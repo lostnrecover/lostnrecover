@@ -5,7 +5,7 @@ import url from 'url';
 import {ConnectionString} from 'connection-string';
 import { getSecret } from './utils/secrets.js';
 import dotenv from 'dotenv';
-import { readFileSync } from 'fs';
+import { readFileSync, truncateSync } from 'fs';
 import os from 'os';
 
 dotenv.config();
@@ -36,6 +36,7 @@ export const config = {
 	pkg,
 	DOMAIN,
 	SHORT_DOMAIN,
+	disableRedirect: false,
 	support_email: `support@${DOMAIN}`,
 	tag_email: `tags+{ID}@${DOMAIN}`,
 	PORT: process.env.PORT || 3000,
