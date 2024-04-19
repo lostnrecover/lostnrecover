@@ -37,6 +37,8 @@ services:
     - traefik.http.routers.${APP_CODE}_${ENV:-prod}.tls=true
     - traefik.http.routers.${APP_CODE}_${ENV:-prod}.tls.certresolver=${TRAEFFIK_CERTRESOLVER:-letsencrypt}
     - traefik.http.routers.${APP_CODE}_${ENV:-prod}.middlewares=${TRAEFFIK_MIDDLEWARE:-marker,redirectwww}
+    # - traefik.http.middleware.${APP_CODE}_${ENV:-prod}_shortdom_redir.redirectregex=^https?://${SHORTDOMAIN}/(.*)
+    # - traefik.http.middlewares.${APP_CODE}_${ENV:-prod}_shortdom_redir.redirectregex.replacement=https://${DOMAIN}/$${1}
     healthcheck:
       test: ["CMD", "node", "src/healthcheck.js"]
       interval: 1m

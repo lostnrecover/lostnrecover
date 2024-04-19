@@ -91,5 +91,14 @@ export function loadFastifyPlugins(fastify, config) {
 	});
 	fastify.register(fastifyForm);
 
+	// redirect any GET request on shortdomain
+	fastify.addHook('onRequest', async (request, reply) => {
+		if(!config.disableRedirect && config.DOMAIN != request.hostname && 'GET' == request.method) {
+			reply.redirect(302, `${request.protocol}://${config.DOMAIN}${request.url}`);
+			request.log.info(`Redirected from ${request.hostname} for ${request.url} `);
+			// should redirect ?
+			return reply;
+		}
+	})
 
 }
