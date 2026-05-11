@@ -1,7 +1,7 @@
 {
   "name": "lostnrecover",
   "displayName": "Lost & Recover",
-  "version": "1.5.1",
+  "version": "1.5.2-dev",
   "description": "Manage tags to get back your lost items",
   "main": "src/server.js",
   "scripts": {
