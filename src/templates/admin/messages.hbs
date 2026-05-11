@@ -5,6 +5,7 @@
 </h2>
 <form method="post">
 <button name="action" value="resend">{{ __ 'Resend' }}</button>
+<button name="action" value="cancel">{{ __ 'Cancel' }}</button>
 <table class="listing">
   <thead>
     <tr>
@@ -13,6 +14,7 @@
       <th>{{ __ 'Status' }}</th>
       <th>{{ __ 'Created At' }}</th>
       <th>{{ __ 'Sent' }}</th>
+      <th>{{ __ 'Updated At' }}</th>      
       <th>{{ __ 'Subject' }}</th>
       <th>{{ __ 'Recipient' }}</th>
     </tr>
@@ -25,7 +27,8 @@
       <td class="compact_id">{{ _id }}</td>
       <td>{{> status  status=status type='messages'}}</td>
       <td>{{ dateFormat createdAt 'l LTS' }}</td>
-      <td>{{ dateFormat sentAt 'l LTS'  }}</td>
+      <td>{{ dateFormat sentAt 'l LTS'  }}</td>    
+      <td>{{ dateFormat updatedAt 'l LTS'  }}</td>
       <td>{{ subject }}</td>
       <td>{{ to }}</td>
     </tr>
