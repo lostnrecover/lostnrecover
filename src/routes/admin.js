@@ -55,6 +55,19 @@ export default async function(fastify, opts, done) {
 				}
 			}
 			reply.redirect(request.url);
+		} else if( action=="cancel") {
+			for (const i in list) {
+				if (Object.hasOwnProperty.call(list, i)) {
+					const msgid = list[i];
+					let res = await services.MSG.cancel(msgid);
+					if(res) {
+						logger.debug({msgid, res}, 'Message cancelled');
+					} else {
+						logger.error({msgid}, 'Messages cancelleation failed');
+					}
+				}
+			}
+			reply.redirect(request.url);
 		} else {
 			throwWithData(EXCEPTIONS.BAD_REQUEST, {'hint': 'Invalid Action'});
 		}

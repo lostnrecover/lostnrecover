@@ -150,6 +150,16 @@ export async function MessageService(mongodb, parentLogger, config) {
 		return await get(msgID);
 	}
 
+	async function cancel(msgID) {
+		let msg = await get(msgID), now = new Date(), expireAt = new Date(), email, res;
+		if (!msg || !msg.status || msg.status != 'new' || !msg.to) { // || now < msg.schedule ) {
+			return false;
+		}
+		expireAt.setDate(now.getDate() + retentionDays);
+		await update(msgID, { status: 'cancelled', sentAt: null, expireAt: expireAt, updatedAt: now });
+		return await get(msgID);
+	}
+
 	async function batchSend() {
 		const cursor = MSG.find({ status: 'new' });
 		let idx = 0;
