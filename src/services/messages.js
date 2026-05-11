@@ -174,5 +174,5 @@ export async function MessageService(mongodb, parentLogger, config) {
 		return await MSG.find(filter).sort({ createdAt: -1 }).toArray();
 	}
 
-	return { create, receive, get, pause, resume, send, batchSend, list, registerJob };
+	return { create, receive, get, pause, resume, send, batchSend, list, registerJob, cancel };
 }
