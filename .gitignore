@@ -1,4 +1,5 @@
 node_modules/
+logs/*
 _
 .vscode/**
 .session-secret-key
@@ -11,3 +12,4 @@ public/pdf
 .env.*
 local.env
 .tap
+.DS_Store

@@ -76,6 +76,6 @@ export const config = {
 			pass: imapcs.password
 		}
 	},
-	mail_discovery_dir: 'Processed',
-	mail_others_dir: 'Support'
+	mail_discovery_dir: process.env.MAIL_DIR_DISCOVERY || 'Processed',
+	mail_others_dir: process.env.MAIL_DIR_SUPPORT || 'Support'
 };
