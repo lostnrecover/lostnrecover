@@ -107,7 +107,7 @@ export async function UserService(mongodb, parentLogger, config, AUTH) {
 		// TODO: user data cleanup (according to schema)
 		user._id = nanoid();
 		if (!user.status) {
-			user.status = 'new';
+			user.status = 'blocked';
 		}
 		user.createdAt = new Date();
 		const result = await USERS.insertOne(user);
