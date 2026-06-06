@@ -73,6 +73,10 @@ td form {
   display: inline;
 }
 
+form .login_name {
+  display: none;
+}
+
 .inline input {
   width: auto;
   display: inline;

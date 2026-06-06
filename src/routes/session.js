@@ -31,6 +31,10 @@ export default async function(fastify, opts, done) {
 			request.flash('error', 'Invalid email address');
 			reply.redirect(`/login?${redirect}`);
 			return reply;
+		} if(!('name' in request.body) || (request.body.name !== "")) {
+			request.flash('error', 'Are you a robot ?');
+			reply.redirect(`/login?maybeBot=true&${redirect}`);
+			return reply
 		} else {
 			// Check user email or create user if not exists
 			let user = await services.USERS.findOrCreate(email, 'signin'), tokenLogger = logger.child({user});
