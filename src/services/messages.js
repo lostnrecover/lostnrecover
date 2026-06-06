@@ -144,7 +144,7 @@ export async function MessageService(mongodb, parentLogger, config) {
 				messageId: "<4fd9d2e1-ef01-efd5-04d6-a63ee1743dd4@dev.lostnrecover.me>" } */
 			logger.debug({...res, msg: 'SendMail result', msgID});
 		} catch (error) {
-			update(msgID, { status: 'error', response: res.repsonse });
+			update(msgID, { status: 'error', response: error});
 			return false;
 		}
 		expireAt.setDate(now.getDate() + retentionDays);
