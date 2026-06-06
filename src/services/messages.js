@@ -124,6 +124,7 @@ export async function MessageService(mongodb, parentLogger, config) {
 			template: msg.template,
 			context: msg.context,
 			to: msg.to,
+			_id: msgID
 		};
 		if(msg.from) {
 			email.from = msg.from;
@@ -131,17 +132,18 @@ export async function MessageService(mongodb, parentLogger, config) {
 		if(msg.replyTo) {
 			email.replyTo = msg.replyTo;
 		}
-		res = await mailer(email);
-		/* Res example
-		{	accepted: [	"seb@z720.net"], rejected: [],
-			envelopeTime: 71, messageTime: 81, messageSize: 1637,
-			response: "250 Accepted [STATUS=new MSGID=Y-DqFykOP3YSqbYuZAw7gjbzlc7YMgW8AAAAIs4eGe6SCKTQi0wAn8imGmk]",
-			envelope: {
-				from: "tag-sMreGDDN5s9e7eTX-cxXG@dev.lostnrecover.me",
-				to: [	"seb@z720.net" ], },
-			messageId: "<4fd9d2e1-ef01-efd5-04d6-a63ee1743dd4@dev.lostnrecover.me>" } */
-		logger.debug({...res, msg: 'SendMail result', msgID});
-		if (!res) {
+		try {
+			res = await mailer(email);
+			/* Res example
+			{	accepted: [	"seb@z720.net"], rejected: [],
+				envelopeTime: 71, messageTime: 81, messageSize: 1637,
+				response: "250 Accepted [STATUS=new MSGID=Y-DqFykOP3YSqbYuZAw7gjbzlc7YMgW8AAAAIs4eGe6SCKTQi0wAn8imGmk]",
+				envelope: {
+					from: "tag-sMreGDDN5s9e7eTX-cxXG@dev.lostnrecover.me",
+					to: [	"seb@z720.net" ], },
+				messageId: "<4fd9d2e1-ef01-efd5-04d6-a63ee1743dd4@dev.lostnrecover.me>" } */
+			logger.debug({...res, msg: 'SendMail result', msgID});
+		} catch (error) {
 			update(msgID, { status: 'error', response: res.repsonse });
 			return false;
 		}

@@ -3,6 +3,7 @@ import { htmlToText } from 'nodemailer-html-to-text';
 import { EXCEPTIONS, throwWithData } from '../services/exceptions.js';
 import { templateGlobalContext } from './templating.js';
 import Handlebars from 'handlebars';
+import { nanoid } from 'nanoid';
 
 let transport = false;
 // https://www.npmjs.com/package/html-to-text
@@ -71,7 +72,8 @@ export async function getMailer(config, logger) {
 			subject: `${config.appName}: ${message.subject || 'Notification'}`, //`Lost n Found: Instructions for ${tag.name} (${tag._id})`,
 			html: mailBody,
 			headers: {
-				'X-appName': `${config.appName}`
+				'X-appName': `${config.appName}`,
+				'Resend-Idempotency-Key': message._id,
 			}
 		};
 		// if(message.reference) {
@@ -88,7 +90,12 @@ export async function getMailer(config, logger) {
 				email.replyTo = message.from;
 			}
 		}
-		res = await transport.sendMail(email);
+		try {
+			res = await transport.sendMail(email);
+		} catch (error) {
+			logger.error({ function: 'sendMail', error});
+			throw error;
+		}
 		logger.debug({ function: 'sendmail', res });
 		return res;
 	};
